@@ -7,20 +7,18 @@ import { TransactionRunner } from './services/transactions/TransactionManager.se
 
 @Global()
 @Module({
-    imports: [TypeOrmModule.forFeature([])],
-    providers: [
-        ApiConfigService,
-        ConfigService,
-        DbTransactionFactory,
-        TransactionRunner,
-    ],
-    exports: [
-        ApiConfigService,
-        ConfigService,
-        DbTransactionFactory,
-        TransactionRunner,
-    ],
+  imports: [TypeOrmModule.forFeature([])],
+  providers: [
+    ApiConfigService,
+    ConfigService,
+    DbTransactionFactory,
+    TransactionRunner,
+  ],
+  exports: [
+    ApiConfigService,
+    ConfigService,
+    DbTransactionFactory,
+    TransactionRunner,
+  ],
 })
-
-export class SharedModule {};
-
+export class SharedModule {}
