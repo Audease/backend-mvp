@@ -3,7 +3,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-//   OneToOne,
+  //   OneToOne,
 } from 'typeorm';
 
 @Entity('colleges')
