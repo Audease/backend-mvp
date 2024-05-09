@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import env from './shared/config/env';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { SharedModule } from './shared/shared.module';
@@ -16,6 +17,13 @@ import { ApiConfigService } from './shared/services/api-config.service';
       useFactory: (configService: ApiConfigService) =>
         configService.TypeormConfig,
       inject: [ApiConfigService],
+    }),
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        config: { url: configService.getOrThrow('REDIS_URL') },
+      }),
     }),
     ThrottlerModule.forRoot([
       {

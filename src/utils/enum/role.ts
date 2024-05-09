@@ -1,0 +1,6 @@
+export enum Role {
+  COLLEGE_ADMIN = 'COLLEGE_ADMIN',
+  STUDENT = 'STUDENT',
+  PARENT = 'PARENT',
+  ADMIN = 'ADMIN',
+}
