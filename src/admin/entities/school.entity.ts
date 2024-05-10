@@ -3,11 +3,13 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  //   OneToOne,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Admin } from './admin.entity';
 
 @Entity('colleges')
-export class College {
+export class School {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -37,6 +39,10 @@ export class College {
 
   @Column('varchar', { length: 255, nullable: false })
   state: string;
+
+  @OneToOne(() => Admin, (admin) => admin.college)
+  @JoinColumn()
+  admin: Admin;
 
   @CreateDateColumn({
     type: 'timestamp',

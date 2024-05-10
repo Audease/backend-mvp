@@ -3,8 +3,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  OneToOne,
 } from 'typeorm';
-// import { College } from './college.entity';
+import { School } from './school.entity';
 import { Role } from '../../utils/enum/role';
 
 @Entity('admins')
@@ -18,6 +19,9 @@ export class Admin {
   @Column('varchar', { length: 255, nullable: false })
   last_name: string;
 
+  @Column('varchar', { length: 255, nullable: false })
+  username: string;
+
   @Column('varchar', { length: 255, nullable: false, unique: true })
   email: string;
 
@@ -29,6 +33,9 @@ export class Admin {
 
   @Column('enum', { enum: Role, nullable: false })
   role: Role.COLLEGE_ADMIN;
+
+  @OneToOne(() => School, (school) => school.admin)
+  college: School;
 
   @CreateDateColumn()
   createdAt: Date;
