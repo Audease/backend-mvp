@@ -1,15 +1,15 @@
 import {
-  Column,
+  ManyToOne,
   Entity,
+  Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  OneToOne,
 } from 'typeorm';
-import { School } from './school.entity';
 import { Role } from '../../utils/enum/role';
+import { School } from '../../shared/entities/school.entity';
 
-@Entity('admins')
-export class Admin {
+@Entity('users')
+export class Users {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -31,12 +31,23 @@ export class Admin {
   @Column('varchar', { length: 255, nullable: false })
   phone: string;
 
-  @Column('enum', { enum: Role, nullable: false })
-  role: Role.COLLEGE_ADMIN;
+  @Column('enum', { nullable: false })
+  role: Role;
 
-  @OneToOne(() => School, (school) => school.admin)
-  college: School;
+  @ManyToOne(() => School, (school) => school.users)
+  school: School;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @CreateDateColumn({
+    nullable: false,
+    default: () => 'CURRENT_TIMESTAMP',
+    name: 'created_at',
+  })
+  created_at: Date;
+
+  @CreateDateColumn({
+    nullable: false,
+    default: () => 'CURRENT_TIMESTAMP',
+    name: 'updated_at',
+  })
+  updated_at: Date;
 }

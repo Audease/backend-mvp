@@ -12,11 +12,14 @@ export class CreateAdminDto {
   username: string;
 
   @IsString()
+  phone: string
+
+  @IsString()
   email: string;
 
   @IsString()
   password: string;
 
   @IsString()
-  role: Role.COLLEGE_ADMIN;
+  role: Role.SCHOOL_ADMIN;
 }
