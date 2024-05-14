@@ -23,7 +23,7 @@ jobs:
     - name: Setup node
       uses: actions/setup-node@v4
       with:
-        node-version: 20.0.x
+        node-version: 20.9.0.x
         cache: npm
 
     - name: Install
@@ -36,6 +36,8 @@ jobs:
         yarn run test:cov
 
   push_to_github_registry:
+    if: github.ref == 'refs/heads/dev' || github.event.pull_request.base.ref == 'dev'
+    needs: ['test']
     runs-on: ubuntu-latest
 
     steps:
