@@ -31,7 +31,7 @@ export class Users {
   @Column('varchar', { length: 255, nullable: false })
   phone: string;
 
-  @Column('enum', { nullable: false })
+  @Column({type: "enum", enum: Role, default: Role.NONE})
   role: Role;
 
   @ManyToOne(() => School, (school) => school.users)

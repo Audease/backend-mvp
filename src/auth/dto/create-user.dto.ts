@@ -1,7 +1,7 @@
 import { IsString } from "class-validator";
 import { Role } from "../../utils/enum/role";
 
-export class CreateAdminDto {
+export class CreateUserDto {
   @IsString()
   first_name: string;
 
@@ -21,5 +21,5 @@ export class CreateAdminDto {
   password: string;
 
   @IsString()
-  role: Role.SCHOOL_ADMIN;
+  role: Role;
 }

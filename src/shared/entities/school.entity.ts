@@ -34,7 +34,7 @@ export class School {
   @Column('varchar', { length: 255, nullable: false })
   state: string;
 
-  @Column('enum', {default: RegistrationStatus.IN_PROGRESS})
+  @Column({ type: 'enum', enum: RegistrationStatus, default: RegistrationStatus.IN_PROGRESS })
   status: RegistrationStatus;
 
   @OneToMany(() => Users, (users) => users.school)
