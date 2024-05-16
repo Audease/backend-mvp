@@ -14,7 +14,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   TEST_DB_HOST: localhost
   TEST_DB_USER: ${{ secrets.DATABASE_USERNAME_TEST }}
-  TEST_DB_PASSWORD: ${{ secrets.DATABASE_PASSWORD_TEST }}
+  TEST_DB_PASSWORD: teslim@123 #${{ secrets.DATABASE_PASSWORD_TEST }}
   TEST_DB_NAME: ${{ secrets.DATABASE_NAME_TEST }}
   TEST_DB_PORT: 5432
 
