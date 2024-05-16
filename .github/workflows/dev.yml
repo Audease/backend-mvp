@@ -14,7 +14,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   TEST_DB_HOST: localhost
   TEST_DB_USER: ${{ secrets.DATABASE_USERNAME_TEST }}
-  TEST_DB_PASSWORD: teslim@123 #${{ secrets.DATABASE_PASSWORD_TEST }}
+  TEST_DB_PASSWORD: ${{ secrets.DATABASE_PASSWORD_TEST }}
   TEST_DB_NAME: ${{ secrets.DATABASE_NAME_TEST }}
   TEST_DB_PORT: 5432
 
@@ -57,11 +57,16 @@ jobs:
         yarn run test:e2e
         yarn run test:cov
       env:
-        DB_HOST: ${{ env.TEST_DB_HOST }}
-        DB_USER: ${{ env.TEST_DB_USER }}
-        DB_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
-        DB_NAME: ${{ env.TEST_DB_NAME }}
-        DB_PORT: ${{ env.TEST_DB_PORT }}
+        TEST_DB_HOST: localhost
+        TEST_DB_USER: ${{ secrets.DATABASE_USERNAME_TEST }}
+        TEST_DB_PASSWORD: ${{ secrets.DATABASE_PASSWORD_TEST }}
+        TEST_DB_NAME: ${{ secrets.DATABASE_NAME_TEST }}
+        TEST_DB_PORT: 5432
+        # DB_HOST: ${{ env.TEST_DB_HOST }}
+        # DB_USER: ${{ env.TEST_DB_USER }}
+        # DB_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
+        # DB_NAME: ${{ env.TEST_DB_NAME }}
+        # DB_PORT: ${{ env.TEST_DB_PORT }}
 
     # - name: Teardown Test Database
     #   if: always()
