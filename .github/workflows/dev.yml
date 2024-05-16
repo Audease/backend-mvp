@@ -46,10 +46,10 @@ jobs:
     - name: Install
       run: yarn install
 
-    - name: Prepare Database
-      run: |
-        yarn run db:migrate
-        yarn run db:seed
+    # - name: Prepare Database
+    #   run: |
+    #     yarn run db:migrate
+    #     yarn run db:seed
 
     - name: Run JS test
       run: |
