@@ -24,15 +24,22 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres
         env:
-          POSTGRES_USER: ${{ secrets.DATABASE_USERNAME_TEST }}
-          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD_TEST }}
-          POSTGRES_DB: ${{ secrets.DATABASE_NAME_TEST }}
+          POSTGRES_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         ports:
-        - 5432:5432
-        # options: >-
-        #   --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5 #magic___^_^___line
+          - 5432:5432
+
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -45,35 +52,26 @@ jobs:
 
     - name: Install
       run: yarn install
-
-    # - name: Prepare Database
-    #   run: |
-    #     yarn run db:migrate
-    #     yarn run db:seed
+    
+    - name: Connect to PostgreSQL
+      run: node client.js
+      env:
+          # The hostname used to communicate with the PostgreSQL service container
+        POSTGRES_HOST: ${{ env.TEST_DB_HOST }} #postgres
+          # The default PostgreSQL port
+        POSTGRES_PORT: 5432
 
     - name: Run JS test
+      env:
+        DB_HOST: ${{ env.TEST_DB_HOST }}
+        DB_USER: ${{ env.TEST_DB_USER }}
+        DB_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
+        DB_NAME: ${{ env.TEST_DB_NAME }}
+        DB_PORT: ${{ env.TEST_DB_PORT }}
       run: |
         yarn run test
         yarn run test:e2e
         yarn run test:cov
-      env:
-        TEST_DB_HOST: localhost
-        TEST_DB_USER: ${{ secrets.DATABASE_USERNAME_TEST }}
-        TEST_DB_PASSWORD: ${{ secrets.DATABASE_PASSWORD_TEST }}
-        TEST_DB_NAME: ${{ secrets.DATABASE_NAME_TEST }}
-        TEST_DB_PORT: 5432
-        # DB_HOST: ${{ env.TEST_DB_HOST }}
-        # DB_USER: ${{ env.TEST_DB_USER }}
-        # DB_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
-        # DB_NAME: ${{ env.TEST_DB_NAME }}
-        # DB_PORT: ${{ env.TEST_DB_PORT }}
-
-    # - name: Teardown Test Database
-    #   if: always()
-    #   run: |
-    #     psql -h ${{ env.TEST_DB_HOST }} -U ${{ env.TEST_DB_USER }} -d postgres -c "DROP DATABASE ${{ env.TEST_DB_NAME }};"
-    #   env:
-    #     PGPASSWORD: ${{ env.TEST_DB_PASSWORD }}
 
   push_to_github_registry:
     if: github.ref == 'refs/heads/dev' || github.event.pull_request.base.ref == 'dev'
