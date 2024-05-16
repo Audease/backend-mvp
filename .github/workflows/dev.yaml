@@ -53,13 +53,13 @@ jobs:
     - name: Install
       run: yarn install
     
-    - name: Connect to PostgreSQL
-      run: node client.js
-      env:
-          # The hostname used to communicate with the PostgreSQL service container
-        POSTGRES_HOST: ${{ env.TEST_DB_HOST }} #postgres
-          # The default PostgreSQL port
-        POSTGRES_PORT: 5432
+    # - name: Connect to PostgreSQL
+    #   run: node client.js
+    #   env:
+    #       # The hostname used to communicate with the PostgreSQL service container
+    #     POSTGRES_HOST: ${{ env.TEST_DB_HOST }} #postgres
+    #       # The default PostgreSQL port
+    #     POSTGRES_PORT: 5432
 
     - name: Run JS test
       env:
