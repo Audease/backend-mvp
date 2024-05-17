@@ -14,61 +14,53 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Label of the runner job
   runner-job:
-    # You must use a Linux environment when using service containers or container jobs
     runs-on: ubuntu-latest
 
-    # Service containers to run with `runner-job`
     services:
-      # Label used to access the service container
       postgres:
-        # Docker Hub image
         image: postgres
-        # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
-          # Maps tcp port 5432 on service container to the host
           - 5432:5432
 
       redis:
         image: redis
         ports:
         - 6379:6379
+
   test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup node
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
-        cache: npm
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
 
-    - name: Install
-      run: yarn install
+      - name: Install
+        run: yarn install
 
-    - name: Run JS test
-      env:
-        DATABASE_HOST_TEST: localhost
-        DATABASE_USERNAME_TEST: postgres
-        DATABASE_PASSWORD_TEST: postgres 
-        DATABASE_NAME_TEST: postgres
-        DATABASE_PORT_TEST: 5432
-      run: |
-        yarn run test
-        yarn run test:e2e
-        yarn run test:cov
+      - name: Run JS test
+        env:
+          DATABASE_HOST_TEST: localhost
+          DATABASE_USERNAME_TEST: postgres
+          DATABASE_PASSWORD_TEST: postgres 
+          DATABASE_NAME_TEST: postgres
+          DATABASE_PORT_TEST: 5432
+        run: |
+          yarn run test
+          yarn run test:e2e
+          yarn run test:cov
 
   push_to_github_registry:
     if: github.ref == 'refs/heads/dev' || github.event.pull_request.base.ref == 'dev'
