@@ -13,7 +13,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   TEST_DB_HOST: localhost
-  TEST_DB_USER: postres #${{ secrets.DATABASE_USERNAME_TEST }}
+  TEST_DB_USER: postgres #${{ secrets.DATABASE_USERNAME_TEST }}
   TEST_DB_PASSWORD: ${{ secrets.DATABASE_PASSWORD_TEST }}
   TEST_DB_NAME: audease_test #${{ secrets.DATABASE_NAME_TEST }}
   TEST_DB_PORT: 5432
