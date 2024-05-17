@@ -16,7 +16,7 @@ export const getFakeUser = (): Users => {
     role: Role.SCHOOL_ADMIN,
     created_at: faker.date.past(),
     updated_at: faker.date.recent(),
-    school: getFakeSchool(),
+    school: null,
   };
 };
 
@@ -36,7 +36,7 @@ export const getFakeSchool = (): School => {
       RegistrationStatus.IN_PROGRESS,
       RegistrationStatus.COMPLETED,
     ]),
-    users: getFakeUser(),
+    users: null,
     created_at: faker.date.past(),
     updated_at: faker.date.recent(),
   };

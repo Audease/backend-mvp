@@ -5,18 +5,17 @@ import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { Role } from '../utils/enum/role';
-import { Faker } from '@faker-js/faker';
+import { v4 as uuidv4 } from 'uuid';
+import { faker } from '@faker-js/faker';
 import { getFakeSchool, getFakeUser } from '../../test/test.helper';
 
 
 
 describe('UserService', () => {
     let service: UserService;
-    let faker: Faker;
     let repository: Repository<Users>;
-    const getUser = getFakeUser();
     const getSchool = getFakeSchool();
-    const userId = faker.string.uuid();
+    let userId = uuidv4();
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -37,7 +36,7 @@ describe('UserService', () => {
         it('should create a new user', async () => {
             const createUserDto: CreateUserDto = {
                 username: 'johndoe.college.admin',
-                email: faker.internet.email({ firstName: 'John', lastName: 'Doe', provider: 'example.com'}),
+                email: "johndoe@example.com",
                 password: faker.lorem.word(),
                 role: Role.SCHOOL_ADMIN,
                 phone: faker.phone.number(),
@@ -48,7 +47,7 @@ describe('UserService', () => {
             const createdUser: Users = {
                 id: userId,
                 username: 'johndoe.college.admin',
-                email: faker.internet.email({ firstName: 'John', lastName: 'Doe', provider: 'example.com'}),
+                email: "johndoe@example.com",
                 password: faker.lorem.word(),
                 role: Role.SCHOOL_ADMIN,
                 phone: faker.phone.number(),
@@ -92,7 +91,7 @@ describe('UserService', () => {
             const user: Users = {
                 id: userId,
                 username: 'johndoe.college.admin',
-                email: faker.internet.email({ firstName: 'John', lastName: 'Doe', provider: 'example.com'}),
+                email: "johndoe@example.com",
                 password: faker.lorem.word(),
                 role: Role.SCHOOL_ADMIN,
                 phone: faker.phone.number(),
