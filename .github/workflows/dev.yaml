@@ -12,30 +12,38 @@ env:
   FORCE_COLOR: 3
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  TEST_DB_HOST: localhost
-  TEST_DB_USER: postgres #${{ secrets.DATABASE_USERNAME_TEST }}
-  TEST_DB_PASSWORD: ${{ secrets.DATABASE_PASSWORD_TEST }}
-  TEST_DB_NAME: audease_test #${{ secrets.DATABASE_NAME_TEST }}
-  TEST_DB_PORT: 5432
 
 jobs:
-  test:
+  # Label of the runner job
+  runner-job:
+    # You must use a Linux environment when using service containers or container jobs
     runs-on: ubuntu-latest
 
+    # Service containers to run with `runner-job`
     services:
+      # Label used to access the service container
       postgres:
+        # Docker Hub image
         image: postgres
+        # Provide the password for postgres
         env:
-          POSTGRES_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
         options: >-
-          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         ports:
-        - 5432:5432
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
 
       redis:
         image: redis
         ports:
         - 6379:6379
+  test:
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
@@ -50,21 +58,13 @@ jobs:
     - name: Install
       run: yarn install
 
-    # - name: Connect to PostgreSQL
-    #   run: node client.js
-    #   env:
-    #       # The hostname used to communicate with the PostgreSQL service container
-    #     POSTGRES_HOST: ${{ env.TEST_DB_HOST }} #postgres
-    #       # The default PostgreSQL port
-    #     POSTGRES_PORT: 5432
-
     - name: Run JS test
       env:
-        DATABASE_HOST_TEST: ${{ env.TEST_DB_HOST }}
-        DATABASE_USERNAME_TEST: ${{ env.TEST_DB_USER }}
-        DATABASE_PASSWORD_TEST: ${{ env.TEST_DB_PASSWORD }}
-        DATABASE_NAME_TEST: ${{ env.TEST_DB_NAME }}
-        DATABASE_PORT_TEST: ${{ env.TEST_DB_PORT }}
+        DATABASE_HOST_TEST: localhost
+        DATABASE_USERNAME_TEST: postgres
+        DATABASE_PASSWORD_TEST: postgres 
+        DATABASE_NAME_TEST: postgres
+        DATABASE_PORT_TEST: 5432
       run: |
         yarn run test
         yarn run test:e2e
