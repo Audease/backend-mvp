@@ -63,11 +63,11 @@ jobs:
 
     - name: Run JS test
       env:
-        DB_HOST: ${{ env.TEST_DB_HOST }}
-        DB_USER: ${{ env.TEST_DB_USER }}
-        DB_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
-        DB_NAME: ${{ env.TEST_DB_NAME }}
-        DB_PORT: ${{ env.TEST_DB_PORT }}
+        DATABASE_HOST_TEST: ${{ env.TEST_DB_HOST }}
+        DATABASE_USERNAME_TEST: ${{ env.TEST_DB_USER }}
+        DATABASE_PASSWORD_TEST: ${{ env.TEST_DB_PASSWORD }}
+        DATABASE_NAME_TEST: ${{ env.TEST_DB_NAME }}
+        DATABASE_PORT_TEST: ${{ env.TEST_DB_PORT }}
       run: |
         yarn run test
         yarn run test:e2e
