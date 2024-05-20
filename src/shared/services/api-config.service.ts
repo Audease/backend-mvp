@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { School } from '../../shared/entities/school.entity';
 import { Users } from '../../users/entities/user.entity';
+import { Roles } from '../entities/role.entity';
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import type { dbConfigs } from '../types/dbConfig';
 
@@ -19,6 +20,7 @@ export class ApiConfigService {
       entities: [
         School,
         Users,
+        Roles,
       ],
       migrationsRun: true,
       username,

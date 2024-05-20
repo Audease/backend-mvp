@@ -18,7 +18,15 @@
     "test:watch": "yarn test --watch",
     "test:cov": "yarn test --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:integration": "cross-env NODE_ENV=test yarn run migration:run && yarn run test:e2e",
+    "typeorm": "ts-node ./node_modules/typeorm/cli",
+    "migration:run": "yarn typeorm migration:run -- -d ./src/database/ormconfig.ts",
+    "migration:generate": "yarn run typeorm -- -d ./src/database/ormconfig.ts migration:generate ./src/migrations/$npm_config_name",
+    "migration:create": "yarn run typeorm -- migration:create ./src/database/migrations/$1",
+    "migration:revert": "yarn run typeorm -- -d ./src/config/typeorm.ts migration:revert",
+    "schema:sync": "yarn run typeorm schema:sync",
+    "schema:drop": "yarn run typeorm schema:drop"
   },
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
