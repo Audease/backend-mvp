@@ -15,7 +15,7 @@ services:
   plan: free
   branch: dev
   rootDir: .
-  dockerCommand: Dockerfile
+#   dockerCommand: Dockerfile
   numInstances: 1
 #   healthCheckPath: /health/nestjs-docs
   envVars:
