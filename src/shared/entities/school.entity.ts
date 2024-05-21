@@ -1,13 +1,19 @@
 import { RegistrationStatus } from '../../utils/enum/registration_status';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Users } from '../../users/entities/user.entity';
 
 @Entity('school')
 export class School {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column('varchar', { length: 255, nullable: false, unique: true })
+  @Column('varchar', { length: 255, nullable: false, unique: true })
   name: string;
 
   @Column('integer', { nullable: false })
@@ -34,13 +40,16 @@ export class School {
   @Column('varchar', { length: 255, nullable: false })
   state: string;
 
-  @Column({ type: 'enum', enum: RegistrationStatus, default: RegistrationStatus.IN_PROGRESS })
+  @Column({
+    type: 'enum',
+    enum: RegistrationStatus,
+    default: RegistrationStatus.IN_PROGRESS,
+  })
   status: RegistrationStatus;
 
   @OneToMany(() => Users, (users) => users.school)
-  users: Users
-  
-  
+  users: Users[];
+
   @CreateDateColumn({
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',

@@ -6,12 +6,12 @@ import {
   import { ConfigService } from '@nestjs/config';
   import { PassportStrategy } from '@nestjs/passport';
   import { ExtractJwt, Strategy } from 'passport-jwt';
-//   import { UserService } from '../user/user.service';
+  import { UserService } from '../users/users.service';
   
   @Injectable()
   export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     constructor(
-    //   public readonly userService: UserService,
+      public readonly userService: UserService,
       public readonly configService: ConfigService,
     ) {
       super({
@@ -21,18 +21,20 @@ import {
       });
     }
   
-//     async validate(payload: any) {
-//       if (Date.now() >= payload.exp * 1000) {
-//         throw new BadRequestException();
-//       }
+    async validate(payload: any) {
+      if (Date.now() >= payload.exp * 1000) {
+        throw new BadRequestException();
+      }
   
-//       const user = await this.userService.findById(payload.sub);
+      const user = await this.userService.findOne(payload.sub);
   
-//       if (!user) {
-//         throw new UnauthorizedException();
-//       }
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+
+      const userRole = await this.userService.getRoleByUserId(user.id);
   
-//       return { ...user, roles: [user.role] };
-//     }
+      return { ...user, ...userRole, roles: [userRole.role] };
+    }
 }
   

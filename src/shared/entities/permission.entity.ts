@@ -1,33 +1,25 @@
-import { Role } from '../../utils/enum/role';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  PrimaryGeneratedColumn,
-  OneToOne,
-  JoinColumn,
   OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Users } from '../../users/entities/user.entity';
 import { RolePermission } from './rolepermission.entity';
 
-@Entity('roles')
-export class Roles {
+@Entity('permissions')
+export class Permissions {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('enum', { enum: Role, default: Role.NONE })
-  role: Role;
+  @Column('text')
+  name: string;
 
   @Column('text', { nullable: true })
   description: string;
 
-  @OneToMany(() => RolePermission, (rolePermission) => rolePermission.role)
+  @OneToMany(() => RolePermission, (rolePermission) => rolePermission.permission)
   rolePermission: RolePermission[];
-
-  @OneToOne(() => Users, (user) => user.role)
-  @JoinColumn()
-  user: Users;
 
   @CreateDateColumn({
     nullable: false,

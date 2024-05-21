@@ -4,9 +4,9 @@ import { Users } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
-import { Role } from '../utils/enum/role';
 import { v4 as uuidv4 } from 'uuid';
 import { faker } from '@faker-js/faker';
+import { Role } from '../utils/enum/role';
 import { getFakeSchool } from '../../test/test.helper';
 
 describe('UserService', () => {
@@ -39,7 +39,6 @@ describe('UserService', () => {
           provider: 'example.com',
         }),
         password: faker.lorem.word(),
-        role: Role.SCHOOL_ADMIN,
         phone: faker.phone.number(),
         first_name: 'John',
         last_name: 'Doe',
@@ -50,6 +49,16 @@ describe('UserService', () => {
         created_at: faker.date.past(),
         updated_at: faker.date.recent(),
         school: getFakeSchool(),
+        role: {
+          id: uuidv4(),
+          role: Role.SCHOOL_ADMIN,
+          description: faker.lorem.sentence(),
+          created_at: faker.date.past(),
+          updated_at: faker.date.recent(),
+          rolePermission: null,
+          user: null,
+        
+        },
         ...createUserDto,
       };
 
@@ -70,7 +79,15 @@ describe('UserService', () => {
           username: 'user1',
           email: faker.internet.email(),
           password: faker.lorem.word(),
-          role: Role.SCHOOL_ADMIN,
+          role: {
+            id: uuidv4(),
+            role: Role.SCHOOL_ADMIN,
+            description: faker.lorem.sentence(),
+            created_at: faker.date.past(),
+            updated_at: faker.date.recent(),
+            rolePermission: [],
+            user: null,
+          },
           phone: faker.phone.number(),
           first_name: 'User',
           last_name: 'One',
@@ -83,7 +100,16 @@ describe('UserService', () => {
           username: 'user2',
           email: faker.internet.email(),
           password: faker.lorem.word(),
-          role: Role.SCHOOL_ADMIN,
+          role: {
+            id: uuidv4(),
+            role: Role.SCHOOL_ADMIN,
+            description: faker.lorem.sentence(),
+            created_at: faker.date.past(),
+            updated_at: faker.date.recent(),
+            rolePermission: [],
+            user: null,
+          
+          },
           phone: faker.phone.number(),
           first_name: 'User',
           last_name: 'Two',
@@ -113,7 +139,15 @@ describe('UserService', () => {
           provider: 'example.com',
         }),
         password: faker.lorem.word(),
-        role: Role.SCHOOL_ADMIN,
+        role: {
+          id: uuidv4(),
+          role: Role.SCHOOL_ADMIN,
+          description: faker.lorem.sentence(),
+          created_at: faker.date.past(),
+          updated_at: faker.date.recent(),
+          rolePermission: [],
+          user: null,
+        },
         phone: faker.phone.number(),
         first_name: 'John',
         last_name: 'Doe',
@@ -148,7 +182,15 @@ describe('UserService', () => {
           provider: 'example.com',
         }),
         password: faker.lorem.word(),
-        role: Role.SCHOOL_ADMIN,
+        role: {
+          id: uuidv4(),
+          role: Role.SCHOOL_ADMIN,
+          description: faker.lorem.sentence(),
+          created_at: faker.date.past(),
+          updated_at: faker.date.recent(),
+          rolePermission: [],
+          user: null,
+        },
         phone: faker.phone.number(),
         first_name: 'John',
         last_name: 'Doe',

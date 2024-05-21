@@ -1,5 +1,5 @@
 import { IsString } from "class-validator";
-import { Role } from "../../utils/enum/role";
+
 
 export class CreateUserDto {
   @IsString()
@@ -20,6 +20,4 @@ export class CreateUserDto {
   @IsString()
   password: string;
 
-  @IsString()
-  role: Role;
 }

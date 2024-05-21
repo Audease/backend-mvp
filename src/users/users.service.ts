@@ -1,4 +1,5 @@
 import { Users } from "./entities/user.entity";
+import { Roles } from "../shared/entities/role.entity";
 import { Repository } from "typeorm"
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreateUserDto } from "../auth/dto/create-user.dto";
@@ -8,7 +9,9 @@ import { Injectable } from "@nestjs/common";
 export class UserService {
     constructor(
         @InjectRepository(Users)
-        private readonly userRepository: Repository<Users>
+        @InjectRepository(Roles)
+        private readonly userRepository: Repository<Users>,
+        private readonly roleRepository: Repository<Roles>
     ) {}
     
     async create(createUserDto: CreateUserDto): Promise<Users> {
@@ -30,5 +33,13 @@ export class UserService {
         return await this.userRepository.findOne({
             where: { id }
         });
+    }
+
+    // Get a users role by their id using a query builder
+    async getRoleByUserId(id: string): Promise<Roles> {
+        return await this.roleRepository.createQueryBuilder('roles')
+            .leftJoinAndSelect('roles.user', 'user')
+            .where('user.id = :id', { id })
+            .getOne();
     }
 }

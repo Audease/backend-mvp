@@ -1,11 +1,12 @@
 import {
+  OneToOne,
   ManyToOne,
   Entity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
 } from 'typeorm';
-import { Role } from '../../utils/enum/role';
+import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
 
 @Entity('users')
@@ -31,8 +32,8 @@ export class Users {
   @Column('varchar', { length: 255, nullable: false })
   phone: string;
 
-  @Column({type: "enum", enum: Role, default: Role.NONE})
-  role: Role;
+  @OneToOne(() => Roles, (role) => role.id, { cascade: true })
+  role: Roles;
 
   @ManyToOne(() => School, (school) => school.users)
   school: School;
