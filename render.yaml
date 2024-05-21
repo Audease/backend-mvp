@@ -1,0 +1,56 @@
+services:
+- type: redis
+  name: audease-dev-redis
+  ipAllowList: [] # only allow internal connections
+  region: ohio
+  plan: free
+  maxmemoryPolicy: allkeys-lru # default value
+
+  # Dockerized web service
+- type: web
+  name: audease-dev
+  runtime: docker
+  repo: https://github.com/Audease/backend-mvp.git
+  region: ohio
+  plan: free
+  branch: dev
+  rootDir: .
+  dockerCommand: Dockerfile
+  numInstances: 1
+#   healthCheckPath: /health/nestjs-docs
+  envVars:
+  - key: REDIS_HOST
+    fromService:
+      type: redis
+      name: audease-dev-redis
+      property: host
+  - key: REDIS_PORT
+    fromService:
+      type: redis
+      name: audease-dev-redis
+      property: port
+  - key: POSTGRES_USER
+    fromDatabase:
+      name: audease-psql-db
+      property: user
+  - key: POSTGRES_PASSWORD
+    fromDatabase:
+      name: audease-psql-db
+      property: password
+  - key: POSTGRES_DB
+    fromDatabase:
+      name: audease-psql-db
+      property: database
+  - key: DATABASE_URL
+    fromDatabase:
+      name: audease-psql-db
+      property: connectionString
+  - fromGroup: audease-dev-env
+
+databases:
+- name: audease-psql-db
+  region: ohio
+  plan: free
+  databaseName: audeasedevdb
+  user: audease
+  ipAllowList: []
