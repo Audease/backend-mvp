@@ -19,13 +19,7 @@ export class ApiConfigService {
     return {
       type: 'postgres',
       migrations: [],
-      entities: [
-        School,
-        Users,
-        Roles,
-        RolePermission,
-        Permissions,
-      ],
+      entities: [School, Users, Roles, RolePermission, Permissions],
       migrationsRun: true,
       username,
       password,

@@ -57,7 +57,6 @@ describe('UserService', () => {
           updated_at: faker.date.recent(),
           rolePermission: null,
           user: null,
-        
         },
         ...createUserDto,
       };
@@ -108,7 +107,6 @@ describe('UserService', () => {
             updated_at: faker.date.recent(),
             rolePermission: [],
             user: null,
-          
           },
           phone: faker.phone.number(),
           first_name: 'User',

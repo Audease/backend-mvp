@@ -18,7 +18,10 @@ export class Permissions {
   @Column('text', { nullable: true })
   description: string;
 
-  @OneToMany(() => RolePermission, (rolePermission) => rolePermission.permission)
+  @OneToMany(
+    () => RolePermission,
+    (rolePermission) => rolePermission.permission,
+  )
   rolePermission: RolePermission[];
 
   @CreateDateColumn({
