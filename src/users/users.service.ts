@@ -46,4 +46,12 @@ export class UserService {
       .where('user.id = :id', { id })
       .getOne();
   }
+
+  // Get a role by the role id using a query builder
+  async getRoleById(id: string): Promise<Roles> {
+    return await this.roleRepository
+      .createQueryBuilder('roles')
+      .where('roles.id = :id', { id })
+      .getOne();
+  }
 }

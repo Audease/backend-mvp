@@ -2,7 +2,16 @@ import { IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateSchoolDto {
   @IsString()
-  name: string;
+  college_name: string;
+
+  @IsString()
+  first_name: string;
+
+  @IsString()
+  last_name: string;
+
+  @IsString()
+  email: string;
 
   @IsNumber()
   no_of_employee: number;

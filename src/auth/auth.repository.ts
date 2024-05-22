@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateSchoolDto } from './dto/create-school.dto';
 
 @Injectable()
-export class SchoolService {
+export class AuthRepository {
   constructor(
     @InjectRepository(School)
     private readonly schoolRepository: Repository<School>,
@@ -15,8 +15,8 @@ export class SchoolService {
 
   async create(createSchoolDto: CreateSchoolDto): Promise<School> {
     const school = new School();
-    school.name = createSchoolDto.name;
-    school.users = await this.userService.findAll();
+    school.name = createSchoolDto.college_name;
+    // school.users = await this.userService.findAll();
     return await this.schoolRepository.save(school);
   }
 
