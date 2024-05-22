@@ -1,6 +1,6 @@
 import { IsString, IsNumber, IsOptional } from 'class-validator';
 
-export class AddCollegeDto {
+export class CreateSchoolDto {
   @IsString()
   name: string;
 
