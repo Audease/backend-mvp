@@ -3,7 +3,8 @@ import { UserService } from '../users/users.service';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
-import { CreateSchoolDto } from './dto/create-school.dto';
+// import { CreateSchoolDto } from './dto/create-school.dto';
+import { SchoolSchema } from './auth.interface';
 
 @Injectable()
 export class AuthRepository {
@@ -13,9 +14,9 @@ export class AuthRepository {
     private readonly userService: UserService,
   ) {}
 
-  async create(createSchoolDto: CreateSchoolDto): Promise<School> {
+  async create(createSchoolDto: SchoolSchema): Promise<School> {
     const school = new School();
-    school.name = createSchoolDto.college_name;
+    school.college_name = createSchoolDto.college_name;
     // school.users = await this.userService.findAll();
     return await this.schoolRepository.save(school);
   }

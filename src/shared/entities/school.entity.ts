@@ -14,7 +14,7 @@ export class School {
   id: string;
 
   @Column('varchar', { length: 255, nullable: false, unique: true })
-  name: string;
+  college_name: string;
 
   @Column('integer', { nullable: false })
   no_of_employee: number;
