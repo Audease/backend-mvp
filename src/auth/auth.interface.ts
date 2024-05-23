@@ -2,6 +2,7 @@ import { RegistrationStatus } from '../utils/enum/registration_status';
 
 export interface ISchoolCreate {
   message: string;
+  keyId: string;
 }
 
 export interface SchoolSchema {
