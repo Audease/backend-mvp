@@ -5,6 +5,12 @@ export interface ISchoolCreate {
   keyId: string;
 }
 
+export interface IUserCreate {
+  keyId: string;
+  username: string;
+  password: string;
+}
+
 export interface SchoolSchema {
   college_name: string;
   no_of_employee: number;
@@ -16,4 +22,14 @@ export interface SchoolSchema {
   post_code: string;
   state: string;
   status?: RegistrationStatus;
+}
+
+export interface UserSchema {
+  first_name: string;
+  last_name: string;
+  username: string;
+  phone: string;
+  email: string;
+  password: string;
+  role_id: string;
 }

@@ -33,10 +33,9 @@ export class AuthRepository {
   }
 
   // Update the registration status of the school using the school id
-  async updateStatus(id: string, status: RegistrationStatus ) {
+  async updateStatus(id: string, status: RegistrationStatus) {
     const school = await this.findOne(id);
     school.status = status;
     return await this.schoolRepository.save(school);
   }
-
 }

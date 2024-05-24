@@ -13,6 +13,9 @@ export class CreateSchoolDto {
   @IsString()
   email: string;
 
+  @IsString()
+  phone: string;
+
   @IsNumber()
   no_of_employee: number;
 

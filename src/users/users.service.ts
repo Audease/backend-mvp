@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { Injectable } from '@nestjs/common';
+import { UserSchema } from '../auth/auth.interface';
 
 @Injectable()
 export class UserService {
@@ -16,6 +17,17 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<Users> {
     return await this.userRepository.save(createUserDto);
+  }
+
+  // Write a query builder to create a user and relate them to the college_id
+  async createUserWithCollegeId(
+    createUser: UserSchema,
+    college_id: string,
+  ): Promise<Users> {
+    return await this.userRepository.save({
+      ...createUser,
+      college_id,
+    });
   }
 
   async findAll(): Promise<Users[]> {
