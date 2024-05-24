@@ -54,6 +54,7 @@ export class JwtAuthService {
       role_id: roleId,
       exp: moment(accessTokenExpires).unix(),
       iat: moment().unix(),
+      type: TokenType.ACCESS,
     });
 
     const refreshToken = await this.generateToken({
@@ -61,12 +62,13 @@ export class JwtAuthService {
       role_id: roleId,
       exp: moment(refreshTokenExpires).unix(),
       iat: moment().unix(),
+      type: TokenType.REFRESH,
     });
 
     await this.saveToken(
-      accessToken,
+      refreshToken,
       userId,
-      accessTokenExpires,
+      refreshTokenExpires,
       TokenType.REFRESH,
     );
 
@@ -99,6 +101,13 @@ export class JwtAuthService {
       throw new JsonWebTokenError('Invalid token');
     }
     return payload;
+  }
+
+  async invalidateToken(token: string) {
+    return this.tokenRepository.update(
+      { token },
+      { blacklisted: true, updatedAt: new Date() },
+    );
   }
 
   async getToken(token: string) {

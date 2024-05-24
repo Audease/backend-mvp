@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { Injectable } from '@nestjs/common';
 import { UserSchema } from '../auth/auth.interface';
+import { Role } from '../utils/enum/role';
 
 @Injectable()
 export class UserService {
@@ -50,6 +51,14 @@ export class UserService {
     });
   }
 
+  // Get a user by their username using a query builder
+  async getUserByUsername(username: string): Promise<Users> {
+    return await this.userRepository
+      .createQueryBuilder('users')
+      .where('users.username = :username', { username })
+      .getOne();
+  }
+
   // Get a users role by their id using a query builder
   async getRoleByUserId(id: string): Promise<Roles> {
     return await this.roleRepository
@@ -64,6 +73,14 @@ export class UserService {
     return await this.roleRepository
       .createQueryBuilder('roles')
       .where('roles.id = :id', { id })
+      .getOne();
+  }
+
+  // Get a role by the role name using a query builder
+  async getRoleByName(role: Role): Promise<Roles> {
+    return await this.roleRepository
+      .createQueryBuilder('roles')
+      .where('roles.role = :role', { role })
       .getOne();
   }
 }

@@ -1,3 +1,4 @@
+import { TokenType } from "../enum/token_type";
 export interface TokenResponse {
   access: {
     token: string;
@@ -12,6 +13,7 @@ export interface TokenResponse {
 export interface TokenPayload {
   sub: string;
   role_id: string;
+  type: TokenType;
   iat: number;
   exp: number;
 }
