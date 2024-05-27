@@ -31,6 +31,12 @@ export class AuthRepository {
     });
   }
 
+  async findSchool(name: string): Promise<School> {
+    return await this.schoolRepository.findOne({
+      where: { college_name: name },
+    });
+  }
+
   // Update the registration status of the school using the school id
   async updateStatus(id: string, status: RegistrationStatus) {
     const school = await this.findOne(id);

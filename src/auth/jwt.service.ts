@@ -106,7 +106,7 @@ export class JwtAuthService {
 
   async verifyRefreshToken(token: string) {
     const payload = this.jwtService.verify(token, {
-      secret: process.env.REFRESH_SECRET_TOKEN,
+      secret: process.env.JWT_SECRET,
     });
 
     const tokenExists = await this.getToken(token);

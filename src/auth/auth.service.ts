@@ -9,6 +9,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { ISchoolCreate, IUserCreate } from './auth.interface';
 import { Role } from '../utils/enum/role';
@@ -48,6 +49,16 @@ export class AuthService {
       phone,
     } = createSchoolDto;
 
+    // Check if the school already exists
+    const schoolExists = await this.authRepository.findSchool(college_name);
+
+    if (schoolExists) {
+      this.logger.error("School already exist")
+      throw new ConflictException("School already exists, contact support for any question")
+    }
+
+    
+
     const data = await this.authRepository.create({
       college_name,
       state,
@@ -60,6 +71,7 @@ export class AuthService {
       post_code,
       status: RegistrationStatus.IN_PROGRESS,
     });
+    
 
     const onboardingKey = uuid();
 
@@ -74,7 +86,7 @@ export class AuthService {
         college_id: data.id,
       }),
     );
-
+ 
     await this.mailService.sendTemplateMail(
       {
         to: email,
@@ -235,6 +247,69 @@ export class AuthService {
 
     return {
       token: newToken,
+    };
+  }
+
+  async initiatePasswordReset(email: string) {
+    const user = await this.userService.getUserByEmail(email);
+
+    if (!user) {
+      this.logger.error('Invalid email');
+      throw new NotFoundException('Invalid email');
+    }
+
+    const resetKey = crypto.randomBytes(30).toString('hex');
+
+    console.log(resetKey)
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetKey}`;
+
+    // Store the key on redis for 24 hours
+    await this.redis.set(resetKey, user.id, 'EX', 86400);
+
+
+    await this.mailService.sendTemplateMail(
+      {
+        to: email,
+        subject: 'Password Reset',
+      },
+      'password-reset',
+      {
+        resetUrl,
+      },
+    );
+
+    return {
+      message: 'Password reset initiated check your mail for further instructions',
+    };
+  }
+
+  async resetPassword(data: { token: string; password: string }) {
+    const { token, password } = data;
+
+    const userId = await this.redis.get(token);
+
+    if (!userId) {
+      this.logger.error('Invalid token');
+      throw new NotFoundException('Invalid token');
+    }
+
+    const user = await this.userService.findOne(userId);
+
+    if (!user) {
+      this.logger.error('Invalid user');
+      throw new NotFoundException('Invalid user');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await this.userService.update(user.id, { password: hashedPassword});
+
+    // Remove the key from redis
+    await this.redis.del(token);
+
+    return {
+      message: 'Password reset successfully',
     };
   }
 }

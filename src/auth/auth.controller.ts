@@ -8,10 +8,11 @@ import {
   Logger,
   UnauthorizedException,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { verifyDto, refreshTokenDto } from './dto/misc-dto';
+import { verifyDto, refreshTokenDto, initiateResetDto, resetPasswordDto } from './dto/misc-dto';
 import { LoginDto } from './dto/login-dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateSchoolDto } from './dto/create-school.dto';
@@ -73,7 +74,7 @@ export class AuthController {
       return await this.authService.refreshToken(refreshTokenDto.refreshToken);
     } catch (error) {
       this.logger.error(error.message);
-      throw new UnauthorizedException();
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -84,10 +85,29 @@ export class AuthController {
       return await this.authService.createSchool(createSchoolDto);
     } catch (error) {
       this.logger.error(error.message);
-      throw new HttpException(
-        'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new ConflictException(error.message)
+    }
+  }
+
+  @Post('initiate-reset')
+  @HttpCode(HttpStatus.OK)
+  async initiateReset(@Body() initiateResetDto: initiateResetDto) {
+    try {
+      return await this.authService.initiatePasswordReset(initiateResetDto.email);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new NotFoundException(error.message);
+    }
+  }
+  
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() resetPasswordDto: resetPasswordDto) {
+    try {
+      return await this.authService.resetPassword(resetPasswordDto);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new NotFoundException(error.message);
     }
   }
 }

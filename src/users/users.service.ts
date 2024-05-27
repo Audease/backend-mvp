@@ -74,6 +74,12 @@ export class UserService {
     return user.role;
   }
 
+  async getUserByEmail(email: string): Promise<Users> {
+    return await this.userRepository.findOne({
+      where: { email },
+    });
+  }
+
   // Get a role by the role id using a query builder
   async getRoleById(id: string): Promise<Roles> {
     return await this.roleRepository
