@@ -1,6 +1,7 @@
-import { Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, PrimaryGeneratedColumn, Entity } from 'typeorm';
 import { TokenType } from '../../utils/enum/token_type';
 
+@Entity('token')
 export class Token {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Resend } from 'resend';
-import path from 'path';
+import * as path from 'path';
 import { Logger } from '@nestjs/common';
-import fs from 'fs';
+import * as fs from 'fs';
 import { Mail } from '../../utils/interface/mail.interface';
 
 @Injectable()
@@ -11,12 +11,16 @@ export class MailService {
   private readonly logger = new Logger('MailService');
 
   private static getTemplateContent(templateName: string): string {
-    const dirName = process.cwd();
-    const templatePath = path.resolve(
-      dirName,
-      `./src/template/${templateName}.html`,
-    );
-    return fs.readFileSync(templatePath, 'utf8');
+    try {
+      const dirName = process.cwd();
+      const templatePath = path.resolve(
+        dirName,
+        `./src/template/${templateName}.html`,
+      );
+      return fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to read template file');
+    }
   }
 
   private static compileTemplate(
@@ -42,9 +46,8 @@ export class MailService {
         templateContent,
         data,
       );
-
       await this.resend.emails.send({
-        from: `Heirs of the Kingdom Chapel <${process.env.EMAIL_FROM}>`, // Replace with your actual email address
+        from: `Audease <${process.env.EMAIL_FROM}>`, // Replace with your actual email address
         to: mail.to,
         subject: mail.subject,
         html: compiledTemplate,

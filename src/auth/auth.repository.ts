@@ -16,9 +16,8 @@ export class AuthRepository {
   ) {}
 
   async create(createSchoolDto: SchoolSchema): Promise<School> {
-    const school = new School();
-    school.college_name = createSchoolDto.college_name;
-    // school.users = await this.userService.findAll();
+    // Save the school details to the database
+    const school = this.schoolRepository.create(createSchoolDto);
     return await this.schoolRepository.save(school);
   }
 

@@ -1,4 +1,5 @@
 import { RegistrationStatus } from '../utils/enum/registration_status';
+import { Roles } from '../shared/entities/role.entity';
 
 export interface ISchoolCreate {
   message: string;
@@ -31,5 +32,5 @@ export interface UserSchema {
   phone: string;
   email: string;
   password: string;
-  role_id: string;
+  role: Roles;
 }

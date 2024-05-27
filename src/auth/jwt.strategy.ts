@@ -32,7 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException();
     }
 
-    const userRole = await this.userService.getRoleByUserId(user.id);
+    const userRole = await this.userService.getUserRoleById(user.id);
 
     return { ...user, ...userRole, roles: [userRole.role] };
   }

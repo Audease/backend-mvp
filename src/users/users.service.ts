@@ -1,4 +1,5 @@
 import { Users } from './entities/user.entity';
+import { School } from '../shared/entities/school.entity';
 import { Roles } from '../shared/entities/role.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,9 +12,11 @@ import { Role } from '../utils/enum/role';
 export class UserService {
   constructor(
     @InjectRepository(Users)
-    @InjectRepository(Roles)
     private readonly userRepository: Repository<Users>,
+    @InjectRepository(Roles)
     private readonly roleRepository: Repository<Roles>,
+    @InjectRepository(School)
+    private readonly schoolRepository: Repository<School>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<Users> {
@@ -21,14 +24,17 @@ export class UserService {
   }
 
   // Write a query builder to create a user and relate them to the college_id
-  async createUserWithCollegeId(
-    createUser: UserSchema,
-    college_id: string,
-  ): Promise<Users> {
-    return await this.userRepository.save({
-      ...createUser,
-      college_id,
+  async createUserWithCollegeId(users: UserSchema, college_id: string) {
+    const college = await this.schoolRepository.findOne({
+      where: { id: college_id },
     });
+
+    const newUsers = this.userRepository.create({
+      ...users,
+      school: college,
+    });
+
+    return await this.userRepository.save(newUsers);
   }
 
   async findAll(): Promise<Users[]> {
@@ -59,13 +65,13 @@ export class UserService {
       .getOne();
   }
 
-  // Get a users role by their id using a query builder
-  async getRoleByUserId(id: string): Promise<Roles> {
-    return await this.roleRepository
-      .createQueryBuilder('roles')
-      .leftJoinAndSelect('roles.user', 'user')
-      .where('user.id = :id', { id })
-      .getOne();
+  async getUserRoleById(id: string): Promise<Roles> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['role'],
+    });
+
+    return user.role;
   }
 
   // Get a role by the role id using a query builder
@@ -83,4 +89,10 @@ export class UserService {
       .where('roles.role = :role', { role })
       .getOne();
   }
+
+  // async getRoleByName(role: Role): Promise<Roles> {
+  //   return await this.roleRepository.findOne({
+  //     where: { role },
+  //   });
+  // }
 }

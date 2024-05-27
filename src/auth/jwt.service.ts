@@ -8,7 +8,7 @@ import { TokenType } from '../utils/enum/token_type';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
-import moment from 'moment';
+import * as moment from 'moment';
 
 @Injectable()
 export class JwtAuthService {
@@ -82,6 +82,20 @@ export class JwtAuthService {
         expires: refreshTokenExpires,
       },
     };
+  }
+
+  async generateAccessToken(userId: string, roleId: string) {
+    const expiresIn = moment()
+      .add(process.env.JWT_ACCESS_EXPIRES_IN, 'minutes')
+      .toDate();
+
+    return this.generateToken({
+      sub: userId,
+      role_id: roleId,
+      exp: moment(expiresIn).unix(),
+      iat: moment().unix(),
+      type: TokenType.ACCESS,
+    });
   }
 
   async verifyAccessToken(token: string) {

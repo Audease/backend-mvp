@@ -4,11 +4,8 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  OneToOne,
-  JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { Users } from '../../users/entities/user.entity';
 import { RolePermission } from './rolepermission.entity';
 
 @Entity('roles')
@@ -24,10 +21,6 @@ export class Roles {
 
   @OneToMany(() => RolePermission, (rolePermission) => rolePermission.role)
   rolePermission: RolePermission[];
-
-  @OneToOne(() => Users, (user) => user.role)
-  @JoinColumn()
-  user: Users;
 
   @CreateDateColumn({
     nullable: false,

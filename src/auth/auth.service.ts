@@ -1,27 +1,35 @@
 import { AuthRepository } from './auth.repository';
 import { JwtAuthService } from './jwt.service';
-import { Redis } from 'ioredis';
+import { RedisService } from '../shared/services/redis.service';
 import { MailService } from '../shared/services/mail.service';
 import { UserService } from '../users/users.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { ISchoolCreate, IUserCreate } from './auth.interface';
 import { Role } from '../utils/enum/role';
 import { v4 as uuid } from 'uuid';
 import { RegistrationStatus } from '../utils/enum/registration_status';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtAuthService,
     private readonly mailService: MailService,
     private readonly userService: UserService,
-    private readonly redis: Redis,
-    private readonly logger = new Logger(AuthService.name),
+    private redisService: RedisService,
   ) {}
+
+  get redis() {
+    return this.redisService.getClient();
+  }
 
   async createSchool(createSchoolDto: CreateSchoolDto): Promise<ISchoolCreate> {
     const {
@@ -50,6 +58,7 @@ export class AuthService {
       country,
       no_of_employee,
       post_code,
+      status: RegistrationStatus.IN_PROGRESS,
     });
 
     const onboardingKey = uuid();
@@ -150,8 +159,16 @@ export class AuthService {
     const { email, first_name, last_name, college_id, phone } =
       JSON.parse(onboardingData);
 
-      const role = await this.userService.getRoleByName(Role.SCHOOL_ADMIN)
+    const role = await this.userService.getRoleByName(Role.SCHOOL_ADMIN);
 
+    const userExists = await this.userService.getUserByUsername(username);
+
+    if (userExists) {
+      this.logger.error('Username already exists');
+      throw new ConflictException('Username already exists');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const user = await this.userService.createUserWithCollegeId(
       {
         username,
@@ -160,7 +177,7 @@ export class AuthService {
         phone,
         first_name,
         last_name,
-        role_id: role.id,
+        role,
       },
       college_id,
     );
@@ -169,7 +186,7 @@ export class AuthService {
     await this.redis.hdel('onboarding', keyId);
 
     return {
-      message: 'User created successfully'
+      message: 'User created successfully',
     };
   }
 
@@ -177,6 +194,8 @@ export class AuthService {
     const { username, password } = data;
 
     const user = await this.userService.getUserByUsername(username);
+
+    const role = await this.userService.getUserRoleById(user.id);
 
     if (!user) {
       this.logger.error('Invalid username');
@@ -190,7 +209,7 @@ export class AuthService {
       throw new NotFoundException('Invalid password');
     }
 
-    const token = await this.jwtService.generateAuthTokens(user.id, user.role.id)
+    const token = await this.jwtService.generateAuthTokens(user.id, role.id);
 
     return {
       token,
@@ -207,7 +226,12 @@ export class AuthService {
       throw new NotFoundException('Invalid user');
     }
 
-    const newToken = await this.jwtService.generateAuthTokens(user.id, user.role.id)
+    const role = await this.userService.getUserRoleById(user.id);
+
+    const newToken = await this.jwtService.generateAccessToken(
+      user.id,
+      role.id,
+    );
 
     return {
       token: newToken,

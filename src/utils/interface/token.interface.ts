@@ -1,4 +1,4 @@
-import { TokenType } from "../enum/token_type";
+import { TokenType } from '../enum/token_type';
 export interface TokenResponse {
   access: {
     token: string;

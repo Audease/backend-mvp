@@ -1,10 +1,10 @@
 import {
-  OneToOne,
   ManyToOne,
   Entity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
@@ -32,10 +32,12 @@ export class Users {
   @Column('varchar', { length: 255, nullable: false })
   phone: string;
 
-  @OneToOne(() => Roles, (role) => role.id, { cascade: true })
+  @ManyToOne(() => Roles, (role) => role.id)
+  @JoinColumn({ name: 'role_id' })
   role: Roles;
 
   @ManyToOne(() => School, (school) => school.users)
+  @JoinColumn({ name: 'school_id' })
   school: School;
 
   @CreateDateColumn({
