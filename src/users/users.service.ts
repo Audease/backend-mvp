@@ -95,10 +95,4 @@ export class UserService {
       .where('roles.role = :role', { role })
       .getOne();
   }
-
-  // async getRoleByName(role: Role): Promise<Roles> {
-  //   return await this.roleRepository.findOne({
-  //     where: { role },
-  //   });
-  // }
 }
