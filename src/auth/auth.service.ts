@@ -16,6 +16,11 @@ import { Role } from '../utils/enum/role';
 import { v4 as uuid } from 'uuid';
 import { RegistrationStatus } from '../utils/enum/registration_status';
 import * as bcrypt from 'bcrypt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Users } from 'src/users/entities/user.entity';
+import { Recruiter } from 'src/recruiter/entities/recruiter.entity';
+import { CreateAccountDto } from './dto/create-account.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +31,10 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly userService: UserService,
     private redisService: RedisService,
+    @InjectRepository(Users)
+    private readonly userRepository: Repository<Users>,
+    @InjectRepository(Recruiter)
+    private readonly recruiterRepository: Repository<Recruiter>,
   ) {}
 
   get redis() {
@@ -201,6 +210,59 @@ export class AuthService {
     };
   }
 
+  async addRecruiter(userId: string, createUserDto: CreateAccountDto) {
+    const admin = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['school'],
+    });
+    if (!admin) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const college_name = admin.school.college_name;
+    const college_id = admin.school.id;
+    const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
+    const generated_username = `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}`;
+    const generated_password = crypto
+      .randomBytes(12)
+      .toString('hex')
+      .slice(0, length);
+
+    const role = await this.userService.getRoleByName(Role.SCHOOL_RECRUITER);
+
+    const userExists =
+      await this.userService.getUserByUsername(generated_username);
+
+    if (userExists) {
+      this.logger.error('Username already exists');
+      throw new ConflictException('Username already exists');
+    }
+
+    const user = await this.userService.createUserWithCollegeId(
+      {
+        username: generated_username,
+        password: await bcrypt.hash(generated_password, 10),
+        email: createUserDto.email,
+        phone: createUserDto.phone,
+        first_name: createUserDto.first_name,
+        last_name: createUserDto.last_name,
+        role,
+      },
+      college_id,
+    );
+
+    const recruiter = this.recruiterRepository.create({
+      ...createUserDto,
+      user: { id: user.id },
+      school: { id: college_id },
+    });
+
+    return {
+      message: 'User created successfully',
+      recruiter,
+    };
+  }
   async login(data: { username: string; password: string }) {
     const { username, password } = data;
 
@@ -308,7 +370,7 @@ export class AuthService {
     await this.redis.del(token);
 
     return {
-      message: 'Password reset successfully',
+      essage: 'Password reset successfully',
     };
   }
 }

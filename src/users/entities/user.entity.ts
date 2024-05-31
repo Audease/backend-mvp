@@ -5,9 +5,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
+import { Recruiter } from 'src/recruiter/entities/recruiter.entity';
 
 @Entity('users')
 export class Users {
@@ -39,6 +41,9 @@ export class Users {
   @ManyToOne(() => School, (school) => school.users)
   @JoinColumn({ name: 'school_id' })
   school: School;
+
+  @OneToOne(() => Recruiter, (recruiter) => recruiter.user)
+  recruiter: Recruiter;
 
   @CreateDateColumn({
     nullable: false,
