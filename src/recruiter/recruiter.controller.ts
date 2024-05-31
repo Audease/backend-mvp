@@ -1,9 +1,5 @@
-import {
-  Controller,
-  
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { RecruiterService } from './recruiter.service';
-
 
 @Controller('recruiter')
 export class RecruiterController {

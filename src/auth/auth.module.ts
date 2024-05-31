@@ -32,7 +32,7 @@ import { Repository } from 'typeorm';
     UserService,
     RedisService,
     Logger,
-    Repository
+    Repository,
   ],
 })
 export class AuthModule {}

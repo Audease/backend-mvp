@@ -24,7 +24,7 @@ import { LoginDto } from './dto/login-dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { GetCurrentUserId } from './decorators/get-current-user-id.decorator';
+import { GetCurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateAccountDto } from './dto/create-account.dto';
 
 @Controller('auth')
