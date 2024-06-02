@@ -82,8 +82,21 @@ export class CreateRecruitersTable1717125967913 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    // Drop the foreign keys first
+    const recruitersTable = await queryRunner.getTable('recruiters');
+    const userForeignKey = recruitersTable.foreignKeys.find(
+      (fk) => fk.name === 'FK_user_id_recruiters',
+    );
+    const schoolForeignKey = recruitersTable.foreignKeys.find(
+      (fk) => fk.name === 'FK_school_id_recruiters',
+    );
+
+    if (userForeignKey) {
+      await queryRunner.dropForeignKey('recruiters', userForeignKey);
+    }
+    if (schoolForeignKey) {
+      await queryRunner.dropForeignKey('recruiters', schoolForeignKey);
+    }
     await queryRunner.dropTable('recruiters');
-    await queryRunner.dropForeignKey('users', 'FK_user_id_recruiters');
-    await queryRunner.dropForeignKey('users', 'FK_school_id_recruiters');
   }
 }

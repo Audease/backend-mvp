@@ -213,7 +213,7 @@ export class AuthService {
   async addRecruiter(userId: string, createUserDto: CreateAccountDto) {
     const admin = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['school'],
+      relations: ['school', 'recruiter'],
     });
     if (!admin) {
       this.logger.error('User not found');
@@ -227,7 +227,7 @@ export class AuthService {
     const generated_password = crypto
       .randomBytes(12)
       .toString('hex')
-      .slice(0, length);
+      .slice(0, 7);
 
     const role = await this.userService.getRoleByName(Role.SCHOOL_RECRUITER);
 
@@ -242,7 +242,7 @@ export class AuthService {
     const user = await this.userService.createUserWithCollegeId(
       {
         username: generated_username,
-        password: await bcrypt.hash(generated_password, 10),
+        password: await bcrypt.hashSync(generated_password, 10),
         email: createUserDto.email,
         phone: createUserDto.phone,
         first_name: createUserDto.first_name,
@@ -254,13 +254,14 @@ export class AuthService {
 
     const recruiter = this.recruiterRepository.create({
       ...createUserDto,
-      user: { id: user.id },
-      school: { id: college_id },
+      user,
+      school: admin.school,
     });
 
+    const newRecruiter = await this.recruiterRepository.save(recruiter);
     return {
       message: 'User created successfully',
-      recruiter,
+      newRecruiter,
     };
   }
   async login(data: { username: string; password: string }) {

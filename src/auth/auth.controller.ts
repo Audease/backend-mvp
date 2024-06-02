@@ -56,7 +56,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('register-recruiter')
+  @Post('/create-account/recruiter')
   @HttpCode(HttpStatus.CREATED)
   async registerRecruiter(
     @GetCurrentUserId() userId: string,
