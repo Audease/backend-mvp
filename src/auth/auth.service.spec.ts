@@ -67,9 +67,15 @@ describe('AuthService', () => {
           provide: UserService,
           useValue: {
             getRoleByName: jest.fn(),
-            getUserByUsername: jest.fn(),
+            getUserByUsername: jest.fn().mockResolvedValue({
+              id: uuidValue3,
+              username: 'testuser',
+              password: await bcrypt.hash('password', 10),
+            }),
             createUserWithCollegeId: jest.fn(),
-            getUserRoleById: jest.fn(),
+            getUserRoleById: jest.fn().mockReturnValue({
+              id: '07186a09-8ced-4e6c-afca-54d226596363',
+            }),
             findOne: jest.fn(),
             getUserByEmail: jest.fn(),
             update: jest.fn(),
@@ -360,8 +366,6 @@ describe('AuthService', () => {
     });
   });
 
-  // test the login method
-
   describe('login', () => {
     it('should return a token if the credentials are valid', async () => {
       const loginData = {
@@ -369,15 +373,15 @@ describe('AuthService', () => {
         password: 'password',
       };
       const userData = {
-        id: uuidValue3,
+        id: 'user-id',
         username: 'testuser',
         password: await bcrypt.hash('password', 10),
       };
       const roleData = {
-        id: '07186a09-8ced-4e6c-afca-54d226596363',
-        name: Role.SCHOOL_ADMIN,
+        id: 'role-id',
+        name: 'SCHOOL_ADMIN',
       };
-      const token = 'someToken';
+      const token = 'test-token';
 
       userService.getUserByUsername = jest.fn().mockResolvedValueOnce(userData);
       userService.getUserRoleById = jest.fn().mockResolvedValueOnce(roleData);
@@ -405,6 +409,9 @@ describe('AuthService', () => {
       userService.getUserByUsername = jest.fn().mockResolvedValueOnce(null);
 
       await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
+      await expect(service.login(loginData)).rejects.toThrow(
+        'Invalid username or password',
+      );
     });
 
     it('should throw NotFoundException if the password is invalid', async () => {
@@ -413,7 +420,7 @@ describe('AuthService', () => {
         password: 'wrongpassword',
       };
       const userData = {
-        id: 1,
+        id: 'user-id',
         username: 'testuser',
         password: await bcrypt.hash('password', 10),
       };
@@ -421,9 +428,11 @@ describe('AuthService', () => {
       userService.getUserByUsername = jest.fn().mockResolvedValueOnce(userData);
 
       await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
+      await expect(service.login(loginData)).rejects.toThrowError(
+        'Invalid username or password',
+      );
     });
   });
-
   describe('refreshToken', () => {
     it('should generate a new access token', async () => {
       const refreshToken = 'someRefreshToken';

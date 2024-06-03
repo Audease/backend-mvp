@@ -206,19 +206,30 @@ export class AuthService {
 
     const user = await this.userService.getUserByUsername(username);
 
-    const role = await this.userService.getUserRoleById(user.id);
-
     if (!user) {
       this.logger.error('Invalid username');
-      throw new NotFoundException('Invalid username');
+      throw new NotFoundException('Invalid username or password');
+    }
+
+    if (!user.password) {
+      this.logger.error('Invalid password');
+      throw new NotFoundException('Invalid username or password');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       this.logger.error('Invalid password');
-      throw new NotFoundException('Invalid password');
+      throw new NotFoundException('Invalid username or password');
     }
+
+    // Add a null check for user.id
+    if (!user.id) {
+      this.logger.error('Invalid user');
+      throw new NotFoundException('Invalid user');
+    }
+
+    const role = await this.userService.getUserRoleById(user.id);
 
     const token = await this.jwtService.generateAuthTokens(user.id, role.id);
 
@@ -258,8 +269,6 @@ export class AuthService {
     }
 
     const resetKey = crypto.randomBytes(30).toString('hex');
-
-    console.log(resetKey);
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetKey}`;
 
