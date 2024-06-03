@@ -6,6 +6,10 @@ export interface ISchoolCreate {
   keyId: string;
 }
 
+export interface IVerify {
+  message: string;
+}
+
 export interface IUserCreate {
   keyId: string;
   username: string;
