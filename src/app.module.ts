@@ -11,6 +11,7 @@ import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
 import { RecruiterModule } from './recruiter/recruiter.module';
 import { RoleGuard } from './auth/role.guard';
+import { CreateAccountsModule } from './create-accounts/create-accounts.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { RoleGuard } from './auth/role.guard';
     UsersModule,
     AuthModule,
     RecruiterModule,
+    CreateAccountsModule,
   ],
   controllers: [AppController],
   providers: [

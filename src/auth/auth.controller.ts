@@ -10,7 +10,7 @@ import {
   UnauthorizedException,
   NotFoundException,
   ConflictException,
-  UseGuards,
+
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -23,9 +23,6 @@ import {
 import { LoginDto } from './dto/login-dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateSchoolDto } from './dto/create-school.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import { GetCurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
-import { CreateAccountDto } from './dto/create-account.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -55,20 +52,7 @@ export class AuthController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('/create-account/recruiter')
-  @HttpCode(HttpStatus.CREATED)
-  async registerRecruiter(
-    @GetCurrentUserId() userId: string,
-    @Body() createUserDto: CreateAccountDto,
-  ) {
-    try {
-      return await this.authService.addRecruiter(userId, createUserDto);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
+ 
 
   @Post('verify-school')
   @HttpCode(HttpStatus.OK)
