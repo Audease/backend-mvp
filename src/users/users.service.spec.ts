@@ -14,7 +14,7 @@ import { Role } from '../utils/enum/role';
 describe('UserService', () => {
   let service: UserService;
   let userRepository: Repository<Users>;
-  let roleRepository: Repository<Roles>;
+  // let roleRepository: Repository<Roles>;
   let schoolRepository: Repository<School>;
   const uuidValue = uuid();
   const uuidValue2 = uuid();
@@ -61,7 +61,7 @@ describe('UserService', () => {
 
     service = module.get<UserService>(UserService);
     userRepository = module.get(getRepositoryToken(Users));
-    roleRepository = module.get(getRepositoryToken(Roles));
+    // roleRepository = module.get(getRepositoryToken(Roles));
     schoolRepository = module.get(getRepositoryToken(School));
   });
 
