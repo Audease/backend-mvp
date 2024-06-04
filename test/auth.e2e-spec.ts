@@ -25,6 +25,7 @@ describe('AuthController (e2e)', () => {
   const uuidValue3 = uuid();
   const faker = Faker.faker;
   faker.seed();
+  const username = faker.internet.userName();
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -178,7 +179,7 @@ describe('AuthController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/register')
         .send({
-          username: faker.internet.userName(),
+          username: username,
           password: 'password1234',
           keyId: keyId,
         })
@@ -192,7 +193,7 @@ describe('AuthController (e2e)', () => {
         .post('/auth/register')
         .send({
           keyId: 'invalidKey',
-          username: faker.internet.userName(),
+          username: username,
           password: 'password1234',
         })
         .expect(500);
@@ -204,7 +205,7 @@ describe('AuthController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/login')
         .send({
-          username: 'teslim.edencollege.admin',
+          username: username,
           password: 'password1234',
         })
         .expect(200)
@@ -219,7 +220,7 @@ describe('AuthController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/login')
         .send({
-          username: 'teslim.edencollege.admin',
+          username: username,
           password: 'wrongpassword',
         })
         .expect(401);
