@@ -9,6 +9,9 @@ import env from './shared/config/env';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
+import { RecruiterModule } from './recruiter/recruiter.module';
+import { RoleGuard } from './auth/role.guard';
+import { CreateAccountsModule } from './create-accounts/create-accounts.module';
 
 @Module({
   imports: [
@@ -28,8 +31,14 @@ import { ApiConfigService } from './shared/services/api-config.service';
     SharedModule,
     UsersModule,
     AuthModule,
+    RecruiterModule,
+    CreateAccountsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: 'APP_GUARD', useClass: ThrottlerGuard }],
+  providers: [
+    AppService,
+    { provide: 'APP_GUARD', useClass: ThrottlerGuard },
+    { provide: 'APP_GUARD', useClass: RoleGuard },
+  ],
 })
 export class AppModule {}

@@ -9,6 +9,9 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import * as moment from 'moment';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 @Injectable()
 export class JwtAuthService {
@@ -100,7 +103,7 @@ export class JwtAuthService {
 
   async verifyAccessToken(token: string) {
     return this.jwtService.verify(token, {
-      secret: process.env.ACCESS_SECRET_TOKEN,
+      secret: process.env.JWT_SECRET,
     });
   }
 

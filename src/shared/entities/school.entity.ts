@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Users } from '../../users/entities/user.entity';
+import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 
 @Entity('school')
 export class School {
@@ -49,6 +50,9 @@ export class School {
 
   @OneToMany(() => Users, (users) => users.school)
   users: Users[];
+
+  @OneToMany(() => Recruiter, (recruiters) => recruiters.school)
+  recruiters: Recruiter[];
 
   @CreateDateColumn({
     nullable: false,

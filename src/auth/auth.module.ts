@@ -14,11 +14,16 @@ import { Token } from '../shared/entities/token.entity';
 import { JwtService } from '@nestjs/jwt';
 import { Users } from '../users/entities/user.entity';
 import { Roles } from '../shared/entities/role.entity';
+import { Recruiter } from 'src/recruiter/entities/recruiter.entity';
+import { Repository } from 'typeorm';
+import { UsersModule } from 'src/users/users.module';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([School, Token, Users, Roles]),
+    TypeOrmModule.forFeature([School, Token, Users, Roles, Recruiter]),
     RedisModule,
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -30,6 +35,8 @@ import { Roles } from '../shared/entities/role.entity';
     UserService,
     RedisService,
     Logger,
+    Repository,
+    JwtStrategy,
   ],
 })
 export class AuthModule {}
