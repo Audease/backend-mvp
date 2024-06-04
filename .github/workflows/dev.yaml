@@ -12,6 +12,8 @@ env:
   FORCE_COLOR: 3
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  MAILER_SEND_API_KEY: ${{ secrets.MAILER_SEND_API_KEY }}
 
 jobs:
   test:
@@ -52,8 +54,8 @@ jobs:
         DATABASE_PASSWORD_TEST: postgres
         DATABASE_NAME_TEST: postgres
         DATABASE_PORT_TEST: 5432
-        JWT_SECRET: Wv6GqXvgMnbYlFbRyOZ5I/ym54i
-        MAILER_SEND_API_KEY: mlsn.f660a59dfa27e1c749c60673f158631d1f2a6634bf8f60db01aeb5b847588ee7
+        JWT_SECRET: ${{ env.JWT_SECRET }}
+        MAILER_SEND_API_KEY: ${{ env.MAILER_SEND_API_KEY }}
       run: |
         yarn run test
         yarn run test:integration
