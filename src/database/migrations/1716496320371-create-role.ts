@@ -4,6 +4,9 @@ export class CreateRole1716496320371 implements MigrationInterface {
   name = 'CreateRole1716496320371';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+     CREATE EXTENSION IF NOT EXIST "uuid-ossp":
+   `);
     await queryRunner.createTable(
       new Table({
         name: 'roles',
