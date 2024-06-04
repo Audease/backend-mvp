@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { ApiConfigService } from './services/api-config.service';
+// import { RedisModule } from './module/redis.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { DbTransactionFactory } from './services/transactions/TransactionManager';

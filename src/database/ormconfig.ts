@@ -19,7 +19,7 @@ export const databaseOptions: DataSourceOptions = {
   database: isTest ? process.env.DATABASE_NAME_TEST : process.env.DATABASE_NAME,
   subscribers: [],
   entities: ['dist/src/**/*.entity.js'],
-  migrations: ['dist/src/database/migrations/*.js'],
+  migrations: ['src/database/migrations/*.ts'],
   migrationsTableName: 'audease_migration_table',
 };
 

@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { School } from '../../shared/entities/school.entity';
+import { Users } from '../../users/entities/user.entity';
+import { Roles } from '../entities/role.entity';
+import { RolePermission } from '../entities/rolepermission.entity';
+import { Permissions } from '../entities/permission.entity';
+import { Token } from '../entities/token.entity';
+import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import type { dbConfigs } from '../types/dbConfig';
 
@@ -14,7 +21,15 @@ export class ApiConfigService {
     return {
       type: 'postgres',
       migrations: [],
-      entities: [],
+      entities: [
+        School,
+        Users,
+        Roles,
+        RolePermission,
+        Permissions,
+        Token,
+        Recruiter,
+      ],
       migrationsRun: true,
       username,
       password,

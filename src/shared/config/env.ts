@@ -20,4 +20,10 @@ export default () => ({
   },
   frontendUrl: process.env.FRONTEND_URL,
   BackendUrl: process.env.BACKEND_URL,
+  jwtSecret: process.env.JWT_SECRET,
+  jwtAccessSecret: process.env.JWT_ACCESS_SECRET_TOKEN,
+  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET_TOKEN,
+  jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+  jwtAccessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
+  redisUrl: process.env.REDIS_URL,
 });
