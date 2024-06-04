@@ -14,9 +14,9 @@ import { Token } from '../shared/entities/token.entity';
 import { JwtService } from '@nestjs/jwt';
 import { Users } from '../users/entities/user.entity';
 import { Roles } from '../shared/entities/role.entity';
-import { Recruiter } from 'src/recruiter/entities/recruiter.entity';
+import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { Repository } from 'typeorm';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './jwt.strategy';
 
 @Module({
