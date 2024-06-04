@@ -54,6 +54,7 @@ jobs:
         DATABASE_PASSWORD_TEST: postgres
         DATABASE_NAME_TEST: postgres
         DATABASE_PORT_TEST: 5432
+        EMAIL_FROM: hello@audease.co.uk
         JWT_SECRET: ${{ env.JWT_SECRET }}
         MAILER_SEND_API_KEY: ${{ env.MAILER_SEND_API_KEY }}
       run: |
