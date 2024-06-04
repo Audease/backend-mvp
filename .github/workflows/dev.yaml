@@ -52,6 +52,7 @@ jobs:
         DATABASE_PASSWORD_TEST: postgres
         DATABASE_NAME_TEST: postgres
         DATABASE_PORT_TEST: 5432
+        JWT_SECRET: Wv6GqXvgMnbYlFbRyOZ5I/ym54i
       run: |
         yarn run test
         yarn run test:integration
