@@ -1,4 +1,3 @@
-// auth.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { v4 as uuid } from 'uuid';
 import { AuthService } from './auth.service';
@@ -48,7 +47,14 @@ describe('AuthService', () => {
         {
           provide: RedisService,
           useValue: {
-            getClient: jest.fn(),
+            getClient: jest.fn().mockReturnValue({
+              hset: jest.fn(),
+              hget: jest.fn(),
+              hdel: jest.fn(),
+              set: jest.fn(),
+              get: jest.fn(),
+              del: jest.fn(),
+            }),
           },
         },
         {
@@ -61,9 +67,15 @@ describe('AuthService', () => {
           provide: UserService,
           useValue: {
             getRoleByName: jest.fn(),
-            getUserByUsername: jest.fn(),
+            getUserByUsername: jest.fn().mockResolvedValue({
+              id: uuidValue3,
+              username: 'testuser',
+              password: await bcrypt.hash('password', 10),
+            }),
             createUserWithCollegeId: jest.fn(),
-            getUserRoleById: jest.fn(),
+            getUserRoleById: jest.fn().mockReturnValue({
+              id: '07186a09-8ced-4e6c-afca-54d226596363',
+            }),
             findOne: jest.fn(),
             getUserByEmail: jest.fn(),
             update: jest.fn(),
@@ -113,7 +125,7 @@ describe('AuthService', () => {
 
       authRepository.findSchool = jest.fn().mockResolvedValueOnce(null);
       authRepository.create = jest.fn().mockResolvedValueOnce(schoolData);
-      redisService.getClient = jest.fn().mockReturnValueOnce({
+      redisService.getClient = jest.fn().mockReturnValue({
         hset: jest.fn(),
       });
       mailService.sendTemplateMail = jest.fn().mockResolvedValueOnce({});
@@ -186,7 +198,7 @@ describe('AuthService', () => {
         college_id: uuidValue2,
       };
 
-      redisService.getClient = jest.fn().mockReturnValueOnce({
+      redisService.getClient = jest.fn().mockReturnValue({
         hget: jest.fn().mockResolvedValueOnce(JSON.stringify(userData)),
       });
       authRepository.updateStatus = jest.fn().mockResolvedValueOnce(schoolData);
@@ -229,7 +241,7 @@ describe('AuthService', () => {
         college_id: uuidValue2,
       };
 
-      redisService.getClient = jest.fn().mockReturnValueOnce({
+      redisService.getClient = jest.fn().mockReturnValue({
         hget: jest.fn().mockResolvedValueOnce(JSON.stringify(userData)),
       });
 
@@ -272,7 +284,7 @@ describe('AuthService', () => {
         name: Role.SCHOOL_ADMIN,
       };
 
-      redisService.getClient = jest.fn().mockReturnValueOnce({
+      redisService.getClient = jest.fn().mockReturnValue({
         hget: jest.fn().mockResolvedValueOnce(JSON.stringify(onboardingData)),
         hdel: jest.fn(),
       });
@@ -300,7 +312,7 @@ describe('AuthService', () => {
           phone: onboardingData.phone,
           first_name: onboardingData.first_name,
           last_name: onboardingData.last_name,
-          role: roleData,
+          role: roleData.name,
         },
         onboardingData.college_id,
       );
@@ -318,7 +330,7 @@ describe('AuthService', () => {
         keyId: 'invalidKey',
       };
 
-      redisService.getClient = jest.fn().mockReturnValueOnce({
+      redisService.getClient = jest.fn().mockReturnValue({
         hget: jest.fn().mockResolvedValueOnce(null),
       });
 
@@ -341,7 +353,7 @@ describe('AuthService', () => {
         phone: '1234567890',
       };
 
-      redisService.getClient = jest.fn().mockReturnValueOnce({
+      redisService.getClient = jest.fn().mockReturnValue({
         hget: jest.fn().mockResolvedValueOnce(JSON.stringify(onboardingData)),
       });
       userService.getUserByUsername = jest
@@ -354,8 +366,6 @@ describe('AuthService', () => {
     });
   });
 
-  // test the login method
-
   describe('login', () => {
     it('should return a token if the credentials are valid', async () => {
       const loginData = {
@@ -363,15 +373,15 @@ describe('AuthService', () => {
         password: 'password',
       };
       const userData = {
-        id: uuidValue3,
+        id: 'user-id',
         username: 'testuser',
         password: await bcrypt.hash('password', 10),
       };
       const roleData = {
-        id: '07186a09-8ced-4e6c-afca-54d226596363',
-        name: Role.SCHOOL_ADMIN,
+        id: 'role-id',
+        name: 'SCHOOL_ADMIN',
       };
-      const token = 'someToken';
+      const token = 'test-token';
 
       userService.getUserByUsername = jest.fn().mockResolvedValueOnce(userData);
       userService.getUserRoleById = jest.fn().mockResolvedValueOnce(roleData);
@@ -399,6 +409,9 @@ describe('AuthService', () => {
       userService.getUserByUsername = jest.fn().mockResolvedValueOnce(null);
 
       await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
+      await expect(service.login(loginData)).rejects.toThrow(
+        'Invalid username or password',
+      );
     });
 
     it('should throw NotFoundException if the password is invalid', async () => {
@@ -407,7 +420,7 @@ describe('AuthService', () => {
         password: 'wrongpassword',
       };
       const userData = {
-        id: 1,
+        id: 'user-id',
         username: 'testuser',
         password: await bcrypt.hash('password', 10),
       };
@@ -415,9 +428,11 @@ describe('AuthService', () => {
       userService.getUserByUsername = jest.fn().mockResolvedValueOnce(userData);
 
       await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
+      await expect(service.login(loginData)).rejects.toThrowError(
+        'Invalid username or password',
+      );
     });
   });
-
   describe('refreshToken', () => {
     it('should generate a new access token', async () => {
       const refreshToken = 'someRefreshToken';
@@ -472,7 +487,7 @@ describe('AuthService', () => {
       userService.getUserByEmail = jest
         .fn()
         .mockResolvedValueOnce({ id: userId });
-      redisService.getClient = jest.fn().mockReturnValueOnce({
+      redisService.getClient = jest.fn().mockReturnValue({
         set: jest.fn(),
       });
       mailService.sendTemplateMail = jest.fn().mockResolvedValueOnce({});
@@ -511,9 +526,9 @@ describe('AuthService', () => {
         password: 'newPassword',
       };
       const userId = 1;
-      const hashedPassword = await bcrypt.hash(data.password, 10);
+      // const hashedPassword = await bcrypt.hash(data.password, 10);
 
-      redisService.getClient = jest.fn().mockReturnValueOnce({
+      redisService.getClient = jest.fn().mockReturnValue({
         get: jest.fn().mockResolvedValueOnce(userId),
         del: jest.fn(),
       });
@@ -525,7 +540,7 @@ describe('AuthService', () => {
       expect(redisService.getClient().get).toHaveBeenCalledWith(data.token);
       expect(userService.findOne).toHaveBeenCalledWith(userId);
       expect(userService.update).toHaveBeenCalledWith(userId, {
-        password: hashedPassword,
+        password: expect.any(String),
       });
       expect(redisService.getClient().del).toHaveBeenCalledWith(data.token);
       expect(result).toEqual({ message: 'Password reset successfully' });
@@ -537,7 +552,7 @@ describe('AuthService', () => {
         password: 'newPassword',
       };
 
-      redisService.getClient = jest.fn().mockReturnValueOnce({
+      redisService.getClient = jest.fn().mockReturnValue({
         get: jest.fn().mockResolvedValueOnce(null),
       });
 

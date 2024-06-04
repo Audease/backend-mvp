@@ -9,7 +9,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserService } from '../users/users.service';
 import * as dotenv from 'dotenv';
 
-dotenv.config()
+dotenv.config();
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

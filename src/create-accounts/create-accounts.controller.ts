@@ -8,9 +8,9 @@ import {
   HttpCode,
   HttpException,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateAccountsService } from './create-accounts.service';
-import { GetCurrentUserId } from 'src/shared/decorators/get-current-user-id.decorator';
+import { GetCurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateAccountDto } from './dto/create-create-account.dto';
 
 @Controller('create-account')

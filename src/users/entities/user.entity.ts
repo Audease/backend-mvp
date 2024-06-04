@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
-import { Recruiter } from 'src/recruiter/entities/recruiter.entity';
+import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 
 @Entity('users')
 export class Users {

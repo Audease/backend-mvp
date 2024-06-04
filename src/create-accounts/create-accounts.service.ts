@@ -8,10 +8,10 @@ import { CreateAccountDto } from './dto/create-create-account.dto';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { AccountRepository } from './account.repository';
-import { UserService } from 'src/users/users.service';
-import { Role } from 'src/utils/enum/role';
+import { UserService } from '../users/users.service';
+import { Role } from '../utils/enum/role';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Recruiter } from 'src/recruiter/entities/recruiter.entity';
+import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()

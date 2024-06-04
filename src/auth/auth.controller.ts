@@ -10,7 +10,6 @@ import {
   UnauthorizedException,
   NotFoundException,
   ConflictException,
-
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -52,8 +51,6 @@ export class AuthController {
     }
   }
 
- 
-
   @Post('verify-school')
   @HttpCode(HttpStatus.OK)
   async verifySchool(@Body() verifyDto: verifyDto) {
@@ -93,6 +90,7 @@ export class AuthController {
     try {
       return await this.authService.createSchool(createSchoolDto);
     } catch (error) {
+      console.log(error);
       this.logger.error(error.message);
       throw new ConflictException(error.message);
     }
