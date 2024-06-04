@@ -526,7 +526,7 @@ describe('AuthService', () => {
         password: 'newPassword',
       };
       const userId = 1;
-      const hashedPassword = await bcrypt.hash(data.password, 10);
+      // const hashedPassword = await bcrypt.hash(data.password, 10);
 
       redisService.getClient = jest.fn().mockReturnValue({
         get: jest.fn().mockResolvedValueOnce(userId),

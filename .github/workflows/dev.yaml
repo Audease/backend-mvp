@@ -54,7 +54,7 @@ jobs:
         DATABASE_PORT_TEST: 5432
       run: |
         yarn run test
-        yarn run test:e2e
+        yarn run test:integration
         yarn run test:cov
 
   push_to_github_registry:

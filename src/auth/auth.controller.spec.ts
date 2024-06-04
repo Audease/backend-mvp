@@ -12,7 +12,6 @@ import { v4 as uuid } from 'uuid';
 import { CreateUserDto } from './dto/create-user.dto';
 import { verifyDto } from './dto/misc-dto';
 // import { IVerify } from './auth.interface';
-import { refreshTokenDto } from './dto/misc-dto';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { initiateResetDto } from './dto/misc-dto';
 import { resetPasswordDto } from './dto/misc-dto';
@@ -21,13 +20,12 @@ import {
   UnauthorizedException,
   HttpException,
   NotFoundException,
-  ConflictException,
 } from '@nestjs/common';
 
 describe('AuthController', () => {
   let controller: AuthController;
   let authService: AuthService;
-  let uuidValue3 = uuid();
+  const uuidValue3 = uuid();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -178,9 +176,9 @@ describe('AuthController', () => {
         keyId: 'keyId',
       };
 
-      const expectedResult = {
-        message: 'School verified successfully',
-      };
+      // const expectedResult = {
+      //   message: 'School verified successfully',
+      // };
 
       jest
         .spyOn(authService, 'verifySchool')
@@ -216,7 +214,7 @@ describe('AuthController', () => {
       };
 
       const expectedResult = {
-        message: "User created successfully"
+        message: 'User created successfully',
       };
 
       jest
@@ -227,36 +225,35 @@ describe('AuthController', () => {
 
       expect(authService.createUser).toHaveBeenCalledWith(createUserDto);
       expect(result).toEqual(expectedResult);
-      })
+    });
 
-      it('should throw InternalServerErrorException if authService.createUser throws an error', async () => {
-        const createUserDto: CreateUserDto = {
-          keyId: 'keyId',
-          username: 'teslim.edencollege.admin',
-          password: 'password1234',
-        };
+    it('should throw InternalServerErrorException if authService.createUser throws an error', async () => {
+      const createUserDto: CreateUserDto = {
+        keyId: 'keyId',
+        username: 'teslim.edencollege.admin',
+        password: 'password1234',
+      };
 
-        const error = new Error('User creation failed');
-        
+      const error = new Error('User creation failed');
 
-        jest.spyOn(authService, 'createUser').mockRejectedValue(error);
+      jest.spyOn(authService, 'createUser').mockRejectedValue(error);
 
-        await expect(controller.register(createUserDto)).rejects.toThrow(
-          HttpException,
-        );
-        expect(authService.createUser).toHaveBeenCalledWith(createUserDto);
-      });
-    })
+      await expect(controller.register(createUserDto)).rejects.toThrow(
+        HttpException,
+      );
+      expect(authService.createUser).toHaveBeenCalledWith(createUserDto);
+    });
+  });
 
   describe('createSchool', () => {
     it('should call authService.createSchool and return the result', async () => {
       const createSchoolDto: CreateSchoolDto = {
         college_name: 'Eden College',
         no_of_employee: 10,
-        email: "teslimodumuyiwa@gmail.com",
-        first_name: "Teslim",
-        last_name: "Odumuyiwa",
-        phone: "08012345678",
+        email: 'teslimodumuyiwa@gmail.com',
+        first_name: 'Teslim',
+        last_name: 'Odumuyiwa',
+        phone: '08012345678',
         country: 'Nigeria',
         business_code: '123456',
         address_line1: '123, Eden College Street',
@@ -267,7 +264,7 @@ describe('AuthController', () => {
       };
 
       const expectedResult = {
-        message: "School created successfully"
+        message: 'School created successfully',
       };
 
       jest
@@ -278,36 +275,35 @@ describe('AuthController', () => {
 
       expect(authService.createSchool).toHaveBeenCalledWith(createSchoolDto);
       expect(result).toEqual(expectedResult);
-      })
+    });
 
-      it('should throw InternalServerErrorException if authService.createSchool throws an error', async () => {
-        const createSchoolDto: CreateSchoolDto = {
-          college_name: 'Eden College',
-          email: "teslimodumuyiwa@gmail.com",
-          first_name: "Teslim",
-          last_name: "Odumuyiwa",
-          phone: "08012345678",
-          no_of_employee: 10,
-          country: 'Nigeria',
-          business_code: '123456',
-          address_line1: '123, Eden College Street',
-          address_line2: 'Eden College',
-          city: 'Lagos',
-          post_code: '100001',
-          state: 'Lagos',
-        };
+    it('should throw InternalServerErrorException if authService.createSchool throws an error', async () => {
+      const createSchoolDto: CreateSchoolDto = {
+        college_name: 'Eden College',
+        email: 'teslimodumuyiwa@gmail.com',
+        first_name: 'Teslim',
+        last_name: 'Odumuyiwa',
+        phone: '08012345678',
+        no_of_employee: 10,
+        country: 'Nigeria',
+        business_code: '123456',
+        address_line1: '123, Eden College Street',
+        address_line2: 'Eden College',
+        city: 'Lagos',
+        post_code: '100001',
+        state: 'Lagos',
+      };
 
-        const error = new Error('School creation failed');
-        
+      const error = new Error('School creation failed');
 
-        jest.spyOn(authService, 'createSchool').mockRejectedValue(error);
+      jest.spyOn(authService, 'createSchool').mockRejectedValue(error);
 
-        await expect(controller.createSchool(createSchoolDto)).rejects.toThrow(
-          HttpException,
-        );
-        expect(authService.createSchool).toHaveBeenCalledWith(createSchoolDto);
-      });
-    })
+      await expect(controller.createSchool(createSchoolDto)).rejects.toThrow(
+        HttpException,
+      );
+      expect(authService.createSchool).toHaveBeenCalledWith(createSchoolDto);
+    });
+  });
 
   describe('initiateReset', () => {
     it('should call authService.initiateReset and return the result', async () => {
@@ -325,15 +321,17 @@ describe('AuthController', () => {
 
       const result = await controller.initiateReset(initiateResetDto);
 
-      expect(authService.initiatePasswordReset).toHaveBeenCalledWith(initiateResetDto.email);
+      expect(authService.initiatePasswordReset).toHaveBeenCalledWith(
+        initiateResetDto.email,
+      );
 
       expect(result).toEqual(expectedResult);
     });
 
     it('should throw NotFoundException if authService.initiateReset throws an error', async () => {
       const initiateResetDto: initiateResetDto = {
-        email: 'teslimodumuyiwa@gmail.com'
-      }
+        email: 'teslimodumuyiwa@gmail.com',
+      };
 
       const error = new Error('Password reset initiation failed');
 
@@ -343,20 +341,22 @@ describe('AuthController', () => {
         NotFoundException,
       );
 
-      expect(authService.initiatePasswordReset).toHaveBeenCalledWith(initiateResetDto.email);
-    })
-  })
+      expect(authService.initiatePasswordReset).toHaveBeenCalledWith(
+        initiateResetDto.email,
+      );
+    });
+  });
 
   describe('resetPassword', () => {
     it('should call authService.resetPassword and return the result', async () => {
       const resetPasswordDto: resetPasswordDto = {
         token: 'token',
         password: 'password',
-      }
+      };
 
       const expectedResult = {
-        message: "Password reset successfully"
-      }
+        message: 'Password reset successfully',
+      };
 
       jest
         .spyOn(authService, 'resetPassword')
@@ -367,14 +367,13 @@ describe('AuthController', () => {
       expect(authService.resetPassword).toHaveBeenCalledWith(resetPasswordDto);
 
       expect(result).toEqual(expectedResult);
-
-    })
+    });
 
     it('should throw NotFoundException if authService.resetPassword throws an error', async () => {
       const resetPasswordDto: resetPasswordDto = {
         token: 'token',
         password: 'password',
-      }
+      };
 
       const error = new Error('Password reset failed');
 
@@ -385,6 +384,6 @@ describe('AuthController', () => {
       );
 
       expect(authService.resetPassword).toHaveBeenCalledWith(resetPasswordDto);
-    })
-  })
+    });
+  });
 });

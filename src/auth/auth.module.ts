@@ -8,7 +8,7 @@ import { UserService } from '../users/users.service';
 import { Logger } from '@nestjs/common';
 import { RedisModule } from '../shared/module/redis.module';
 import { RedisService } from '../shared/services/redis.service';
-import { School } from 'src/shared/entities/school.entity';
+import { School } from '../shared/entities/school.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Token } from '../shared/entities/token.entity';
 import { JwtService } from '@nestjs/jwt';
