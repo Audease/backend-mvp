@@ -7,7 +7,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Users } from '../../users/entities/user.entity';
-import { Recruiter } from 'src/recruiter/entities/recruiter.entity';
+import { Recruiter } from '../../recruiter/entities/recruiter.entity';
+import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
 
 @Entity('school')
 export class School {
@@ -48,11 +49,17 @@ export class School {
   })
   status: RegistrationStatus;
 
-  @OneToMany(() => Users, (users) => users.school)
+  @OneToMany(() => Users, users => users.school)
   users: Users[];
 
-  @OneToMany(() => Recruiter, (recruiters) => recruiters.school)
+  @OneToMany(() => Recruiter, recruiters => recruiters.school)
   recruiters: Recruiter[];
+
+  @OneToMany(
+    () => FinancialAidOfficer,
+    financialAidOfficers => financialAidOfficers.school
+  )
+  financialAidOfficers: FinancialAidOfficer[];
 
   @CreateDateColumn({
     nullable: false,

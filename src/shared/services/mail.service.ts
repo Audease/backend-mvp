@@ -15,7 +15,7 @@ export class MailService {
       const dirName = process.cwd();
       const templatePath = path.resolve(
         dirName,
-        `./src/template/${templateName}.html`,
+        `./src/template/${templateName}.html`
       );
       return fs.readFileSync(templatePath, 'utf8');
     } catch (error) {
@@ -25,7 +25,7 @@ export class MailService {
 
   private static compileTemplate(
     template: string,
-    data: Record<string, string | number>,
+    data: Record<string, string | number>
   ): string {
     return template.replace(/{{(\w+)}}/g, (match, key) => {
       const value = data[key];
@@ -38,13 +38,13 @@ export class MailService {
   public async sendTemplateMail(
     mail: Mail,
     templateName: string,
-    data: Record<string, string | number>,
+    data: Record<string, string | number>
   ): Promise<void> {
     try {
       const templateContent = MailService.getTemplateContent(templateName);
       const compiledTemplate = MailService.compileTemplate(
         templateContent,
-        data,
+        data
       );
       await this.resend.emails.send({
         from: `Audease <${process.env.EMAIL_FROM}>`, // Replace with your actual email address

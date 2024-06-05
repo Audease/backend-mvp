@@ -9,13 +9,13 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserService } from '../users/users.service';
 import * as dotenv from 'dotenv';
 
-dotenv.config()
+dotenv.config();
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     public readonly userService: UserService,
-    public readonly configService: ConfigService,
+    public readonly configService: ConfigService
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

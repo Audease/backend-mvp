@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { School } from '../../shared/entities/school.entity';
+import { School } from '../entities/school.entity';
 import { Users } from '../../users/entities/user.entity';
 import { Roles } from '../entities/role.entity';
 import { RolePermission } from '../entities/rolepermission.entity';

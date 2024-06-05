@@ -12,6 +12,7 @@ import { ApiConfigService } from './shared/services/api-config.service';
 import { RecruiterModule } from './recruiter/recruiter.module';
 import { RoleGuard } from './auth/role.guard';
 import { CreateAccountsModule } from './create-accounts/create-accounts.module';
+import { FinancialAidOfficerModule } from './financial-aid-officer/financial-aid-officer.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { CreateAccountsModule } from './create-accounts/create-accounts.module';
     AuthModule,
     RecruiterModule,
     CreateAccountsModule,
+    FinancialAidOfficerModule,
   ],
   controllers: [AppController],
   providers: [

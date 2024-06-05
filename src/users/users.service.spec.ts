@@ -135,7 +135,7 @@ describe('UserService', () => {
       expect(userRepository.createQueryBuilder).toHaveBeenCalled();
       expect(userRepository.createQueryBuilder().where).toHaveBeenCalledWith(
         'users.username = :username',
-        { username },
+        { username }
       );
       expect(userRepository.createQueryBuilder().getOne).toHaveBeenCalled();
       expect(result).toEqual(user);
@@ -178,7 +178,7 @@ describe('UserService', () => {
       expect(roleRepository.createQueryBuilder).toHaveBeenCalled();
       expect(roleRepository.createQueryBuilder().where).toHaveBeenCalledWith(
         'roles.id = :id',
-        { id: roleId },
+        { id: roleId }
       );
       expect(roleRepository.createQueryBuilder().getOne).toHaveBeenCalled();
       expect(result).toEqual(role);
@@ -200,7 +200,7 @@ describe('UserService', () => {
       expect(roleRepository.createQueryBuilder).toHaveBeenCalled();
       expect(roleRepository.createQueryBuilder().where).toHaveBeenCalledWith(
         'roles.role = :role',
-        { role: roleName },
+        { role: roleName }
       );
       expect(roleRepository.createQueryBuilder().getOne).toHaveBeenCalled();
       expect(result).toEqual(role);

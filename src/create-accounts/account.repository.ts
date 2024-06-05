@@ -7,10 +7,9 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class AccountRepository {
   constructor(
-   
     @InjectRepository(Users)
-    private readonly userRepository: Repository<Users>,
-  ){}
+    private readonly userRepository: Repository<Users>
+  ) {}
 
   async findAdmin(userId: string) {
     return await this.userRepository.findOne({
@@ -18,6 +17,4 @@ export class AccountRepository {
       relations: ['school', 'recruiter'],
     });
   }
-
-
 }

@@ -10,7 +10,6 @@ import {
   UnauthorizedException,
   NotFoundException,
   ConflictException,
-
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -51,8 +50,6 @@ export class AuthController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
- 
 
   @Post('verify-school')
   @HttpCode(HttpStatus.OK)
@@ -103,7 +100,7 @@ export class AuthController {
   async initiateReset(@Body() initiateResetDto: initiateResetDto) {
     try {
       return await this.authService.initiatePasswordReset(
-        initiateResetDto.email,
+        initiateResetDto.email
       );
     } catch (error) {
       this.logger.error(error.message);

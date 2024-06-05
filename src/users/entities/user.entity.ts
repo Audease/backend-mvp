@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
-import { Recruiter } from 'src/recruiter/entities/recruiter.entity';
+import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 
 @Entity('users')
 export class Users {
@@ -34,15 +34,15 @@ export class Users {
   @Column('varchar', { length: 255, nullable: false })
   phone: string;
 
-  @ManyToOne(() => Roles, (role) => role.id)
+  @ManyToOne(() => Roles, role => role.id)
   @JoinColumn({ name: 'role_id' })
   role: Roles;
 
-  @ManyToOne(() => School, (school) => school.users)
+  @ManyToOne(() => School, school => school.users)
   @JoinColumn({ name: 'school_id' })
   school: School;
 
-  @OneToOne(() => Recruiter, (recruiter) => recruiter.user)
+  @OneToOne(() => Recruiter, recruiter => recruiter.user)
   recruiter: Recruiter;
 
   @CreateDateColumn({

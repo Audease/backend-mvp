@@ -23,12 +23,12 @@ export class CreateAccountsController {
   @HttpCode(HttpStatus.CREATED)
   async register(
     @GetCurrentUserId() userId: string,
-    @Body() createUserDto: CreateAccountDto,
+    @Body() createUserDto: CreateAccountDto
   ) {
     try {
       return await this.createAccountsService.addRecruiter(
         userId,
-        createUserDto,
+        createUserDto
       );
     } catch (error) {
       this.logger.error(error.message);

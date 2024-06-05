@@ -26,7 +26,7 @@ async function bootstrap() {
     new ValidationPipe({
       transform: true,
       whitelist: true,
-    }),
+    })
   );
 
   app.useGlobalFilters(new AllExceptionFilter(httpAdapterHost));

@@ -17,8 +17,6 @@ import { v4 as uuid } from 'uuid';
 import { RegistrationStatus } from '../utils/enum/registration_status';
 import * as bcrypt from 'bcrypt';
 
-
-
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -27,7 +25,7 @@ export class AuthService {
     private readonly jwtService: JwtAuthService,
     private readonly mailService: MailService,
     private readonly userService: UserService,
-    private redisService: RedisService,
+    private redisService: RedisService
   ) {}
 
   get redis() {
@@ -57,7 +55,7 @@ export class AuthService {
     if (schoolExists) {
       this.logger.error('School already exist');
       throw new ConflictException(
-        'School already exists, contact support for any question',
+        'School already exists, contact support for any question'
       );
     }
 
@@ -85,7 +83,7 @@ export class AuthService {
         last_name,
         phone,
         college_id: data.id,
-      }),
+      })
     );
 
     await this.mailService.sendTemplateMail(
@@ -99,7 +97,7 @@ export class AuthService {
         last_name,
         college_name,
         onboardingKey,
-      },
+      }
     );
 
     return {
@@ -121,7 +119,7 @@ export class AuthService {
 
     const school = await this.authRepository.updateStatus(
       college_id,
-      RegistrationStatus.VERIFIED,
+      RegistrationStatus.VERIFIED
     );
 
     const verifyUrl = `${process.env.FRONTEND_URL}/verify?token=${key}`;
@@ -139,7 +137,7 @@ export class AuthService {
         last_name,
         school_name,
         verifyUrl,
-      },
+      }
     );
     return {
       message: 'School verified successfully',
@@ -192,7 +190,7 @@ export class AuthService {
         last_name,
         role,
       },
-      college_id,
+      college_id
     );
 
     // Remove the onboarding key from redis
@@ -203,7 +201,6 @@ export class AuthService {
     };
   }
 
- 
   async login(data: { username: string; password: string }) {
     const { username, password } = data;
 
@@ -244,7 +241,7 @@ export class AuthService {
 
     const newToken = await this.jwtService.generateAccessToken(
       user.id,
-      role.id,
+      role.id
     );
 
     return {
@@ -277,7 +274,7 @@ export class AuthService {
       'password-reset',
       {
         resetUrl,
-      },
+      }
     );
 
     return {

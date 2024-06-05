@@ -43,7 +43,7 @@ export class CreateRole1716496320371 implements MigrationInterface {
             default: 'CURRENT_TIMESTAMP',
           },
         ],
-      }),
+      })
     );
   }
 

@@ -121,7 +121,7 @@ describe('AuthService', () => {
       const result = await service.createSchool(createSchoolDto);
 
       expect(authRepository.findSchool).toHaveBeenCalledWith(
-        createSchoolDto.college_name,
+        createSchoolDto.college_name
       );
       expect(authRepository.create).toHaveBeenCalledWith({
         college_name: createSchoolDto.college_name,
@@ -167,7 +167,7 @@ describe('AuthService', () => {
         .mockResolvedValueOnce(existingSchool);
 
       await expect(service.createSchool(createSchoolDto)).rejects.toThrow(
-        ConflictException,
+        ConflictException
       );
     });
   });
@@ -196,11 +196,11 @@ describe('AuthService', () => {
 
       expect(redisService.getClient().hget).toHaveBeenCalledWith(
         'onboarding',
-        key,
+        key
       );
       expect(authRepository.updateStatus).toHaveBeenCalledWith(
         uuidValue2,
-        RegistrationStatus.VERIFIED,
+        RegistrationStatus.VERIFIED
       );
       expect(mailService.sendTemplateMail).toHaveBeenCalled();
       expect(result).toEqual({ message: 'School verified successfully' });
@@ -214,7 +214,7 @@ describe('AuthService', () => {
       });
 
       await expect(service.verifySchool(key)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
   });
@@ -237,7 +237,7 @@ describe('AuthService', () => {
 
       expect(redisService.getClient().hget).toHaveBeenCalledWith(
         'onboarding',
-        key,
+        key
       );
       expect(result).toEqual({ message: 'Key verified successfully' });
     });
@@ -286,11 +286,11 @@ describe('AuthService', () => {
 
       expect(redisService.getClient().hget).toHaveBeenCalledWith(
         'onboarding',
-        userData.keyId,
+        userData.keyId
       );
       expect(userService.getRoleByName).toHaveBeenCalledWith(Role.SCHOOL_ADMIN);
       expect(userService.getUserByUsername).toHaveBeenCalledWith(
-        userData.username,
+        userData.username
       );
       expect(userService.createUserWithCollegeId).toHaveBeenCalledWith(
         {
@@ -302,11 +302,11 @@ describe('AuthService', () => {
           last_name: onboardingData.last_name,
           role: roleData,
         },
-        onboardingData.college_id,
+        onboardingData.college_id
       );
       expect(redisService.getClient().hdel).toHaveBeenCalledWith(
         'onboarding',
-        userData.keyId,
+        userData.keyId
       );
       expect(result).toEqual({ message: 'User created successfully' });
     });
@@ -323,7 +323,7 @@ describe('AuthService', () => {
       });
 
       await expect(service.createUser(userData)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
 
@@ -349,7 +349,7 @@ describe('AuthService', () => {
         .mockResolvedValueOnce({ id: uuidValue3, username: 'testuser' });
 
       await expect(service.createUser(userData)).rejects.toThrow(
-        ConflictException,
+        ConflictException
       );
     });
   });
@@ -380,12 +380,12 @@ describe('AuthService', () => {
       const result = await service.login(loginData);
 
       expect(userService.getUserByUsername).toHaveBeenCalledWith(
-        loginData.username,
+        loginData.username
       );
       expect(userService.getUserRoleById).toHaveBeenCalledWith(userData.id);
       expect(jwtService.generateAuthTokens).toHaveBeenCalledWith(
         userData.id,
-        roleData.id,
+        roleData.id
       );
       expect(result).toEqual({ token });
     });
@@ -443,7 +443,7 @@ describe('AuthService', () => {
       expect(userService.getUserRoleById).toHaveBeenCalledWith(userId);
       expect(jwtService.generateAccessToken).toHaveBeenCalledWith(
         userId,
-        roleId,
+        roleId
       );
       expect(result).toEqual({ token: newAccessToken });
     });
@@ -458,7 +458,7 @@ describe('AuthService', () => {
       userService.findOne = jest.fn().mockResolvedValueOnce(null);
 
       await expect(service.refreshToken(refreshToken)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
   });
@@ -484,7 +484,7 @@ describe('AuthService', () => {
         expect.any(String),
         userId,
         'EX',
-        86400,
+        86400
       );
       expect(mailService.sendTemplateMail).toHaveBeenCalled();
       expect(result).toEqual({
@@ -499,7 +499,7 @@ describe('AuthService', () => {
       userService.getUserByEmail = jest.fn().mockResolvedValueOnce(null);
 
       await expect(service.initiatePasswordReset(email)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
   });
@@ -542,7 +542,7 @@ describe('AuthService', () => {
       });
 
       await expect(service.resetPassword(data)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
 
@@ -559,7 +559,7 @@ describe('AuthService', () => {
       userService.findOne = jest.fn().mockResolvedValueOnce(null);
 
       await expect(service.resetPassword(data)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
   });

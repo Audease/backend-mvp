@@ -18,7 +18,7 @@ export class JwtAuthService {
   constructor(
     @InjectRepository(Token)
     private readonly tokenRepository: Repository<Token>,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: JwtService
   ) {}
 
   async generateToken(payload: TokenPayload) {
@@ -31,7 +31,7 @@ export class JwtAuthService {
     token: string,
     userId: string,
     expiresIn: Date,
-    type: TokenType,
+    type: TokenType
   ) {
     return this.tokenRepository.save({
       token,
@@ -43,7 +43,7 @@ export class JwtAuthService {
 
   async generateAuthTokens(
     userId: string,
-    roleId: string,
+    roleId: string
   ): Promise<TokenResponse> {
     const accessTokenExpires = moment()
       .add(process.env.JWT_ACCESS_EXPIRES_IN, 'minutes')
@@ -72,7 +72,7 @@ export class JwtAuthService {
       refreshToken,
       userId,
       refreshTokenExpires,
-      TokenType.REFRESH,
+      TokenType.REFRESH
     );
 
     return {
@@ -104,7 +104,6 @@ export class JwtAuthService {
   async verifyAccessToken(token: string) {
     return this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
-
     });
   }
 
@@ -124,7 +123,7 @@ export class JwtAuthService {
   async invalidateToken(token: string) {
     return this.tokenRepository.update(
       { token },
-      { blacklisted: true, updatedAt: new Date() },
+      { blacklisted: true, updatedAt: new Date() }
     );
   }
 

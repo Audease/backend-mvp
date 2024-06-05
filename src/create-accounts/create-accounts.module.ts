@@ -13,12 +13,6 @@ import { Users } from 'src/users/entities/user.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([School, Recruiter, Users]), UsersModule],
   controllers: [CreateAccountsController],
-  providers: [
-    CreateAccountsService,
-    Repository,
-    AccountRepository,
-    
-    Logger,
-  ],
+  providers: [CreateAccountsService, Repository, AccountRepository, Logger],
 })
 export class CreateAccountsModule {}

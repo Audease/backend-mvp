@@ -8,10 +8,10 @@ import { CreateAccountDto } from './dto/create-create-account.dto';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { AccountRepository } from './account.repository';
-import { UserService } from 'src/users/users.service';
-import { Role } from 'src/utils/enum/role';
+import { UserService } from '../users/users.service';
+import { Role } from '../utils/enum/role';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Recruiter } from 'src/recruiter/entities/recruiter.entity';
+import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class CreateAccountsService {
     private readonly accountRepository: AccountRepository,
     private readonly userService: UserService,
     @InjectRepository(Recruiter)
-    private readonly recruiterRepository: Repository<Recruiter>,
+    private readonly recruiterRepository: Repository<Recruiter>
   ) {}
 
   async addRecruiter(userId: string, createUserDto: CreateAccountDto) {
@@ -61,7 +61,7 @@ export class CreateAccountsService {
         last_name: createUserDto.last_name,
         role,
       },
-      college_id,
+      college_id
     );
 
     const recruiter = this.recruiterRepository.create({

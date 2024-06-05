@@ -8,5 +8,5 @@ export const GetCurrentUserId = createParamDecorator(
       throw new Error('User not found in request');
     }
     return user['sub'];
-  },
+  }
 );

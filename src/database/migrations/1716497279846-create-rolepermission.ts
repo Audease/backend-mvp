@@ -35,7 +35,7 @@ export class CreateRolepermission1716497279846 implements MigrationInterface {
             name: 'fk_role_permission_permission',
           },
         ],
-      }),
+      })
     );
   }
 
@@ -43,11 +43,11 @@ export class CreateRolepermission1716497279846 implements MigrationInterface {
     await queryRunner.dropTable('role_permission');
     await queryRunner.dropForeignKey(
       'role_permission',
-      'fk_role_permission_role',
+      'fk_role_permission_role'
     );
     await queryRunner.dropForeignKey(
       'role_permission',
-      'fk_role_permission_permission',
+      'fk_role_permission_permission'
     );
   }
 }
