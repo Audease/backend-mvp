@@ -19,4 +19,4 @@ RUN yarn run build
 EXPOSE 8080
 
 # Start the server using the production build
-CMD [ "node", "dist/main.js" ]
+CMD [ "yarn", "start:dev" ]
