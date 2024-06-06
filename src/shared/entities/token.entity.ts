@@ -9,7 +9,7 @@ export class Token {
 
   @ApiProperty({
     description: 'The type of token',
-    example: 'AccessToken'
+    example: 'AccessToken',
   })
   @Column('enum', { enum: TokenType, default: TokenType.REFRESH })
   type: TokenType;
@@ -27,7 +27,7 @@ export class Token {
 
   @ApiProperty({
     description: 'Expiration date of the token',
-    example: '2024-06-02T19:20:05.507Z'
+    example: '2024-06-02T19:20:05.507Z',
   })
   @Column('timestamp with time zone')
   expires: Date;

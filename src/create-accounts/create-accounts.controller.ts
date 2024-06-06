@@ -12,7 +12,13 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateAccountsService } from './create-accounts.service';
 import { GetCurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateAccountDto } from './dto/create-create-account.dto';
-import { ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 @ApiTags('Create Accounts')
 @Controller('create-account')
@@ -23,15 +29,13 @@ export class CreateAccountsController {
   @UseGuards(JwtAuthGuard)
   @Post('/recruiter')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create recruiter account'})
+  @ApiOperation({ summary: 'Create recruiter account' })
   @ApiCreatedResponse({
-    description: 'User created successfully'
+    description: 'User created successfully',
   })
-
   @ApiUnauthorizedResponse({
-    description: 'Unauthorized'
+    description: 'Unauthorized',
   })
-  
   @HttpCode(HttpStatus.CREATED)
   async register(
     @GetCurrentUserId() userId: string,

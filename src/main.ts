@@ -11,7 +11,6 @@ async function bootstrap() {
     rawBody: true,
   });
 
-
   const port = process.env.PORT || 8080;
 
   const httpAdapterHost = app.get(HttpAdapterHost);
