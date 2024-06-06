@@ -3,6 +3,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { AllExceptionFilter } from './shared/filters';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
+import { setupSwagger } from './swagger.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -30,6 +31,8 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new AllExceptionFilter(httpAdapterHost));
+
+  setupSwagger(app);
   await app.listen(port);
 }
 bootstrap();
