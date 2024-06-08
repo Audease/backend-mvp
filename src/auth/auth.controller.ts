@@ -27,6 +27,7 @@ import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -42,6 +43,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login in a user' })
   @ApiResponse({
     status: 200,
     description: 'Successful login',
@@ -76,6 +78,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @ApiOperation({ summary: 'Create user account' })
   @ApiCreatedResponse({
     description: 'User created successfully',
   })
@@ -90,6 +93,7 @@ export class AuthController {
   }
 
   @Post('verify-school')
+  @ApiOperation({ summary: 'Verify school' })
   @ApiOkResponse({
     description: 'The school verification was successful',
   })
@@ -107,6 +111,7 @@ export class AuthController {
   }
 
   @Post('verify')
+  @ApiOperation({ summary: 'Verify onboarding key' })
   @ApiOkResponse({
     description: 'Key verified successfully',
   })
@@ -124,6 +129,7 @@ export class AuthController {
   }
 
   @Post('refresh-token')
+  @ApiOperation({ summary: 'Get refresh token' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -143,6 +149,7 @@ export class AuthController {
   }
 
   @Post('create-school')
+  @ApiOperation({ summary: 'Add school' })
   @ApiCreatedResponse({
     description:
       'The message that verifies that the actions have been performed and the onboarding key for the school verification and registration',
@@ -162,6 +169,7 @@ export class AuthController {
   }
 
   @Post('initiate-reset')
+  @ApiOperation({ summary: 'Initiate password reset' })
   @ApiOkResponse({
     description:
       'Password reset initiated check your mail for further instructions',
@@ -181,6 +189,7 @@ export class AuthController {
     }
   }
   @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password' })
   @ApiOkResponse({
     description: 'Password reset successfully',
   })
