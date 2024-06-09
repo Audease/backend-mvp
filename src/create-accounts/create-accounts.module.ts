@@ -9,9 +9,10 @@ import { Repository } from 'typeorm';
 import { AccountRepository } from './account.repository';
 import { UserService } from 'src/users/users.service';
 import { Users } from 'src/users/entities/user.entity';
+import { FinancialAidOfficer } from 'src/financial-aid-officer/entities/financial-aid-officer.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([School, Recruiter, Users]), UsersModule],
+  imports: [TypeOrmModule.forFeature([School, Recruiter, Users, FinancialAidOfficer]), UsersModule],
   controllers: [CreateAccountsController],
   providers: [CreateAccountsService, Repository, AccountRepository, Logger],
 })

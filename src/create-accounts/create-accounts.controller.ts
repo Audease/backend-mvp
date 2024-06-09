@@ -35,4 +35,22 @@ export class CreateAccountsController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/financial-aid-officer')
+  @HttpCode(HttpStatus.CREATED)
+  async create(
+    @GetCurrentUserId() userId: string,
+    @Body() createUserDto: CreateAccountDto
+  ) {
+    try {
+      return await this.createAccountsService.addFinancialAidOfficer(
+        userId,
+        createUserDto
+      );
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

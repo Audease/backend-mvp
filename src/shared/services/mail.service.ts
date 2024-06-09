@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Resend } from 'resend';
+import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
 import * as path from 'path';
 import { Logger } from '@nestjs/common';
 import * as fs from 'fs';
@@ -7,7 +7,9 @@ import { Mail } from '../../utils/interface/mail.interface';
 
 @Injectable()
 export class MailService {
-  private readonly resend = new Resend(process.env.RESEND_API_KEY);
+  private readonly mailsender = new MailerSend({
+    apiKey: process.env.MAILER_SEND_API_KEY,
+  });
   private readonly logger = new Logger('MailService');
 
   private static getTemplateContent(templateName: string): string {
@@ -15,7 +17,7 @@ export class MailService {
       const dirName = process.cwd();
       const templatePath = path.resolve(
         dirName,
-        `./src/template/${templateName}.html`
+        `./src/template/${templateName}.html`,
       );
       return fs.readFileSync(templatePath, 'utf8');
     } catch (error) {
@@ -25,7 +27,7 @@ export class MailService {
 
   private static compileTemplate(
     template: string,
-    data: Record<string, string | number>
+    data: Record<string, string | number>,
   ): string {
     return template.replace(/{{(\w+)}}/g, (match, key) => {
       const value = data[key];
@@ -38,20 +40,25 @@ export class MailService {
   public async sendTemplateMail(
     mail: Mail,
     templateName: string,
-    data: Record<string, string | number>
+    data: Record<string, string | number>,
   ): Promise<void> {
     try {
       const templateContent = MailService.getTemplateContent(templateName);
       const compiledTemplate = MailService.compileTemplate(
         templateContent,
-        data
+        data,
       );
-      await this.resend.emails.send({
-        from: `Audease <${process.env.EMAIL_FROM}>`, // Replace with your actual email address
-        to: mail.to,
-        subject: mail.subject,
-        html: compiledTemplate,
-      });
+      const sentFrom = new Sender(process.env.EMAIL_FROM, 'Audease');
+      const recipient = [new Recipient(mail.to)];
+
+      const emailParams = new EmailParams()
+        .setFrom(sentFrom)
+        .setTo(recipient)
+        .setReplyTo(sentFrom)
+        .setSubject(mail.subject)
+        .setHtml(compiledTemplate);
+
+      await this.mailsender.email.send(emailParams);
 
       this.logger.log(`Mail sent to ${mail.to}`);
     } catch (error) {
