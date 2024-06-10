@@ -39,7 +39,7 @@ export class School {
   post_code: string;
 
   @Column('varchar', { length: 255, nullable: false })
-  state: string;
+  county: string;
 
   @Column({
     type: 'enum',

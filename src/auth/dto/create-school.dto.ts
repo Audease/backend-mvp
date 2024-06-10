@@ -40,5 +40,11 @@ export class CreateSchoolDto {
   post_code: string;
 
   @IsString()
-  state: string;
+  county: string;
+
+  @IsString()
+  username: string;
+
+  @IsString()
+  password: string;
 }

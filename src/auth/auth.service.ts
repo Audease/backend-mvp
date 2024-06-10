@@ -16,6 +16,7 @@ import { Role } from '../utils/enum/role';
 import { v4 as uuid } from 'uuid';
 import { RegistrationStatus } from '../utils/enum/registration_status';
 import * as bcrypt from 'bcrypt';
+import { DbTransactionFactory } from '../shared/services/transactions/TransactionManager';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly userService: UserService,
     private redisService: RedisService,
+    private readonly dbTransactionFactory: DbTransactionFactory,
   ) {}
 
   get redis() {
@@ -33,35 +35,41 @@ export class AuthService {
   }
 
   async createSchool(createSchoolDto: CreateSchoolDto): Promise<ISchoolCreate> {
+   let transactionRunner = null;
+
+   try {
+    transactionRunner = await this.dbTransactionFactory.createTransaction();
+    await transactionRunner.startTransaction();
+
+    const transactionManager = transactionRunner.transactionManager
     const {
-      first_name,
-      last_name,
-      email,
+      college_name,
+      no_of_employee,
+      country,
+      business_code,
       address_line1,
       address_line2,
-      business_code,
       city,
-      college_name,
-      country,
-      no_of_employee,
       post_code,
-      state,
+      county,
+      email,
+      first_name,
+      last_name,
       phone,
+      password,
+      username,
     } = createSchoolDto;
 
-    // Check if the school already exists
     const schoolExists = await this.authRepository.findSchool(college_name);
 
     if (schoolExists) {
-      this.logger.error('School already exist');
-      throw new ConflictException(
-        'School already exists, contact support for any question',
-      );
+      this.logger.error('School already exists');
+      throw new ConflictException('School already exists');
     }
 
     const data = await this.authRepository.create({
       college_name,
-      state,
+      county,
       address_line1,
       address_line2,
       business_code,
@@ -70,41 +78,35 @@ export class AuthService {
       no_of_employee,
       post_code,
       status: RegistrationStatus.IN_PROGRESS,
-    });
+    })
 
     const onboardingKey = uuid();
 
-    await this.redis.hset(
-      'onboarding',
-      onboardingKey,
-      JSON.stringify({
+    // Create a user with the school data
+
+    const role = await this.userService.getRoleByName(Role.SCHOOL_ADMIN);
+
+    const userExists = await this.userService.getUserByUsername(username);
+
+    if (userExists) {
+      this.logger.error('Username already exists');
+      throw new ConflictException('Username already exists');
+    }
+
+    const user = await this.userService.createUserWithCollegeId(
+      {
+        username,
+        password: await bcrypt.hash(password, 10),
         email,
-        first_name,
-        last_name,
         phone,
-        college_id: data.id,
-      }),
-    );
-
-    await this.mailService.sendTemplateMail(
-      {
-        to: email,
-        subject: 'Welcome to Audease',
-      },
-      'school-onboarding',
-      {
         first_name,
         last_name,
-        college_name,
-        onboardingKey,
+        role,
       },
+      data.id,
     );
 
-    return {
-      message:
-        'School created successfully check your mail for further instructions',
-      keyId: onboardingKey,
-    };
+   }
   }
 
   async verifySchool(key: string) {

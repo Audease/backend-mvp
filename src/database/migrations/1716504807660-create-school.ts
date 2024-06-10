@@ -63,7 +63,7 @@ export class CreateSchool1716504807660 implements MigrationInterface {
             isNullable: false,
           },
           {
-            name: 'state',
+            name: 'county',
             type: 'varchar',
             length: '255',
             isNullable: false,

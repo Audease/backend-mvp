@@ -107,7 +107,7 @@ describe('AuthService', () => {
         address_line2: 'Test Address Line 2',
         city: 'Test City',
         post_code: '12345',
-        state: 'Test State',
+        county: 'Test State',
       };
       const schoolData = {
         id: uuidValue,
@@ -137,7 +137,7 @@ describe('AuthService', () => {
       );
       expect(authRepository.create).toHaveBeenCalledWith({
         college_name: createSchoolDto.college_name,
-        state: createSchoolDto.state,
+        state: createSchoolDto.county,
         address_line1: createSchoolDto.address_line1,
         address_line2: createSchoolDto.address_line2,
         business_code: createSchoolDto.business_code,
@@ -167,7 +167,7 @@ describe('AuthService', () => {
         address_line2: 'Test Address Line 2',
         city: 'Test City',
         post_code: '12345',
-        state: 'Test State',
+        county: 'Test State',
       };
       const existingSchool = {
         id: uuidValue,

@@ -25,7 +25,7 @@ export interface SchoolSchema {
   address_line2: string;
   city: string;
   post_code: string;
-  state: string;
+  county: string;
   status?: RegistrationStatus;
 }
 

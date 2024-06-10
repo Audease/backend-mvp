@@ -260,7 +260,7 @@ describe('AuthController', () => {
         address_line2: 'Eden College',
         city: 'Lagos',
         post_code: '100001',
-        state: 'Lagos',
+        county: 'Lagos',
       };
 
       const expectedResult = {
@@ -291,7 +291,7 @@ describe('AuthController', () => {
         address_line2: 'Eden College',
         city: 'Lagos',
         post_code: '100001',
-        state: 'Lagos',
+        county: 'Lagos',
       };
 
       const error = new Error('School creation failed');
