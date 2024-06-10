@@ -10,10 +10,11 @@ import { AccountRepository } from './account.repository';
 import { UserService } from 'src/users/users.service';
 import { Users } from 'src/users/entities/user.entity';
 import { FinancialAidOfficer } from 'src/financial-aid-officer/entities/financial-aid-officer.entity';
+import { MailService } from 'src/shared/services/mail.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([School, Recruiter, Users, FinancialAidOfficer]), UsersModule],
   controllers: [CreateAccountsController],
-  providers: [CreateAccountsService, Repository, AccountRepository, Logger],
+  providers: [CreateAccountsService, Repository, AccountRepository, Logger, MailService],
 })
 export class CreateAccountsModule {}

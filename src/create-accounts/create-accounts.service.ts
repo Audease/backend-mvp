@@ -14,6 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { Repository } from 'typeorm';
 import { FinancialAidOfficer } from 'src/financial-aid-officer/entities/financial-aid-officer.entity';
+import { MailService } from 'src/shared/services/mail.service';
 
 @Injectable()
 export class CreateAccountsService {
@@ -21,6 +22,7 @@ export class CreateAccountsService {
   constructor(
     private readonly accountRepository: AccountRepository,
     private readonly userService: UserService,
+     private readonly mailService: MailService,
     @InjectRepository(FinancialAidOfficer)
     private readonly financialAidOfficerRepository: Repository<FinancialAidOfficer>,
     @InjectRepository(Recruiter)
@@ -38,7 +40,7 @@ export class CreateAccountsService {
     const college_id = admin.school.id;
     const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
     let generated_username =
-      `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}`.toLowerCase();
+      `${createUserDto.first_name}.${sanitizedCollegeName}.recruiter`.toLowerCase();
     const generated_password = crypto
       .randomBytes(12)
       .toString('hex')
@@ -82,6 +84,9 @@ export class CreateAccountsService {
     });
 
     await this.recruiterRepository.save(recruiter);
+
+    
+    
     return {
       message: 'User created successfully',
     };
@@ -98,7 +103,7 @@ export class CreateAccountsService {
     const college_id = admin.school.id;
     const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
     let generated_username =
-      `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}`.toLowerCase();
+      `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}.finance`.toLowerCase();
     const generated_password = crypto
       .randomBytes(12)
       .toString('hex')
@@ -111,7 +116,7 @@ export class CreateAccountsService {
 
     if (userExists) {
       const randomNumber = Math.floor(Math.random()* 1000)
-      generated_username = `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}`.toLowerCase();
+      generated_username = `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.finance`.toLowerCase();
     }
 
     const emailExists = await this.userService.getUserByEmail(createUserDto.email);
@@ -138,7 +143,23 @@ export class CreateAccountsService {
       school: admin.school,
     });
 
-    await this.recruiterRepository.save(financialAidOfficer);
+    await this.financialAidOfficerRepository.save(financialAidOfficer);
+    
+    const loginUrl = `${process.env.FRONTEND_URL}/v1/auth/login}`;
+    const first_name = createUserDto.first_name
+
+    await this.mailService.sendTemplateMail(
+      {
+        to: createUserDto.email,
+        subject: 'Welcome to Audease',
+      },
+      'welcome-users',
+      {
+      first_name,
+      generated_username,
+      generated_password,
+       loginUrl,
+      })
     return {
       message: 'User created successfully',
     };
