@@ -13,6 +13,7 @@ import { Role } from '../utils/enum/role';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { Repository } from 'typeorm';
+import { MailService } from 'src/shared/services/mail.service';
 
 @Injectable()
 export class CreateAccountsService {
@@ -20,6 +21,7 @@ export class CreateAccountsService {
   constructor(
     private readonly accountRepository: AccountRepository,
     private readonly userService: UserService,
+    private readonly mailService: MailService,
     @InjectRepository(Recruiter)
     private readonly recruiterRepository: Repository<Recruiter>,
   ) {}
@@ -35,7 +37,7 @@ export class CreateAccountsService {
     const college_id = admin.school.id;
     const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
     const generated_username =
-      `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}`.toLowerCase();
+      `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}.recruiter`.toLowerCase();
     const generated_password = crypto
       .randomBytes(12)
       .toString('hex')
@@ -71,6 +73,21 @@ export class CreateAccountsService {
     });
 
     await this.recruiterRepository.save(recruiter);
+    const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
+    const first_name = createUserDto.first_name
+
+    await this.mailService.sendTemplateMail(
+      {
+        to: createUserDto.email,
+        subject: 'Welcome to Audease',
+      },
+      'welcome-users',
+      {
+      first_name,
+      generated_username,
+      generated_password,
+       loginUrl,
+      })
     return {
       message: 'User created successfully',
     };
