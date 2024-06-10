@@ -10,6 +10,7 @@ import { Users } from '../../users/entities/user.entity';
 import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
 
+
 @Entity('school')
 export class School {
   @PrimaryGeneratedColumn('uuid')

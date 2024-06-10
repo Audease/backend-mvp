@@ -8,11 +8,19 @@ import {
   HttpCode,
   HttpException,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateAccountsService } from './create-accounts.service';
-import { GetCurrentUserId } from 'src/shared/decorators/get-current-user-id.decorator';
+import { GetCurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateAccountDto } from './dto/create-create-account.dto';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('Create Accounts')
 @Controller('create-account')
 export class CreateAccountsController {
   private readonly logger = new Logger(CreateAccountsController.name);
@@ -20,6 +28,14 @@ export class CreateAccountsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('/recruiter')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create recruiter account' })
+  @ApiCreatedResponse({
+    description: 'User created successfully',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
   @HttpCode(HttpStatus.CREATED)
   async register(
     @GetCurrentUserId() userId: string,

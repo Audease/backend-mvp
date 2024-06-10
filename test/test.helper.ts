@@ -20,7 +20,7 @@ export const getFakeUser = (): Users => {
       created_at: faker.date.past(),
       updated_at: faker.date.recent(),
       rolePermission: null,
-      user: null,
+      // user: null,
     },
     created_at: faker.date.past(),
     updated_at: faker.date.recent(),
@@ -31,7 +31,7 @@ export const getFakeUser = (): Users => {
 export const getFakeSchool = (): School => {
   return {
     id: faker.string.uuid(),
-    name: faker.company.name(),
+    college_name: faker.company.name(),
     no_of_employee: faker.number.int({ min: 1, max: 1000 }),
     country: faker.location.country(),
     business_code: faker.number.int({ min: 1000, max: 9999 }).toString(),

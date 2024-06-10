@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Users } from 'src/users/entities/user.entity';
+import { Users } from '../users/entities/user.entity';
 
 import { Repository } from 'typeorm';
 
@@ -8,7 +8,9 @@ import { Repository } from 'typeorm';
 export class AccountRepository {
   constructor(
     @InjectRepository(Users)
+
     private readonly userRepository: Repository<Users>
+
   ) {}
 
   async findAdmin(userId: string) {
