@@ -17,6 +17,7 @@ import { v4 as uuid } from 'uuid';
 import { RegistrationStatus } from '../utils/enum/registration_status';
 import * as bcrypt from 'bcrypt';
 import { DbTransactionFactory } from '../shared/services/transactions/TransactionManager';
+import { Users } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -36,6 +37,7 @@ export class AuthService {
 
   async createSchool(createSchoolDto: CreateSchoolDto): Promise<ISchoolCreate> {
    let transactionRunner = null;
+   let user : Users = null;
 
    try {
     transactionRunner = await this.dbTransactionFactory.createTransaction();
@@ -44,20 +46,8 @@ export class AuthService {
     const transactionManager = transactionRunner.transactionManager
     const {
       college_name,
-      no_of_employee,
-      country,
-      business_code,
-      address_line1,
-      address_line2,
-      city,
-      post_code,
-      county,
-      email,
-      first_name,
-      last_name,
-      phone,
-      password,
       username,
+      password,
     } = createSchoolDto;
 
     const schoolExists = await this.authRepository.findSchool(college_name);
@@ -67,22 +57,8 @@ export class AuthService {
       throw new ConflictException('School already exists');
     }
 
-    const data = await this.authRepository.create({
-      college_name,
-      county,
-      address_line1,
-      address_line2,
-      business_code,
-      city,
-      country,
-      no_of_employee,
-      post_code,
-      status: RegistrationStatus.IN_PROGRESS,
-    })
-
     const onboardingKey = uuid();
 
-    // Create a user with the school data
 
     const role = await this.userService.getRoleByName(Role.SCHOOL_ADMIN);
 
@@ -93,19 +69,44 @@ export class AuthService {
       throw new ConflictException('Username already exists');
     }
 
-    const user = await this.userService.createUserWithCollegeId(
+    const data = await this.userService.createTransaction(createSchoolDto, transactionManager);    
+
+
+    user = await this.userService.createUserWithCollegeId(
       {
         username,
         password: await bcrypt.hash(password, 10),
-        email,
-        phone,
-        first_name,
-        last_name,
+        email: createSchoolDto.email,
+        phone: createSchoolDto.phone,
+        first_name: createSchoolDto.first_name,
+        last_name: createSchoolDto.last_name,
         role,
       },
-      data.id,
+    data.id,
     );
-
+    await this.redis.hset(
+      'onboarding',
+      onboardingKey,
+      JSON.stringify({
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        college_id: data.id,
+      }),
+    );
+    await transactionRunner.commitTransaction();
+    return {
+      message: 'School created successfully',
+      keyId: onboardingKey,
+    }
+   } catch (error) {
+    this.logger.error(`Failed to create school: ${error.message}`);
+    if (transactionRunner) await transactionRunner.rollbackTransaction();
+    await this.userService.delete(user.id)
+    throw new ConflictException('Failed to create school');
+   }
+   finally {
+    if (transactionRunner) await transactionRunner.rollbackTransaction();
    }
   }
 

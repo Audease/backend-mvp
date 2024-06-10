@@ -1,10 +1,12 @@
 import { Users } from './entities/user.entity';
 import { School } from '../shared/entities/school.entity';
 import { Roles } from '../shared/entities/role.entity';
-import { Repository } from 'typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreateSchoolDto } from 'src/auth/dto/create-school.dto';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { Injectable } from '@nestjs/common';
+import { RegistrationStatus } from '../utils/enum/registration_status';
 import { UserSchema } from '../auth/auth.interface';
 import { Role } from '../utils/enum/role';
 
@@ -23,6 +25,31 @@ export class UserService {
     return await this.userRepository.save(createUserDto);
   }
 
+  async createTransaction(data: Partial<CreateSchoolDto>, transaction: EntityManager) : Promise<School> {
+    const getSchoolrepo = transaction.getRepository(School);
+    const userRepo = transaction.getRepository(Users);
+
+    const { username, password, phone, first_name, last_name, email, ...rest } = data;
+
+    const school = await getSchoolrepo.save({
+      ...rest,
+      status: RegistrationStatus.IN_PROGRESS,
+    });
+
+    const user = await userRepo.save({
+      username,
+      password,
+      phone,
+      first_name,
+      last_name,
+      email,
+      role: await this.getRoleByName(Role.SCHOOL_ADMIN),
+      school,
+    });
+
+    return school;
+  }
+ 
   // Write a query builder to create a user and relate them to the college_id
   async createUserWithCollegeId(users: UserSchema, college_id: string) {
     const college = await this.schoolRepository.findOne({
@@ -94,5 +121,9 @@ export class UserService {
       .createQueryBuilder('roles')
       .where('roles.role = :role', { role })
       .getOne();
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.userRepository.delete(id);
   }
 }
