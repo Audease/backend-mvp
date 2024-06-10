@@ -36,7 +36,7 @@ export class CreateAccountsService {
     const college_name = admin.school.college_name;
     const college_id = admin.school.id;
     const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
-    const generated_username =
+    let generated_username =
       `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}.recruiter`.toLowerCase();
     const generated_password = crypto
       .randomBytes(12)
@@ -49,8 +49,11 @@ export class CreateAccountsService {
       await this.userService.getUserByUsername(generated_username);
 
     if (userExists) {
-      this.logger.error('Username already exists');
-      throw new ConflictException('Username already exists');
+      
+      if (userExists) {
+        const randomNumber = Math.floor(Math.random()* 1000)
+        generated_username = `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.recruiter`.toLowerCase();
+      }
     }
 
     const user = await this.userService.createUserWithCollegeId(

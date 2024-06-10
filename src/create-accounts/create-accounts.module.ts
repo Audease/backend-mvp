@@ -10,6 +10,7 @@ import { AccountRepository } from './account.repository';
 import { UserService } from '../users/users.service';
 import { Roles } from '../shared/entities/role.entity';
 import { Users } from '../users/entities/user.entity';
+import { MailService } from 'src/shared/services/mail.service';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { Users } from '../users/entities/user.entity';
     AccountRepository,
     UserService,
     Logger,
+    MailService
   ],
 })
 export class CreateAccountsModule {}
