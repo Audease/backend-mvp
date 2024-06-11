@@ -63,6 +63,12 @@ jobs:
         yarn run test
         yarn run test:integration
         yarn run test:cov
+    
+    -  name: Upload coverage reports to Codecov
+       uses: codecov/codecov-action@v4.0.1
+       with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: Audease/frontend-mvp
 
   push_to_github_registry:
     if: github.ref == 'refs/heads/dev' || github.event.pull_request.base.ref == 'dev'
