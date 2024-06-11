@@ -13,8 +13,8 @@ import { Role } from '../utils/enum/role';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { Repository } from 'typeorm';
-import { FinancialAidOfficer } from 'src/financial-aid-officer/entities/financial-aid-officer.entity';
-import { MailService } from 'src/shared/services/mail.service';
+import { FinancialAidOfficer } from '../financial-aid-officer/entities/financial-aid-officer.entity';
+import { MailService } from '../shared/services/mail.service';
 
 @Injectable()
 export class CreateAccountsService {
