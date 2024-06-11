@@ -1,5 +1,5 @@
-import { School } from 'src/shared/entities/school.entity';
-import { Users } from 'src/users/entities/user.entity';
+import { School } from '../../shared/entities/school.entity';
+import { Users } from '../../users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
