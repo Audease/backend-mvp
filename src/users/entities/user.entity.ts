@@ -11,7 +11,7 @@ import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
 import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 
-import { FinancialAidOfficer } from 'src/financial-aid-officer/entities/financial-aid-officer.entity';
+import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
 
 
 @Entity('users')
