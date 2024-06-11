@@ -64,10 +64,10 @@ jobs:
         yarn run test:integration
         yarn run test:cov
 
-    - name: Generate coverage report
-      run: |
-          yarn add -D @vitest/coverage-v8
-          yarn coverage
+    # - name: Generate coverage report
+    #   run: |
+    #       yarn add -D @vitest/coverage-v8
+    #       yarn coverage
           
     -  name: Upload coverage reports to Codecov
        uses: codecov/codecov-action@v4.0.1
