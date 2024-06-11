@@ -9,7 +9,7 @@ import { Token } from '../entities/token.entity';
 import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import type { dbConfigs } from '../types/dbConfig';
-import { FinancialAidOfficer } from 'src/financial-aid-officer/entities/financial-aid-officer.entity';
+import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
 
 @Injectable()
 export class ApiConfigService {
