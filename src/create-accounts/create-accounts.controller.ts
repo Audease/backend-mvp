@@ -54,6 +54,14 @@ export class CreateAccountsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('/financial-aid-officer')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create recruiter account' })
+  @ApiCreatedResponse({
+    description: 'User created successfully',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
   @HttpCode(HttpStatus.CREATED)
   async create(
     @GetCurrentUserId() userId: string,

@@ -7,10 +7,10 @@ import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { UsersModule } from '../users/users.module';
 import { Repository } from 'typeorm';
 import { AccountRepository } from './account.repository';
-import { UserService } from 'src/users/users.service';
-import { Users } from 'src/users/entities/user.entity';
-import { FinancialAidOfficer } from 'src/financial-aid-officer/entities/financial-aid-officer.entity';
-import { MailService } from 'src/shared/services/mail.service';
+import { UserService } from '../users/users.service';
+import { Users } from '../users/entities/user.entity';
+import { FinancialAidOfficer } from '../financial-aid-officer/entities/financial-aid-officer.entity';
+import { MailService } from '../shared/services/mail.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([School, Recruiter, Users, FinancialAidOfficer]), UsersModule],
