@@ -16,7 +16,7 @@ export class UserService {
     @InjectRepository(Roles)
     private readonly roleRepository: Repository<Roles>,
     @InjectRepository(School)
-    private readonly schoolRepository: Repository<School>,
+    private readonly schoolRepository: Repository<School>
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<Users> {
@@ -49,7 +49,7 @@ export class UserService {
 
   async update(
     id: string,
-    updateUserDto: Partial<CreateUserDto>,
+    updateUserDto: Partial<CreateUserDto>
   ): Promise<Users> {
     await this.userRepository.update(id, updateUserDto);
     return await this.userRepository.findOne({

@@ -46,7 +46,7 @@ export class CreateToken1716554960320 implements MigrationInterface {
             default: 'CURRENT_TIMESTAMP',
           },
         ],
-      }),
+      })
     );
   }
 

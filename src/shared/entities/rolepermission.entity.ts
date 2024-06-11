@@ -7,10 +7,10 @@ export class RolePermission {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Roles, (role) => role.id, { cascade: true })
+  @ManyToOne(() => Roles, role => role.id, { cascade: true })
   role: Roles;
 
-  @ManyToOne(() => Permissions, (permission) => permission.id, {
+  @ManyToOne(() => Permissions, permission => permission.id, {
     cascade: true,
   })
   permission: Permissions;

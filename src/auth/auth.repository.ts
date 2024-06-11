@@ -12,7 +12,7 @@ export class AuthRepository {
   constructor(
     @InjectRepository(School)
     private readonly schoolRepository: Repository<School>,
-    private readonly userService: UserService,
+    private readonly userService: UserService
   ) {}
 
   async create(createSchoolDto: SchoolSchema): Promise<School> {
