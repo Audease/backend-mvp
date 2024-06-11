@@ -9,5 +9,4 @@
 //         return this.redisService.getClient();
 //     }
 
-    
 // }

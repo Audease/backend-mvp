@@ -12,7 +12,7 @@ import { v4 as uuid } from 'uuid';
 import { CreateUserDto } from './dto/create-user.dto';
 import { verifyDto } from './dto/misc-dto';
 // import { IVerify } from './auth.interface';
-import { CreateSchoolDto } from './dto/create-school.dto';
+
 import { initiateResetDto } from './dto/misc-dto';
 import { resetPasswordDto } from './dto/misc-dto';
 import { TokenResponse } from '../utils/interface/token.interface';
@@ -22,7 +22,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { DbTransactionFactory } from '../shared/services/transactions/TransactionManager';
-
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -92,7 +91,7 @@ describe('AuthController', () => {
           useValue: {
             createTransaction: jest.fn(),
           },
-        }
+        },
       ],
     }).compile();
 

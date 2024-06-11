@@ -7,7 +7,7 @@ import { RedisService } from '../shared/services/redis.service';
 import { MailService } from '../shared/services/mail.service';
 import { UserService } from '../users/users.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { CreateSchoolDto } from './dto/create-school.dto';
+// import { CreateSchoolDto } from './dto/create-school.dto';
 import { Role } from '../utils/enum/role';
 import * as bcrypt from 'bcrypt';
 import { RegistrationStatus } from '../utils/enum/registration_status';
@@ -87,7 +87,7 @@ describe('AuthService', () => {
           useValue: {
             createTransaction: jest.fn(),
           },
-        }
+        },
       ],
     }).compile();
 

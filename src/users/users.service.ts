@@ -25,17 +25,22 @@ export class UserService {
     return await this.userRepository.save(createUserDto);
   }
 
-  async createTransaction(data: Partial<CreateSchoolDto>, transaction: EntityManager) : Promise<School> {
+  async createTransaction(
+    data: Partial<CreateSchoolDto>,
+    transaction: EntityManager,
+  ): Promise<School> {
     const getSchoolrepo = transaction.getRepository(School);
     const userRepo = transaction.getRepository(Users);
 
-    const { username, password, phone, first_name, last_name, email, ...rest } = data;
+    const { username, password, phone, first_name, last_name, email, ...rest } =
+      data;
 
     const school = await getSchoolrepo.save({
       ...rest,
       status: RegistrationStatus.IN_PROGRESS,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const user = await userRepo.save({
       username,
       password,
@@ -49,7 +54,7 @@ export class UserService {
 
     return school;
   }
- 
+
   // Write a query builder to create a user and relate them to the college_id
   async createUserWithCollegeId(users: UserSchema, college_id: string) {
     const college = await this.schoolRepository.findOne({
