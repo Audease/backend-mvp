@@ -15,5 +15,5 @@ export const QueryRequired = createParamDecorator(
     }
 
     return value;
-  },
+  }
 );

@@ -8,16 +8,15 @@ import { UsersModule } from '../users/users.module';
 import { Repository } from 'typeorm';
 import { AccountRepository } from './account.repository';
 import { UserService } from '../users/users.service';
-import { Roles } from '../shared/entities/role.entity';
 import { Users } from '../users/entities/user.entity';
+
+
 import { MailService } from '../shared/services/mail.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([School, Recruiter, Roles, Users]),
-    UsersModule,
-  ],
+  imports: [TypeOrmModule.forFeature([School, Recruiter, Users, FinancialAidOfficer]), UsersModule],
   controllers: [CreateAccountsController],
+
   providers: [
     CreateAccountsService,
     Repository,
@@ -26,5 +25,6 @@ import { MailService } from '../shared/services/mail.service';
     Logger,
     MailService
   ],
+
 })
 export class CreateAccountsModule {}

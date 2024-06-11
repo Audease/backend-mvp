@@ -9,7 +9,7 @@ export class TransactionRunner implements ITransactionRunner {
   constructor(private readonly queryRunner: QueryRunner) {}
 
   async startTransaction(
-    isolationLevel: IsolationLevel = DEFAULT_ISOLATION_LEVEL,
+    isolationLevel: IsolationLevel = DEFAULT_ISOLATION_LEVEL
   ): Promise<void> {
     if (this.queryRunner.isTransactionActive) return;
     return this.queryRunner.startTransaction(isolationLevel);

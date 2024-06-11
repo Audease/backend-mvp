@@ -55,7 +55,7 @@ export class CreateRecruitersTable1717125967913 implements MigrationInterface {
             default: 'CURRENT_TIMESTAMP',
           },
         ],
-      }),
+      })
     );
 
     await queryRunner.createForeignKey(
@@ -66,7 +66,7 @@ export class CreateRecruitersTable1717125967913 implements MigrationInterface {
         name: 'FK_user_id_recruiters',
         referencedTableName: 'users',
         onDelete: 'CASCADE',
-      }),
+      })
     );
 
     await queryRunner.createForeignKey(
@@ -77,7 +77,7 @@ export class CreateRecruitersTable1717125967913 implements MigrationInterface {
         referencedTableName: 'school',
         name: 'FK_school_id_recruiters',
         onDelete: 'CASCADE',
-      }),
+      })
     );
   }
 
@@ -85,10 +85,10 @@ export class CreateRecruitersTable1717125967913 implements MigrationInterface {
     // Drop the foreign keys first
     const recruitersTable = await queryRunner.getTable('recruiters');
     const userForeignKey = recruitersTable.foreignKeys.find(
-      (fk) => fk.name === 'FK_user_id_recruiters',
+      fk => fk.name === 'FK_user_id_recruiters'
     );
     const schoolForeignKey = recruitersTable.foreignKeys.find(
-      (fk) => fk.name === 'FK_school_id_recruiters',
+      fk => fk.name === 'FK_school_id_recruiters'
     );
 
     if (userForeignKey) {

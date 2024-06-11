@@ -13,6 +13,7 @@ import { Role } from '../utils/enum/role';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { Repository } from 'typeorm';
+
 import { MailService } from '../shared/services/mail.service';
 
 @Injectable()
@@ -22,8 +23,9 @@ export class CreateAccountsService {
     private readonly accountRepository: AccountRepository,
     private readonly userService: UserService,
     private readonly mailService: MailService,
+
     @InjectRepository(Recruiter)
-    private readonly recruiterRepository: Repository<Recruiter>,
+    private readonly recruiterRepository: Repository<Recruiter>
   ) {}
 
   async addRecruiter(userId: string, createUserDto: CreateAccountDto) {
@@ -37,7 +39,10 @@ export class CreateAccountsService {
     const college_id = admin.school.id;
     const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
     let generated_username =
+
       `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}.recruiter`.toLowerCase();
+=
+
     const generated_password = crypto
       .randomBytes(12)
       .toString('hex')
@@ -45,14 +50,17 @@ export class CreateAccountsService {
 
     const role = await this.userService.getRoleByName(Role.SCHOOL_RECRUITER);
 
+
     const userExists =
       await this.userService.getUserByUsername(generated_username);
+
 
     if (userExists) {
       const randomNumber = Math.floor(Math.random() * 1000);
       generated_username =
         `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.recruiter`.toLowerCase();
     }
+
 
     const emailExists = await this.userService.getUserByEmail(
       createUserDto.email,
@@ -71,7 +79,7 @@ export class CreateAccountsService {
         last_name: createUserDto.last_name,
         role,
       },
-      college_id,
+      college_id
     );
 
     const recruiter = this.recruiterRepository.create({
@@ -81,8 +89,10 @@ export class CreateAccountsService {
     });
 
     await this.recruiterRepository.save(recruiter);
+
     const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
     const first_name = createUserDto.first_name;
+
 
     await this.mailService.sendTemplateMail(
       {
@@ -91,12 +101,14 @@ export class CreateAccountsService {
       },
       'welcome-users',
       {
+
         first_name,
         generated_username,
         generated_password,
         loginUrl,
       },
     );
+
     return {
       message: 'User created successfully',
     };
