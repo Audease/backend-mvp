@@ -13,7 +13,7 @@ import { Role } from '../utils/enum/role';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { Repository } from 'typeorm';
-import { MailService } from 'src/shared/services/mail.service';
+import { MailService } from '../shared/services/mail.service';
 
 @Injectable()
 export class CreateAccountsService {
@@ -49,13 +49,18 @@ export class CreateAccountsService {
       await this.userService.getUserByUsername(generated_username);
 
     if (userExists) {
-      if (userExists) {
-        const randomNumber = Math.floor(Math.random() * 1000);
-        generated_username =
-          `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.recruiter`.toLowerCase();
-      }
+      const randomNumber = Math.floor(Math.random() * 1000);
+      generated_username =
+        `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.recruiter`.toLowerCase();
     }
 
+    const emailExists = await this.userService.getUserByEmail(
+      createUserDto.email,
+    );
+    if (emailExists) {
+      this.logger.error('Email already exists');
+      throw new ConflictException('Email already exists');
+    }
     const user = await this.userService.createUserWithCollegeId(
       {
         username: generated_username,

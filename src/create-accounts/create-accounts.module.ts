@@ -10,7 +10,7 @@ import { AccountRepository } from './account.repository';
 import { UserService } from '../users/users.service';
 import { Roles } from '../shared/entities/role.entity';
 import { Users } from '../users/entities/user.entity';
-import { MailService } from 'src/shared/services/mail.service';
+import { MailService } from '../shared/services/mail.service';
 
 @Module({
   imports: [
