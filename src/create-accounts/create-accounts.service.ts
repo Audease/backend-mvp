@@ -49,10 +49,10 @@ export class CreateAccountsService {
       await this.userService.getUserByUsername(generated_username);
 
     if (userExists) {
-      
       if (userExists) {
-        const randomNumber = Math.floor(Math.random()* 1000)
-        generated_username = `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.recruiter`.toLowerCase();
+        const randomNumber = Math.floor(Math.random() * 1000);
+        generated_username =
+          `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.recruiter`.toLowerCase();
       }
     }
 
@@ -77,7 +77,7 @@ export class CreateAccountsService {
 
     await this.recruiterRepository.save(recruiter);
     const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
-    const first_name = createUserDto.first_name
+    const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
       {
@@ -86,11 +86,12 @@ export class CreateAccountsService {
       },
       'welcome-users',
       {
-      first_name,
-      generated_username,
-      generated_password,
-       loginUrl,
-      })
+        first_name,
+        generated_username,
+        generated_password,
+        loginUrl,
+      },
+    );
     return {
       message: 'User created successfully',
     };

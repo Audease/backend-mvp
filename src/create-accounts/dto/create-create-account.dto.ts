@@ -22,7 +22,7 @@ export class CreateAccountDto {
 
   @ApiProperty({
     description: 'The phone number of the recruiter',
-    example: '+2345896868',
+    example: '+445896868',
   })
   @IsString()
   phone: string;
