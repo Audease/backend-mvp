@@ -1,0 +1,25 @@
+flag_management:
+  individual_flags:
+    - name: test-audease-backend
+      carryforward: true
+      carryforward_mode: "labels"
+      statuses:
+        - type: "project"
+        - type: "patch"
+
+cli:
+  plugins:
+    pycoverage:
+      report_type: "json"
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto #default
+        threshold: 50%
+        base: auto 
+        informational: true
+    patch:
+      default:
+        informational: true
