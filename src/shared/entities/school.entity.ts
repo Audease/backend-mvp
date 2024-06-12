@@ -9,6 +9,7 @@ import {
 import { Users } from '../../users/entities/user.entity';
 import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
+import { Student } from '../../students/entities/student.entity'
 
 
 @Entity('school')
@@ -61,6 +62,9 @@ export class School {
     financialAidOfficers => financialAidOfficers.school
   )
   financialAidOfficers: FinancialAidOfficer[];
+
+  @OneToMany(() => Student, students => students.school)
+  students: Student[];
 
   @CreateDateColumn({
     nullable: false,

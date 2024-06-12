@@ -51,11 +51,10 @@ export class CreateAccountsController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
   @UseGuards(JwtAuthGuard)
   @Post('/financial-aid-officer')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create recruiter account' })
+  @ApiOperation({ summary: 'Create financial aid officer account' })
   @ApiCreatedResponse({
     description: 'User created successfully',
   })
@@ -69,6 +68,32 @@ export class CreateAccountsController {
   ) {
     try {
       return await this.createAccountsService.addFinancialAidOfficer(
+        userId,
+        createUserDto
+      );
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/student')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create student account' })
+  @ApiCreatedResponse({
+    description: 'User created successfully',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async createStudent(
+    @GetCurrentUserId() userId: string,
+    @Body() createUserDto: CreateAccountDto
+  ) {
+    try {
+      return await this.createAccountsService.addStudent(
         userId,
         createUserDto
       );

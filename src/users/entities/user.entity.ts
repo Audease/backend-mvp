@@ -10,7 +10,7 @@ import {
 import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
 import { Recruiter } from '../../recruiter/entities/recruiter.entity';
-
+import { Student } from '../../students/entities/student.entity'
 import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
 
 
@@ -47,6 +47,9 @@ export class Users {
 
   @OneToOne(() => Recruiter, recruiter => recruiter.user)
   recruiter: Recruiter;
+
+  @OneToOne(() => Student, student => student.user)
+  student: Student;
 
   
 @OneToOne(() => FinancialAidOfficer, financialAidOfficer => financialAidOfficer.user)
