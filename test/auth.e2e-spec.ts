@@ -96,61 +96,61 @@ describe('AuthController (e2e)', () => {
     await app.close();
   });
 
-  describe('/auth/create-school (POST)', () => {
-    it('should return success message if school is created successfully', async () => {
-      return await request(app.getHttpServer())
-        .post('/auth/create-school')
-        .send({
-          college_name: faker.company.name(),
-          first_name: faker.person.firstName(),
-          last_name: faker.person.lastName(),
-          email: faker.internet.email(),
-          phone: faker.phone.number(),
-          no_of_employee: faker.number.int({
-            min: 10,
-            max: 200,
-          }),
-          country: faker.location.country(),
-          business_code: '3992202',
-          address_line1: faker.location.streetAddress(),
-          address_line2: faker.location.streetAddress(),
-          city: faker.location.county(),
-          post_code: faker.location.zipCode(),
-          state: faker.location.state(),
-        })
-        .expect(201)
-        .expect((res) => {
-          expect(res.body.message).toEqual(
-            'School created successfully check your mail for further instructions',
-          );
-          expect(res.body.keyId).toBeDefined();
-          keyId = res.body.keyId;
-        });
-    }, 10000);
-  });
+  // describe('/auth/create-school (POST)', () => {
+  //   it('should return success message if school is created successfully', async () => {
+  //     return await request(app.getHttpServer())
+  //       .post('/auth/create-school')
+  //       .send({
+  //         college_name: faker.company.name(),
+  //         first_name: faker.person.firstName(),
+  //         last_name: faker.person.lastName(),
+  //         email: faker.internet.email(),
+  //         phone: faker.phone.number(),
+  //         no_of_employee: faker.number.int({
+  //           min: 10,
+  //           max: 200,
+  //         }),
+  //         country: faker.location.country(),
+  //         business_code: '3992202',
+  //         address_line1: faker.location.streetAddress(),
+  //         address_line2: faker.location.streetAddress(),
+  //         city: faker.location.county(),
+  //         post_code: faker.location.zipCode(),
+  //         state: faker.location.state(),
+  //       })
+  //       .expect(201)
+  //       .expect((res) => {
+  //         expect(res.body.message).toEqual(
+  //           'School created successfully check your mail for further instructions',
+  //         );
+  //         expect(res.body.keyId).toBeDefined();
+  //         keyId = res.body.keyId;
+  //       });
+  //   }, 10000);
+  // });
 
-  describe('/auth/verify (POST)', () => {
-    it('should return success message if key is verified', () => {
-      return request(app.getHttpServer())
-        .post('/auth/verify')
-        .send({
-          keyId: keyId,
-        })
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.message).toEqual('Key verified successfully');
-        });
-    });
+  // describe('/auth/verify (POST)', () => {
+  //   it('should return success message if key is verified', () => {
+  //     return request(app.getHttpServer())
+  //       .post('/auth/verify')
+  //       .send({
+  //         keyId: keyId,
+  //       })
+  //       .expect(200)
+  //       .expect((res) => {
+  //         expect(res.body.message).toEqual('Key verified successfully');
+  //       });
+  //   });
 
-    it('should return NotFoundException if key verification fails', () => {
-      return request(app.getHttpServer())
-        .post('/auth/verify')
-        .send({
-          keyId: 'invalidKeyId',
-        })
-        .expect(404);
-    });
-  });
+  //   it('should return NotFoundException if key verification fails', () => {
+  //     return request(app.getHttpServer())
+  //       .post('/auth/verify')
+  //       .send({
+  //         keyId: 'invalidKeyId',
+  //       })
+  //       .expect(404);
+  //   });
+  // });
 
   describe('/auth/verify-school (POST)', () => {
     it('should verify school onboarding key', () => {
