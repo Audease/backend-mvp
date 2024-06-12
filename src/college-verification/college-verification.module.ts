@@ -7,7 +7,7 @@ import { RedisService } from '../shared/services/redis.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { School } from '../shared/entities/school.entity';
 import { UsersModule } from '../users/users.module';
-import { RedisModule } from 'src/shared/module/redis.module';
+import { RedisModule } from '../shared/module/redis.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([School]), UsersModule, RedisModule],
