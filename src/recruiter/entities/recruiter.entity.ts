@@ -21,11 +21,11 @@ export class Recruiter {
   @Column('varchar', { length: 255, nullable: false })
   last_name: string;
 
-  @OneToOne(() => Users, (user) => user.recruiter)
+  @OneToOne(() => Users, user => user.recruiter)
   @JoinColumn({ name: 'user_id' })
   user: Users;
 
-  @ManyToOne(() => School, (school) => school.recruiters)
+  @ManyToOne(() => School, school => school.recruiters)
   @JoinColumn({ name: 'school_id' })
   school: School;
 

@@ -35,7 +35,7 @@ export class AllExceptionFilter implements ExceptionFilter {
     this.logger.warn(exception);
     this.logger.error(
       `HTTP Exception: ${httpStatus} - ${message}`,
-      exception.stack,
+      exception.stack
     );
 
     httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);

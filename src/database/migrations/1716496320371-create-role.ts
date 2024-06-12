@@ -46,7 +46,7 @@ export class CreateRole1716496320371 implements MigrationInterface {
             default: 'CURRENT_TIMESTAMP',
           },
         ],
-      }),
+      })
     );
 
     // Insert data into the roles table

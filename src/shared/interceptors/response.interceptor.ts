@@ -11,9 +11,9 @@ import { map } from 'rxjs/operators';
 export class ResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      map((data) => {
+      map(data => {
         return this.stripSensitiveFields(data);
-      }),
+      })
     );
   }
 

@@ -45,7 +45,6 @@ export class AuthService {
 
       const transactionManager = transactionRunner.transactionManager;
       const { college_name, username, password } = createSchoolDto;
-
       const schoolExists = await this.authRepository.findSchool(college_name);
 
       if (schoolExists) {
@@ -119,7 +118,7 @@ export class AuthService {
 
     const school = await this.authRepository.updateStatus(
       college_id,
-      RegistrationStatus.VERIFIED,
+      RegistrationStatus.VERIFIED
     );
 
     const verifyUrl = `${process.env.FRONTEND_URL}/verify?token=${key}`;
@@ -137,7 +136,7 @@ export class AuthService {
         last_name,
         school_name,
         verifyUrl,
-      },
+      }
     );
     return {
       message: 'School verified successfully',
@@ -190,7 +189,7 @@ export class AuthService {
         last_name,
         role,
       },
-      college_id,
+      college_id
     );
 
     // Remove the onboarding key from redis
@@ -252,7 +251,7 @@ export class AuthService {
 
     const newToken = await this.jwtService.generateAccessToken(
       user.id,
-      role.id,
+      role.id
     );
 
     return {
@@ -283,7 +282,7 @@ export class AuthService {
       'password-reset',
       {
         resetUrl,
-      },
+      }
     );
 
     return {

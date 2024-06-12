@@ -86,7 +86,7 @@ export class CreateSchool1716504807660 implements MigrationInterface {
             default: 'CURRENT_TIMESTAMP',
           },
         ],
-      }),
+      })
     );
   }
 

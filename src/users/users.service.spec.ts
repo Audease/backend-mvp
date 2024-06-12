@@ -138,14 +138,17 @@ describe('UserService', () => {
 
   //     const result = await service.getUserByUsername(username);
 
+
   //     expect(userRepository.createQueryBuilder).toHaveBeenCalled();
-  //     expect(
-  //       userRepository.createQueryBuilder('users').where,
-  //     ).toHaveBeenCalledWith('users.username = :username', { username });
+  //     expect(userRepository.createQueryBuilder().where).toHaveBeenCalledWith(
+  //       'users.username = :username',
+  //       { username }
+  //     );
   //     expect(userRepository.createQueryBuilder().getOne).toHaveBeenCalled();
   //     expect(result).toEqual(user);
   //   });
   // });
+
 
   describe('getUserRoleById', () => {
     it('should get the user role by user ID', async () => {
@@ -168,6 +171,7 @@ describe('UserService', () => {
     });
   });
 
+
   // describe('getRoleById', () => {
   //   it('should get a role by ID', async () => {
   //     const roleId = '1';
@@ -183,7 +187,7 @@ describe('UserService', () => {
   //     expect(roleRepository.createQueryBuilder).toHaveBeenCalled();
   //     expect(roleRepository.createQueryBuilder().where).toHaveBeenCalledWith(
   //       'roles.id = :id',
-  //       { id: roleId },
+  //       { id: roleId }
   //     );
   //     expect(roleRepository.createQueryBuilder().getOne).toHaveBeenCalled();
   //     expect(result).toEqual(role);
@@ -205,10 +209,11 @@ describe('UserService', () => {
   //     expect(roleRepository.createQueryBuilder).toHaveBeenCalled();
   //     expect(roleRepository.createQueryBuilder().where).toHaveBeenCalledWith(
   //       'roles.role = :role',
-  //       { role: roleName },
+  //       { role: roleName }
   //     );
   //     expect(roleRepository.createQueryBuilder().getOne).toHaveBeenCalled();
   //     expect(result).toEqual(role);
   //   });
   // });
+
 });

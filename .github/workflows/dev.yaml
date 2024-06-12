@@ -64,6 +64,17 @@ jobs:
         yarn run test:integration
         yarn run test:cov
 
+    # - name: Generate coverage report
+    #   run: |
+    #       yarn add -D @vitest/coverage-v8
+    #       yarn coverage
+          
+    -  name: Upload coverage reports to Codecov
+       uses: codecov/codecov-action@v4.0.1
+       with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: Audease/backend-mvp
+
   push_to_github_registry:
     if: github.ref == 'refs/heads/dev' || github.event.pull_request.base.ref == 'dev'
     needs: ['test']

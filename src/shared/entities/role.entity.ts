@@ -19,7 +19,7 @@ export class Roles {
   @Column('text', { nullable: true })
   description: string;
 
-  @OneToMany(() => RolePermission, (rolePermission) => rolePermission.role)
+  @OneToMany(() => RolePermission, rolePermission => rolePermission.role)
   rolePermission: RolePermission[];
 
   @CreateDateColumn({

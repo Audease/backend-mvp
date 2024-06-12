@@ -80,7 +80,7 @@ export class CreateUsers1716504816987 implements MigrationInterface {
             default: 'CURRENT_TIMESTAMP',
           },
         ],
-      }),
+      })
     );
 
     await queryRunner.createForeignKey(
@@ -91,7 +91,7 @@ export class CreateUsers1716504816987 implements MigrationInterface {
         name: 'FK_role_id_users',
         referencedTableName: 'roles',
         onDelete: 'CASCADE',
-      }),
+      })
     );
 
     await queryRunner.createForeignKey(
@@ -102,7 +102,7 @@ export class CreateUsers1716504816987 implements MigrationInterface {
         referencedTableName: 'school',
         name: 'FK_school_id_users',
         onDelete: 'CASCADE',
-      }),
+      })
     );
   }
 

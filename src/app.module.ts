@@ -13,6 +13,8 @@ import { RecruiterModule } from './recruiter/recruiter.module';
 import { CollegeVerificationModule } from './college-verification/college-verification.module';
 import { RoleGuard } from './auth/role.guard';
 import { CreateAccountsModule } from './create-accounts/create-accounts.module';
+import { FinancialAidOfficerModule } from './financial-aid-officer/financial-aid-officer.module';
+import { StudentsModule } from './students/students.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { CreateAccountsModule } from './create-accounts/create-accounts.module';
     RecruiterModule,
     CreateAccountsModule,
     CollegeVerificationModule,
+    FinancialAidOfficerModule,
+    StudentsModule,
   ],
   controllers: [AppController],
   providers: [

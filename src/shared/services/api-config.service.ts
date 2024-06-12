@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { School } from '../../shared/entities/school.entity';
+import { School } from '../entities/school.entity';
 import { Users } from '../../users/entities/user.entity';
 import { Roles } from '../entities/role.entity';
 import { RolePermission } from '../entities/rolepermission.entity';
@@ -9,6 +9,8 @@ import { Token } from '../entities/token.entity';
 import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import type { dbConfigs } from '../types/dbConfig';
+import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
+import { Student } from '../../students/entities/student.entity'
 
 @Injectable()
 export class ApiConfigService {
@@ -29,6 +31,8 @@ export class ApiConfigService {
         Permissions,
         Token,
         Recruiter,
+        FinancialAidOfficer,
+        Student
       ],
       migrationsRun: true,
       username,
