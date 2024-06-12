@@ -162,7 +162,6 @@ export class AuthController {
     try {
       return await this.authService.createSchool(createSchoolDto);
     } catch (error) {
-      console.log(error);
       this.logger.error(error.message);
       throw new ConflictException(error.message);
     }

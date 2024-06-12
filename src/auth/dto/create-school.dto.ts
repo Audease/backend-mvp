@@ -33,7 +33,7 @@ export class CreateSchoolDto {
 
   @ApiProperty({
     description: 'The phone number of the contact person',
-    example: '+234169462325',
+    example: '+2348169462325',
   })
   @IsString()
   phone: string;
@@ -89,9 +89,15 @@ export class CreateSchoolDto {
   post_code: string;
 
   @ApiProperty({
-    description: 'The state where the school is located',
+    description: 'The county where the school is located',
     example: 'Ogun State',
   })
   @IsString()
-  state: string;
+  county: string;
+
+  @IsString()
+  username: string;
+
+  @IsString()
+  password: string;
 }

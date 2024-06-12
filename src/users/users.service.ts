@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Users } from './entities/user.entity';
 import { School } from '../shared/entities/school.entity';
 import { Roles } from '../shared/entities/role.entity';
-import { Repository } from 'typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreateSchoolDto } from 'src/auth/dto/create-school.dto';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { Injectable } from '@nestjs/common';
+import { RegistrationStatus } from '../utils/enum/registration_status';
 import { UserSchema } from '../auth/auth.interface';
 import { Role } from '../utils/enum/role';
 
@@ -21,6 +24,40 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<Users> {
     return await this.userRepository.save(createUserDto);
+  }
+
+  async createTransaction(
+    data: Partial<CreateSchoolDto>,
+    transaction: EntityManager,
+  ): Promise<School> {
+    const getSchoolrepo = transaction.getRepository(School);
+
+    const { username, password, phone, first_name, last_name, email, ...rest } =
+      data;
+
+    const school = await getSchoolrepo.save({
+      ...rest,
+      status: RegistrationStatus.IN_PROGRESS,
+    });
+
+    return school;
+  }
+
+  async createUserTransaction(
+    users: UserSchema,
+    college_id: string,
+    transaction: EntityManager,
+  ) {
+    const college = await transaction.findOne(School, {
+      where: { id: college_id },
+    });
+
+    const newUsers = transaction.create(Users, {
+      ...users,
+      school: college,
+    });
+
+    return await transaction.save(newUsers);
   }
 
   // Write a query builder to create a user and relate them to the college_id
@@ -94,5 +131,9 @@ export class UserService {
       .createQueryBuilder('roles')
       .where('roles.role = :role', { role })
       .getOne();
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.userRepository.delete(id);
   }
 }

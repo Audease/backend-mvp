@@ -16,6 +16,8 @@ import { Role } from '../utils/enum/role';
 import { v4 as uuid } from 'uuid';
 import { RegistrationStatus } from '../utils/enum/registration_status';
 import * as bcrypt from 'bcrypt';
+import { DbTransactionFactory } from '../shared/services/transactions/TransactionManager';
+import { Users } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +27,8 @@ export class AuthService {
     private readonly jwtService: JwtAuthService,
     private readonly mailService: MailService,
     private readonly userService: UserService,
-    private redisService: RedisService
+    private redisService: RedisService,
+    private readonly dbTransactionFactory: DbTransactionFactory,
   ) {}
 
   get redis() {
@@ -33,78 +36,74 @@ export class AuthService {
   }
 
   async createSchool(createSchoolDto: CreateSchoolDto): Promise<ISchoolCreate> {
-    const {
-      first_name,
-      last_name,
-      email,
-      address_line1,
-      address_line2,
-      business_code,
-      city,
-      college_name,
-      country,
-      no_of_employee,
-      post_code,
-      state,
-      phone,
-    } = createSchoolDto;
+    let transactionRunner = null;
+    let user: Users = null;
 
-    // Check if the school already exists
-    const schoolExists = await this.authRepository.findSchool(college_name);
+    try {
+      transactionRunner = await this.dbTransactionFactory.createTransaction();
+      await transactionRunner.startTransaction();
 
-    if (schoolExists) {
-      this.logger.error('School already exist');
-      throw new ConflictException(
-        'School already exists, contact support for any question'
-      );
-    }
+      const transactionManager = transactionRunner.transactionManager;
+      const { college_name, username, password } = createSchoolDto;
+      const schoolExists = await this.authRepository.findSchool(college_name);
 
-    const data = await this.authRepository.create({
-      college_name,
-      state,
-      address_line1,
-      address_line2,
-      business_code,
-      city,
-      country,
-      no_of_employee,
-      post_code,
-      status: RegistrationStatus.IN_PROGRESS,
-    });
-
-    const onboardingKey = uuid();
-
-    await this.redis.hset(
-      'onboarding',
-      onboardingKey,
-      JSON.stringify({
-        email,
-        first_name,
-        last_name,
-        phone,
-        college_id: data.id,
-      })
-    );
-
-    await this.mailService.sendTemplateMail(
-      {
-        to: email,
-        subject: 'Welcome to Audease',
-      },
-      'school-onboarding',
-      {
-        first_name,
-        last_name,
-        college_name,
-        onboardingKey,
+      if (schoolExists) {
+        this.logger.error('School already exists');
+        throw new ConflictException('School already exists');
       }
-    );
 
-    return {
-      message:
-        'School created successfully check your mail for further instructions',
-      keyId: onboardingKey,
-    };
+      const onboardingKey = uuid();
+
+      const role = await this.userService.getRoleByName(Role.SCHOOL_ADMIN);
+
+      const userExists = await this.userService.getUserByUsername(username);
+
+      if (userExists) {
+        this.logger.error('Username already exists');
+        throw new ConflictException('Username already exists');
+      }
+
+      const data = await this.userService.createTransaction(
+        createSchoolDto,
+        transactionManager,
+      );
+
+      user = await this.userService.createUserTransaction(
+        {
+          username,
+          password: await bcrypt.hash(password, 10),
+          email: createSchoolDto.email,
+          phone: createSchoolDto.phone,
+          first_name: createSchoolDto.first_name,
+          last_name: createSchoolDto.last_name,
+          role,
+        },
+        data.id,
+        transactionManager,
+      );
+      await this.redis.hset(
+        'onboarding',
+        onboardingKey,
+        JSON.stringify({
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          college_id: data.id,
+        }),
+      );
+      await transactionRunner.commitTransaction();
+      return {
+        message: 'School created successfully check your mail for further instructions',
+        keyId: onboardingKey,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to create school: ${error.message}`);
+      if (transactionRunner) await transactionRunner.rollbackTransaction();
+      await this.userService.delete(user.id);
+      throw new ConflictException('Failed to create school');
+    } finally {
+      if (transactionRunner) await transactionRunner.releaseTransaction();
+    }
   }
 
   async verifySchool(key: string) {

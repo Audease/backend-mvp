@@ -40,7 +40,6 @@ export class CreateRolepermission1716497279846 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('role_permission');
     await queryRunner.dropForeignKey(
       'role_permission',
       'fk_role_permission_role'
@@ -49,5 +48,6 @@ export class CreateRolepermission1716497279846 implements MigrationInterface {
       'role_permission',
       'fk_role_permission_permission'
     );
+    await queryRunner.dropTable('role_permission');
   }
 }
