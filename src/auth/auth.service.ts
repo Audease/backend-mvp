@@ -93,7 +93,7 @@ export class AuthService {
       );
       await transactionRunner.commitTransaction();
       return {
-        message: 'School created successfully',
+        message: 'School created successfully check your mail for further instructions',
         keyId: onboardingKey,
       };
     } catch (error) {
