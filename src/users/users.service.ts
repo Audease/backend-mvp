@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Users } from './entities/user.entity';
 import { School } from '../shared/entities/school.entity';
 import { Roles } from '../shared/entities/role.entity';
@@ -30,7 +31,6 @@ export class UserService {
     transaction: EntityManager,
   ): Promise<School> {
     const getSchoolrepo = transaction.getRepository(School);
-    const userRepo = transaction.getRepository(Users);
 
     const { username, password, phone, first_name, last_name, email, ...rest } =
       data;
@@ -40,19 +40,24 @@ export class UserService {
       status: RegistrationStatus.IN_PROGRESS,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const user = await userRepo.save({
-      username,
-      password,
-      phone,
-      first_name,
-      last_name,
-      email,
-      role: await this.getRoleByName(Role.SCHOOL_ADMIN),
-      school,
+    return school;
+  }
+
+  async createUserTransaction(
+    users: UserSchema,
+    college_id: string,
+    transaction: EntityManager,
+  ) {
+    const college = await transaction.findOne(School, {
+      where: { id: college_id },
     });
 
-    return school;
+    const newUsers = transaction.create(Users, {
+      ...users,
+      school: college,
+    });
+
+    return await transaction.save(newUsers);
   }
 
   // Write a query builder to create a user and relate them to the college_id

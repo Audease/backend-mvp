@@ -10,6 +10,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
 import { RecruiterModule } from './recruiter/recruiter.module';
+import { CollegeVerificationModule } from './college-verification/college-verification.module';
 import { RoleGuard } from './auth/role.guard';
 import { CreateAccountsModule } from './create-accounts/create-accounts.module';
 
@@ -33,6 +34,7 @@ import { CreateAccountsModule } from './create-accounts/create-accounts.module';
     AuthModule,
     RecruiterModule,
     CreateAccountsModule,
+    CollegeVerificationModule,
   ],
   controllers: [AppController],
   providers: [

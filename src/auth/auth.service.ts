@@ -69,7 +69,7 @@ export class AuthService {
         transactionManager,
       );
 
-      user = await this.userService.createUserWithCollegeId(
+      user = await this.userService.createUserTransaction(
         {
           username,
           password: await bcrypt.hash(password, 10),
@@ -80,6 +80,7 @@ export class AuthService {
           role,
         },
         data.id,
+        transactionManager,
       );
       await this.redis.hset(
         'onboarding',
@@ -102,7 +103,7 @@ export class AuthService {
       await this.userService.delete(user.id);
       throw new ConflictException('Failed to create school');
     } finally {
-      if (transactionRunner) await transactionRunner.rollbackTransaction();
+      if (transactionRunner) await transactionRunner.releaseTransaction();
     }
   }
 
