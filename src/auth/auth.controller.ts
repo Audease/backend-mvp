@@ -181,7 +181,7 @@ export class AuthController {
   async initiateReset(@Body() initiateResetDto: initiateResetDto) {
     try {
       return await this.authService.initiatePasswordReset(
-        initiateResetDto.email,
+        initiateResetDto.email
       );
     } catch (error) {
       this.logger.error(error.message);

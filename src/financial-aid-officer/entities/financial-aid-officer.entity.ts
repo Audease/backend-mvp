@@ -10,8 +10,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('recruiters')
-export class Recruiter {
+@Entity('financial_aid_officers')
+export class FinancialAidOfficer {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -21,11 +21,11 @@ export class Recruiter {
   @Column('varchar', { length: 255, nullable: false })
   last_name: string;
 
-  @OneToOne(() => Users, user => user.recruiter)
+  @OneToOne(() => Users, user => user.financialAidOfficer)
   @JoinColumn({ name: 'user_id' })
   user: Users;
 
-  @ManyToOne(() => School, school => school.recruiters)
+  @ManyToOne(() => School, school => school.financialAidOfficers)
   @JoinColumn({ name: 'school_id' })
   school: School;
 

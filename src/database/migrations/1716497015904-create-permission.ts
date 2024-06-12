@@ -35,7 +35,7 @@ export class CreatePermission1716497015904 implements MigrationInterface {
             default: 'CURRENT_TIMESTAMP',
           },
         ],
-      }),
+      })
     );
   }
 
