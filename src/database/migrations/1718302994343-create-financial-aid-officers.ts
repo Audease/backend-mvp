@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
 
-export class  $11718215331950 implements MigrationInterface {
-    name = 'CreateStudent11718215331950';
-
+export class CreateFinancialAidOfficers1718302994343 implements MigrationInterface {
+    name = 'CreateFinancialAidOfficers1718302994343';
   
+
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.createTable(
             new Table({
-              name: 'students',
+              name: 'financial_aid_officers',
               columns: [
                 {
                   name: 'id',
@@ -28,18 +28,6 @@ export class  $11718215331950 implements MigrationInterface {
                   length: '255',
                   isNullable: false,
                 },
-                {
-                    name: 'date_of_birth',
-                    type: 'varchar',
-                    length: '255',
-                    isNullable: true,
-                  },
-                  {
-                    name: 'address',
-                    type: 'varchar',
-                    length: '255',
-                    isNullable: true,
-                  },
                 {
                   name: 'user_id',
                   type: 'uuid',
@@ -67,52 +55,45 @@ export class  $11718215331950 implements MigrationInterface {
           );
 
           await queryRunner.createForeignKey(
-            'students',
+            'financial_aid_officers',
             new TableForeignKey({
               columnNames: ['user_id'],
               referencedColumnNames: ['id'],
-              name: 'FK_user_id_students',
+              name: 'FK_user_id_financial_aid_officers',
               referencedTableName: 'users',
               onDelete: 'CASCADE',
             })
           );
       
           await queryRunner.createForeignKey(
-            'students',
+            'financial_aid_officers',
             new TableForeignKey({
               columnNames: ['school_id'],
               referencedColumnNames: ['id'],
               referencedTableName: 'school',
-              name: 'FK_school_id_students',
+              name: 'FK_school_id_financial_aid_officers',
               onDelete: 'CASCADE',
             })
           );
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        // Drop the foreign keys first
-     const studentsTable: any = await queryRunner.getTable('students') ;
-     const userForeignKey = studentsTable.foreignKeys.find(
-       fk => fk.name === 'FK_user_id_students'
-     );
-     const schoolForeignKey =studentsTable.foreignKeys.find(
-       fk => fk.name === 'FK_school_id_students'
-     );
- 
-     if (userForeignKey) {
-       await queryRunner.dropForeignKey('students', userForeignKey);
-     }
-     if (schoolForeignKey) {
-       await queryRunner.dropForeignKey('students', schoolForeignKey);
-     }
-     await queryRunner.dropTable('students');
-   }
+         // Drop the foreign keys first
+      const financialAidOfficersTable: any = await queryRunner.getTable('financial_aid_officers') ;
+      const userForeignKey = financialAidOfficersTable.foreignKeys.find(
+        fk => fk.name === 'FK_user_id_financial_aid_officers'
+      );
+      const schoolForeignKey =financialAidOfficersTable.foreignKeys.find(
+        fk => fk.name === 'FK_school_id_financial_aid_officers'
+      );
+  
+      if (userForeignKey) {
+        await queryRunner.dropForeignKey('financial_aid_officers', userForeignKey);
+      }
+      if (schoolForeignKey) {
+        await queryRunner.dropForeignKey('financial_aid_officers', schoolForeignKey);
+      }
+      await queryRunner.dropTable('financial_aid_officers');
+    }
 
 }
-
-
-
-
-
-    
-
