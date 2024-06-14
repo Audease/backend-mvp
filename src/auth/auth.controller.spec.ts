@@ -212,45 +212,6 @@ describe('AuthController', () => {
     });
   });
 
-  describe('createUser', () => {
-    it('should call authService.createUser and return the result', async () => {
-      const createUserDto: CreateUserDto = {
-        keyId: 'keyId',
-        username: 'teslim.edencollege.admin',
-        password: 'password1234',
-      };
-
-      const expectedResult = {
-        message: 'User created successfully',
-      };
-
-      jest
-        .spyOn(authService, 'createUser')
-        .mockResolvedValue(expectedResult as never);
-
-      const result = await controller.register(createUserDto);
-
-      expect(authService.createUser).toHaveBeenCalledWith(createUserDto);
-      expect(result).toEqual(expectedResult);
-    });
-
-    it('should throw InternalServerErrorException if authService.createUser throws an error', async () => {
-      const createUserDto: CreateUserDto = {
-        keyId: 'keyId',
-        username: 'teslim.edencollege.admin',
-        password: 'password1234',
-      };
-
-      const error = new Error('User creation failed');
-
-      jest.spyOn(authService, 'createUser').mockRejectedValue(error);
-
-      await expect(controller.register(createUserDto)).rejects.toThrow(
-        HttpException,
-      );
-      expect(authService.createUser).toHaveBeenCalledWith(createUserDto);
-    });
-  });
 
   // describe('createSchool', () => {
   //   it('should call authService.createSchool and return the result', async () => {

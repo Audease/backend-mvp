@@ -176,32 +176,6 @@ describe('AuthController (e2e)', () => {
     });
   });
 
-  // describe('/auth/register (POST)', () => {
-  //   it('should create an account for user', () => {
-  //     return request(app.getHttpServer())
-  //       .post('/auth/register')
-  //       .send({
-  //         username: username,
-  //         password: 'password1234',
-  //         keyId: keyId,
-  //       })
-  //       .expect(201)
-  //       .expect((res) => {
-  //         expect(res.body.message).toEqual('User created successfully');
-  //       });
-  //   });
-  //   it('should return creation failed due to invalid onboarding key', () => {
-  //     return request(app.getHttpServer())
-  //       .post('/auth/register')
-  //       .send({
-  //         keyId: 'invalidKey',
-  //         username: username,
-  //         password: 'password1234',
-  //       })
-  //       .expect(500);
-  //   });
-  // });
-
   describe('/auth/login (POST)', () => {
     it('should return access and refresh tokens', () => {
       return request(app.getHttpServer())

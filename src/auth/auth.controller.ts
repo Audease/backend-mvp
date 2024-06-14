@@ -77,20 +77,6 @@ export class AuthController {
     }
   }
 
-  @Post('register')
-  @ApiOperation({ summary: 'Create user account' })
-  @ApiCreatedResponse({
-    description: 'User created successfully',
-  })
-  @HttpCode(HttpStatus.CREATED)
-  async register(@Body() createUserDto: CreateUserDto) {
-    try {
-      return await this.authService.createUser(createUserDto);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
 
   @Post('verify-school')
   @ApiOperation({ summary: 'Verify school' })
@@ -148,8 +134,8 @@ export class AuthController {
     }
   }
 
-  @Post('create-school')
-  @ApiOperation({ summary: 'Add school' })
+  @Post('signup')
+  @ApiOperation({ summary: 'Create a school and create a user account' })
   @ApiCreatedResponse({
     description:
       'The message that verifies that the actions have been performed and the onboarding key for the school verification and registration',

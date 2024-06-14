@@ -18,6 +18,7 @@ import { RegistrationStatus } from '../utils/enum/registration_status';
 import * as bcrypt from 'bcrypt';
 import { DbTransactionFactory } from '../shared/services/transactions/TransactionManager';
 import { Users } from '../users/entities/user.entity';
+import { first } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -91,6 +92,21 @@ export class AuthService {
           college_id: data.id,
         }),
       );
+
+      const full_name = `${user.first_name} ${user.last_name}`;
+
+      this.mailService.sendTemplateMail(
+        {
+          to: user.email,
+          subject: 'School Verification Successful',
+        },
+        'school-onboarding',
+        {
+         full_name,
+         first_name: user.first_name,
+        }
+      );
+      
       await transactionRunner.commitTransaction();
       return {
         message: 'School created successfully check your mail for further instructions',
@@ -125,7 +141,7 @@ export class AuthService {
 
     const school_name = school.college_name;
 
-    await this.mailService.sendTemplateMail(
+    this.mailService.sendTemplateMail(
       {
         to: email,
         subject: 'School Verification Successful',
@@ -156,49 +172,6 @@ export class AuthService {
     };
   }
 
-  async createUser(data: IUserCreate) {
-    const { username, password, keyId } = data;
-
-    const onboardingData = await this.redis.hget('onboarding', keyId);
-
-    if (!onboardingData) {
-      this.logger.error('Invalid key');
-      throw new NotFoundException('Invalid key');
-    }
-
-    const { email, first_name, last_name, college_id, phone } =
-      JSON.parse(onboardingData);
-
-    const role = await this.userService.getRoleByName(Role.SCHOOL_ADMIN);
-
-    const userExists = await this.userService.getUserByUsername(username);
-
-    if (userExists) {
-      this.logger.error('Username already exists');
-      throw new ConflictException('Username already exists');
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const user = await this.userService.createUserWithCollegeId(
-      {
-        username,
-        password: await bcrypt.hash(password, 10),
-        email,
-        phone,
-        first_name,
-        last_name,
-        role,
-      },
-      college_id
-    );
-
-    // Remove the onboarding key from redis
-    await this.redis.hdel('onboarding', keyId);
-
-    return {
-      message: 'User created successfully',
-    };
-  }
 
   async login(data: { username: string; password: string }) {
     const { username, password } = data;
