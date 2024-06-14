@@ -95,10 +95,17 @@ export class CreateSchoolDto {
   @IsString()
   county: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'The username of the contact person',
+    example: 'teslim.edencollege',
+  })
+  @IsString()
   username: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'The password of the contact person',
+    example: 'Topdevtes@123',
+  })
   @IsString()
   password: string;
 }
