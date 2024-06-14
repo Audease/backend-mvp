@@ -12,11 +12,14 @@ import { Users } from '../users/entities/user.entity';
 import { FinancialAidOfficer } from '../financial-aid-officer/entities/financial-aid-officer.entity';
 import { MailService } from '../shared/services/mail.service';
 import { Student } from '../students/entities/student.entity'
+import { RedisModule } from '../shared/module/redis.module';
+import { RedisService } from '../shared/services/redis.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([School, Recruiter, Users, FinancialAidOfficer, Student]), UsersModule],
+  imports: [TypeOrmModule.forFeature([School, Recruiter, Users, FinancialAidOfficer, Student]), UsersModule,  RedisModule,],
   controllers: [CreateAccountsController],
-  providers: [CreateAccountsService, Repository, AccountRepository, Logger, MailService],
+  providers: [CreateAccountsService, Repository, AccountRepository, Logger, MailService,  ],
 
 })
 export class CreateAccountsModule {}
+ 

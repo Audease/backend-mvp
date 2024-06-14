@@ -16,6 +16,8 @@ import { Repository } from 'typeorm';
 import { FinancialAidOfficer } from '../financial-aid-officer/entities/financial-aid-officer.entity';
 import { MailService } from '../shared/services/mail.service';
 import { Student } from '../students/entities/student.entity'
+import { RedisService } from '../shared/services/redis.service';
+import { Users } from '../users/entities/user.entity';
 
 @Injectable()
 export class CreateAccountsService {
@@ -24,13 +26,21 @@ export class CreateAccountsService {
     private readonly accountRepository: AccountRepository,
     private readonly userService: UserService,
      private readonly mailService: MailService,
+     private redisService: RedisService,
     @InjectRepository(FinancialAidOfficer)
     private readonly financialAidOfficerRepository: Repository<FinancialAidOfficer>,
     @InjectRepository(Recruiter)
     private readonly recruiterRepository: Repository<Recruiter>,
+    @InjectRepository(Users)
+    private readonly userRepository: Repository<Users>,
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>
   ) {}
+
+  get redis() {
+    return this.redisService.getClient();
+  }
+
 
   async addRecruiter(userId: string, createUserDto: CreateAccountDto) {
     const admin = await this.accountRepository.findAdmin(userId);
@@ -256,4 +266,78 @@ export class CreateAccountsService {
       message: 'User created successfully',
     };
   }
+
+  async addAuditor(userId: string, createUserDto: CreateAccountDto) {
+    const admin = await this.accountRepository.findAdmin(userId);
+    if (!admin) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const college_name = admin.school.college_name;
+    const college_id = admin.school.id;
+    const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
+    let generated_username =
+      `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}.auditor`.toLowerCase();
+    const generated_password = crypto
+      .randomBytes(12)
+      .toString('hex')
+      .slice(0, 7);
+
+    const role = await this.userService.getRoleByName(Role.EXTERNAL_AUDITOR);
+
+    const userExists =
+      await this.userService.getUserByUsername(generated_username);
+
+    if (userExists) {
+      const randomNumber = Math.floor(Math.random()* 1000)
+      generated_username = `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.auditor`.toLowerCase();
+    }
+
+    const emailExists = await this.userService.getUserByEmail(createUserDto.email);
+    if (emailExists){
+      this.logger.error('Email already exists');
+      throw new ConflictException('Email already exists')
+    }
+    const user = await this.userService.createUserWithCollegeId(
+      {
+        username: generated_username,
+        password: await bcrypt.hashSync(generated_password, 10),
+        email: createUserDto.email,
+        phone: createUserDto.phone,
+        first_name: createUserDto.first_name,
+        last_name: createUserDto.last_name,
+        role,
+      },
+      college_id
+    );
+
+    await this.redis.set(`auditor_password:${user.id}`, user.password, 'EX', 2 * 24 * 60 * 60);
+
+    setTimeout(async () => {
+      await this.userRepository.update(user.id, { password: null });
+    }, 2 * 24 * 60 * 60 * 1000); 
+
+  
+    const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
+    const first_name = createUserDto.first_name
+
+    await this.mailService.sendTemplateMail(
+      {
+        to: createUserDto.email,
+        subject: 'Welcome to Audease',
+      },
+      'welcome-users',
+      {
+      first_name,
+      generated_username,
+      generated_password,
+       loginUrl,
+      })
+    return {
+      message: 'User created successfully',
+    };
+  }
+
+
 }
