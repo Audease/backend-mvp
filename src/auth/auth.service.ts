@@ -11,14 +11,13 @@ import {
 import { Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { CreateSchoolDto } from './dto/create-school.dto';
-import { ISchoolCreate, IUserCreate } from './auth.interface';
+import { ISchoolCreate } from './auth.interface';
 import { Role } from '../utils/enum/role';
 import { v4 as uuid } from 'uuid';
-import { RegistrationStatus } from '../utils/enum/registration_status';
 import * as bcrypt from 'bcrypt';
 import { DbTransactionFactory } from '../shared/services/transactions/TransactionManager';
 import { Users } from '../users/entities/user.entity';
-import { first } from 'rxjs';
+import { sendSlackNotification } from '../utils/helpers/slack.helpers';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +28,7 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly userService: UserService,
     private redisService: RedisService,
-    private readonly dbTransactionFactory: DbTransactionFactory,
+    private readonly dbTransactionFactory: DbTransactionFactory
   ) {}
 
   get redis() {
@@ -66,7 +65,7 @@ export class AuthService {
 
       const data = await this.userService.createTransaction(
         createSchoolDto,
-        transactionManager,
+        transactionManager
       );
 
       user = await this.userService.createUserTransaction(
@@ -80,7 +79,7 @@ export class AuthService {
           role,
         },
         data.id,
-        transactionManager,
+        transactionManager
       );
       await this.redis.hset(
         'onboarding',
@@ -90,88 +89,41 @@ export class AuthService {
           first_name: user.first_name,
           last_name: user.last_name,
           college_id: data.id,
-        }),
+        })
       );
 
       const full_name = `${user.first_name} ${user.last_name}`;
 
+      sendSlackNotification(
+        `A *school just created an account* with the following details, *School*: ${data.college_name} \n *located_at*: ${data.address_line1} \n *county*: ${data.county}, *country* : ${data.country} \n *onboardingKey*: ${onboardingKey}`
+      );
+
       this.mailService.sendTemplateMail(
         {
           to: user.email,
-          subject: 'School Verification Successful',
+          subject: 'Welcome to Audease',
         },
         'school-onboarding',
         {
-         full_name,
-         first_name: user.first_name,
+          full_name,
+          first_name: user.first_name,
         }
       );
-      
+
       await transactionRunner.commitTransaction();
       return {
-        message: 'School created successfully check your mail for further instructions',
+        message:
+          'School created successfully check your mail for further instructions',
         keyId: onboardingKey,
       };
     } catch (error) {
       this.logger.error(`Failed to create school: ${error.message}`);
       if (transactionRunner) await transactionRunner.rollbackTransaction();
-      await this.userService.delete(user.id);
-      throw new ConflictException('Failed to create school');
+      throw new ConflictException(`Failed to create school: ${error.message}`);
     } finally {
       if (transactionRunner) await transactionRunner.releaseTransaction();
     }
   }
-
-  async verifySchool(key: string) {
-    const data = await this.redis.hget('onboarding', key);
-
-    if (!data) {
-      this.logger.error('Invalid key');
-      throw new NotFoundException('Invalid key');
-    }
-
-    const { email, first_name, last_name, college_id } = JSON.parse(data);
-
-    const school = await this.authRepository.updateStatus(
-      college_id,
-      RegistrationStatus.VERIFIED
-    );
-
-    const verifyUrl = `${process.env.FRONTEND_URL}/verify?token=${key}`;
-
-    const school_name = school.college_name;
-
-    this.mailService.sendTemplateMail(
-      {
-        to: email,
-        subject: 'School Verification Successful',
-      },
-      'sucessful-verification',
-      {
-        first_name,
-        last_name,
-        school_name,
-        verifyUrl,
-      }
-    );
-    return {
-      message: 'School verified successfully',
-    };
-  }
-
-  async verifyKey(key: string) {
-    const data = await this.redis.hget('onboarding', key);
-
-    if (!data) {
-      this.logger.error('Invalid key');
-      throw new NotFoundException('Invalid key');
-    }
-
-    return {
-      message: 'Key verified successfully',
-    };
-  }
-
 
   async login(data: { username: string; password: string }) {
     const { username, password } = data;

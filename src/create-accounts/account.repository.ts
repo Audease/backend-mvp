@@ -8,9 +8,7 @@ import { Repository } from 'typeorm';
 export class AccountRepository {
   constructor(
     @InjectRepository(Users)
-
     private readonly userRepository: Repository<Users>
-
   ) {}
 
   async findAdmin(userId: string) {

@@ -6,23 +6,22 @@ import { JwtAuthService } from './jwt.service';
 import { RedisService } from '../shared/services/redis.service';
 import { MailService } from '../shared/services/mail.service';
 import { UserService } from '../users/users.service';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 // import { CreateSchoolDto } from './dto/create-school.dto';
-import { Role } from '../utils/enum/role';
+// import { Role } from '../utils/enum/role';
 import * as bcrypt from 'bcrypt';
-import { RegistrationStatus } from '../utils/enum/registration_status';
 import { DbTransactionFactory } from '../shared/services/transactions/TransactionManager';
 // import { SchoolSchema } from './auth.interface';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let authRepository: AuthRepository;
+  // let authRepository: AuthRepository;
   let jwtService: JwtAuthService;
   let redisService: RedisService;
   let mailService: MailService;
   let userService: UserService;
-  const uuidValue = uuid();
-  const uuidValue2 = uuid();
+  // const uuidValue = uuid();
+  // const uuidValue2 = uuid();
   const uuidValue3 = uuid();
 
   beforeEach(async () => {
@@ -92,7 +91,7 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    authRepository = module.get<AuthRepository>(AuthRepository);
+    // authRepository = module.get<AuthRepository>(AuthRepository);
     jwtService = module.get<JwtAuthService>(JwtAuthService);
     redisService = module.get<RedisService>(RedisService);
     mailService = module.get<MailService>(MailService);
@@ -191,87 +190,6 @@ describe('AuthService', () => {
   //   });
   // });
 
-  describe('verifySchool', () => {
-    it('should verify a school and send a verification email', async () => {
-      const key = 'someKey';
-      const schoolData = {
-        id: uuidValue,
-        college_name: 'Test College',
-      };
-      const userData = {
-        email: 'test@example.com',
-        first_name: 'John',
-        last_name: 'Doe',
-        college_id: uuidValue2,
-      };
-
-      redisService.getClient = jest.fn().mockReturnValue({
-        hget: jest.fn().mockResolvedValueOnce(JSON.stringify(userData)),
-      });
-      authRepository.updateStatus = jest.fn().mockResolvedValueOnce(schoolData);
-      mailService.sendTemplateMail = jest.fn().mockResolvedValueOnce({});
-
-      const result = await service.verifySchool(key);
-
-      expect(redisService.getClient().hget).toHaveBeenCalledWith(
-        'onboarding',
-        key
-      );
-      expect(authRepository.updateStatus).toHaveBeenCalledWith(
-        uuidValue2,
-        RegistrationStatus.VERIFIED
-      );
-      expect(mailService.sendTemplateMail).toHaveBeenCalled();
-      expect(result).toEqual({ message: 'School verified successfully' });
-    });
-
-    it('should throw NotFoundException if the key is invalid', async () => {
-      const key = 'invalidKey';
-
-      redisService.getClient = jest.fn().mockReturnValueOnce({
-        hget: jest.fn().mockResolvedValueOnce(null),
-      });
-
-      await expect(service.verifySchool(key)).rejects.toThrow(
-        NotFoundException
-      );
-    });
-  });
-
-  describe('verifyKey', () => {
-    it('should verify the key', async () => {
-      const key = 'someKey';
-      const userData = {
-        email: 'test@example.com',
-        first_name: 'John',
-        last_name: 'Doe',
-        college_id: uuidValue2,
-      };
-
-      redisService.getClient = jest.fn().mockReturnValue({
-        hget: jest.fn().mockResolvedValueOnce(JSON.stringify(userData)),
-      });
-
-      const result = await service.verifyKey(key);
-
-      expect(redisService.getClient().hget).toHaveBeenCalledWith(
-        'onboarding',
-        key
-      );
-      expect(result).toEqual({ message: 'Key verified successfully' });
-    });
-
-    it('should throw NotFoundException if the key is invalid', async () => {
-      const key = 'invalidKey';
-
-      redisService.getClient = jest.fn().mockReturnValueOnce({
-        hget: jest.fn().mockResolvedValueOnce(null),
-      });
-
-      await expect(service.verifyKey(key)).rejects.toThrow(NotFoundException);
-    });
-  });
-
   describe('login', () => {
     it('should return a token if the credentials are valid', async () => {
       const loginData = {
@@ -316,7 +234,7 @@ describe('AuthService', () => {
 
       await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
       await expect(service.login(loginData)).rejects.toThrow(
-        'Invalid username or password',
+        'Invalid username or password'
       );
     });
 
@@ -335,7 +253,7 @@ describe('AuthService', () => {
 
       await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
       await expect(service.login(loginData)).rejects.toThrowError(
-        'Invalid username or password',
+        'Invalid username or password'
       );
     });
   });

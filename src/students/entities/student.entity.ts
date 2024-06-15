@@ -21,12 +21,11 @@ export class Student {
   @Column('varchar', { length: 255, nullable: false })
   last_name: string;
 
-   @Column('varchar', { length: 255, nullable: true })
+  @Column('varchar', { length: 255, nullable: true })
   date_of_birth?: string;
 
   @Column('varchar', { length: 255, nullable: true })
   address?: string;
-
 
   @OneToOne(() => Users, user => user.student)
   @JoinColumn({ name: 'user_id' })
@@ -35,7 +34,6 @@ export class Student {
   @ManyToOne(() => School, school => school.students)
   @JoinColumn({ name: 'school_id' })
   school: School;
-
 
   @CreateDateColumn({
     nullable: false,

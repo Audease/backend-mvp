@@ -48,10 +48,10 @@ describe('CollegeVerificationController', () => {
     }).compile();
 
     controller = module.get<CollegeVerificationController>(
-      CollegeVerificationController,
+      CollegeVerificationController
     );
     service = module.get<CollegeVerificationService>(
-      CollegeVerificationService,
+      CollegeVerificationService
     );
   });
 
@@ -93,7 +93,7 @@ describe('CollegeVerificationController', () => {
       // const result = await controller.verify(verifyDto);
 
       await expect(controller.verifySchool(verifyDto)).rejects.toThrowError(
-        NotFoundException,
+        NotFoundException
       );
     });
 
@@ -106,7 +106,7 @@ describe('CollegeVerificationController', () => {
       jest.spyOn(service, 'verifySchool').mockRejectedValue(error);
 
       await expect(controller.verifySchool(verifyDto)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
   });

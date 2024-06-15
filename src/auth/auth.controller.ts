@@ -5,7 +5,6 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  HttpException,
   Logger,
   UnauthorizedException,
   NotFoundException,
@@ -20,7 +19,6 @@ import {
   resetPasswordDto,
 } from './dto/misc-dto';
 import { LoginDto } from './dto/login-dto';
-import { CreateUserDto } from './dto/create-user.dto';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import {
   ApiConflictResponse,
@@ -74,43 +72,6 @@ export class AuthController {
     } catch (error) {
       this.logger.error(error.message);
       throw new UnauthorizedException(error.message);
-    }
-  }
-
-
-  @Post('verify-school')
-  @ApiOperation({ summary: 'Verify school' })
-  @ApiOkResponse({
-    description: 'The school verification was successful',
-  })
-  @ApiNotFoundResponse({
-    description: 'Invalid Key',
-  })
-  @HttpCode(HttpStatus.OK)
-  async verifySchool(@Body() verifyDto: verifyDto) {
-    try {
-      return await this.authService.verifySchool(verifyDto.keyId);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new NotFoundException(error.message);
-    }
-  }
-
-  @Post('verify')
-  @ApiOperation({ summary: 'Verify onboarding key' })
-  @ApiOkResponse({
-    description: 'Key verified successfully',
-  })
-  @ApiNotFoundResponse({
-    description: 'Invalid Key',
-  })
-  @HttpCode(HttpStatus.OK)
-  async verify(@Body() verifyDto: verifyDto) {
-    try {
-      return await this.authService.verifyKey(verifyDto.keyId);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new NotFoundException(error.message);
     }
   }
 

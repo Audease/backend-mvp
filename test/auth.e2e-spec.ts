@@ -96,10 +96,10 @@ describe('AuthController (e2e)', () => {
     await app.close();
   });
 
-  describe('/auth/create-school (POST)', () => {
+  describe('/auth/signup (POST)', () => {
     it('should return success message if school is created successfully', async () => {
       return await request(app.getHttpServer())
-        .post('/auth/create-school')
+        .post('/auth/signup')
         .send({
           college_name: faker.company.name(),
           first_name: faker.person.firstName(),
@@ -121,59 +121,14 @@ describe('AuthController (e2e)', () => {
           password: 'password1234',
         })
         .expect(201)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.message).toEqual(
-            'School created successfully check your mail for further instructions',
+            'School created successfully check your mail for further instructions'
           );
           expect(res.body.keyId).toBeDefined();
           keyId = res.body.keyId;
         });
     }, 10000);
-  });
-
-  describe('/auth/verify (POST)', () => {
-    it('should return success message if key is verified', () => {
-      return request(app.getHttpServer())
-        .post('/auth/verify')
-        .send({
-          keyId: keyId,
-        })
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.message).toEqual('Key verified successfully');
-        });
-    });
-
-    it('should return NotFoundException if key verification fails', () => {
-      return request(app.getHttpServer())
-        .post('/auth/verify')
-        .send({
-          keyId: 'invalidKeyId',
-        })
-        .expect(404);
-    });
-  });
-
-  describe('/auth/verify-school (POST)', () => {
-    it('should verify school onboarding key', () => {
-      return request(app.getHttpServer())
-        .post('/auth/verify-school')
-        .send({
-          keyId: keyId,
-        })
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.message).toEqual('School verified successfully');
-        });
-    });
-    it('should return NotFoundException is key verification fails', () => {
-      return request(app.getHttpServer())
-        .post('/auth/verify-school')
-        .send({
-          keyId: 'invalidKey',
-        })
-        .expect(404);
-    });
   });
 
   describe('/auth/login (POST)', () => {
@@ -185,7 +140,7 @@ describe('AuthController (e2e)', () => {
           password: 'password1234',
         })
         .expect(200)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.token.access.token).toBeDefined();
           expect(res.body.token.refresh.token).toBeDefined();
           refreshToken = res.body.token.refresh.token;
@@ -211,7 +166,7 @@ describe('AuthController (e2e)', () => {
           refreshToken: refreshToken,
         })
         .expect(200)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.token);
         });
     });

@@ -138,7 +138,6 @@ describe('UserService', () => {
 
   //     const result = await service.getUserByUsername(username);
 
-
   //     expect(userRepository.createQueryBuilder).toHaveBeenCalled();
   //     expect(userRepository.createQueryBuilder().where).toHaveBeenCalledWith(
   //       'users.username = :username',
@@ -148,7 +147,6 @@ describe('UserService', () => {
   //     expect(result).toEqual(user);
   //   });
   // });
-
 
   describe('getUserRoleById', () => {
     it('should get the user role by user ID', async () => {
@@ -170,7 +168,6 @@ describe('UserService', () => {
       expect(result).toEqual(role);
     });
   });
-
 
   // describe('getRoleById', () => {
   //   it('should get a role by ID', async () => {
@@ -215,5 +212,4 @@ describe('UserService', () => {
   //     expect(result).toEqual(role);
   //   });
   // });
-
 });
