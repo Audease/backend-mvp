@@ -22,16 +22,15 @@ import { RedisModule } from '../shared/module/redis.module';
       FinancialAidOfficer,
       Student,
     ]),
-    UsersModule,
-  ,  RedisModule,],
+    UsersModule, RedisModule],
   controllers: [CreateAccountsController],
   providers: [
     CreateAccountsService,
     Repository,
     AccountRepository,
     Logger,
-    MailService,
-  ,  ],
+    MailService
+  ],
 })
 export class CreateAccountsModule {}
  
