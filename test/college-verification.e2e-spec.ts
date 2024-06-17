@@ -58,7 +58,7 @@ describe('CollegeVerificationController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/verification/verify-key')
         .send({
-          keyId: '5d9e0800-b0c7-4011-8906-ea0dd6beb64f',
+          keyId: '5091830b-c538-461e-81d7-b806344f8000',
         })
         .expect(200)
         .expect(res => {
@@ -81,7 +81,7 @@ describe('CollegeVerificationController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/verification/verify-school')
         .send({
-          keyId: '5d9e0800-b0c7-4011-8906-ea0dd6beb64f',
+          keyId: '5091830b-c538-461e-81d7-b806344f8000',
         })
         .expect(200)
         .expect(res => {
