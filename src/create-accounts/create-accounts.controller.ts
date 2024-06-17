@@ -93,10 +93,7 @@ export class CreateAccountsController {
     @Body() createUserDto: CreateAccountDto
   ) {
     try {
-      return await this.createAccountsService.addStudent(
-        userId,
-        createUserDto
-      );
+      return await this.createAccountsService.addStudent(userId, createUserDto);
     } catch (error) {
       this.logger.error(error.message);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);

@@ -15,7 +15,7 @@ import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { Repository } from 'typeorm';
 import { FinancialAidOfficer } from '../financial-aid-officer/entities/financial-aid-officer.entity';
 import { MailService } from '../shared/services/mail.service';
-import { Student } from '../students/entities/student.entity'
+import { Student } from '../students/entities/student.entity';
 import { RedisService } from '../shared/services/redis.service';
 import { Users } from '../users/entities/user.entity';
 
@@ -61,21 +61,22 @@ export class CreateAccountsService {
 
     const role = await this.userService.getRoleByName(Role.SCHOOL_RECRUITER);
 
-
     const userExists =
       await this.userService.getUserByUsername(generated_username);
 
-      if (userExists) {
-        const randomNumber = Math.floor(Math.random()* 1000)
-        generated_username = `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}`.toLowerCase();
-      }
+    if (userExists) {
+      const randomNumber = Math.floor(Math.random() * 1000);
+      generated_username =
+        `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}`.toLowerCase();
+    }
 
-    const emailExists = await this.userService.getUserByEmail(createUserDto.email);
-  if (emailExists){
-    this.logger.error('Email already exists');
-    throw new ConflictException('Email already exists')
-  }
-
+    const emailExists = await this.userService.getUserByEmail(
+      createUserDto.email
+    );
+    if (emailExists) {
+      this.logger.error('Email already exists');
+      throw new ConflictException('Email already exists');
+    }
 
     const user = await this.userService.createUserWithCollegeId(
       {
@@ -97,9 +98,9 @@ export class CreateAccountsService {
     });
 
     await this.recruiterRepository.save(recruiter);
-    
+
     const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
-    const first_name = createUserDto.first_name
+    const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
       {
@@ -108,20 +109,22 @@ export class CreateAccountsService {
       },
       'welcome-users',
       {
-      first_name,
-      generated_username,
-      generated_password,
-       loginUrl,
-      })
+        first_name,
+        generated_username,
+        generated_password,
+        loginUrl,
+      }
+    );
 
-    
-    
     return {
       message: 'User created successfully',
     };
   }
 
-  async addFinancialAidOfficer(userId: string, createUserDto: CreateAccountDto) {
+  async addFinancialAidOfficer(
+    userId: string,
+    createUserDto: CreateAccountDto
+  ) {
     const admin = await this.accountRepository.findAdmin(userId);
     if (!admin) {
       this.logger.error('User not found');
@@ -144,14 +147,17 @@ export class CreateAccountsService {
       await this.userService.getUserByUsername(generated_username);
 
     if (userExists) {
-      const randomNumber = Math.floor(Math.random()* 1000)
-      generated_username = `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.finance`.toLowerCase();
+      const randomNumber = Math.floor(Math.random() * 1000);
+      generated_username =
+        `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.finance`.toLowerCase();
     }
 
-    const emailExists = await this.userService.getUserByEmail(createUserDto.email);
-    if (emailExists){
+    const emailExists = await this.userService.getUserByEmail(
+      createUserDto.email
+    );
+    if (emailExists) {
       this.logger.error('Email already exists');
-      throw new ConflictException('Email already exists')
+      throw new ConflictException('Email already exists');
     }
     const user = await this.userService.createUserWithCollegeId(
       {
@@ -173,9 +179,9 @@ export class CreateAccountsService {
     });
 
     await this.financialAidOfficerRepository.save(financialAidOfficer);
-    
+
     const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
-    const first_name = createUserDto.first_name
+    const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
       {
@@ -184,11 +190,12 @@ export class CreateAccountsService {
       },
       'welcome-users',
       {
-      first_name,
-      generated_username,
-      generated_password,
-       loginUrl,
-      })
+        first_name,
+        generated_username,
+        generated_password,
+        loginUrl,
+      }
+    );
     return {
       message: 'User created successfully',
     };
@@ -217,14 +224,17 @@ export class CreateAccountsService {
       await this.userService.getUserByUsername(generated_username);
 
     if (userExists) {
-      const randomNumber = Math.floor(Math.random()* 1000)
-      generated_username = `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.student`.toLowerCase();
+      const randomNumber = Math.floor(Math.random() * 1000);
+      generated_username =
+        `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.student`.toLowerCase();
     }
 
-    const emailExists = await this.userService.getUserByEmail(createUserDto.email);
-    if (emailExists){
+    const emailExists = await this.userService.getUserByEmail(
+      createUserDto.email
+    );
+    if (emailExists) {
       this.logger.error('Email already exists');
-      throw new ConflictException('Email already exists')
+      throw new ConflictException('Email already exists');
     }
     const user = await this.userService.createUserWithCollegeId(
       {
@@ -248,7 +258,7 @@ export class CreateAccountsService {
     await this.studentRepository.save(student);
     
     const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
-    const first_name = createUserDto.first_name
+    const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
       {
@@ -257,11 +267,12 @@ export class CreateAccountsService {
       },
       'welcome-users',
       {
-      first_name,
-      generated_username,
-      generated_password,
-       loginUrl,
-      })
+        first_name,
+        generated_username,
+        generated_password,
+        loginUrl,
+      }
+    );
     return {
       message: 'User created successfully',
     };

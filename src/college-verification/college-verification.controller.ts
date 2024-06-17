@@ -20,7 +20,7 @@ export class CollegeVerificationController {
   constructor(private readonly verification: CollegeVerificationService) {}
 
   @Post('verify-school')
-  @ApiOperation({ summary: 'Verify School'})
+  @ApiOperation({ summary: 'Verify School' })
   @ApiCreatedResponse({
     description: 'School verified successfully',
   })
@@ -35,7 +35,7 @@ export class CollegeVerificationController {
   }
 
   @Post('verify-key')
-  @ApiOperation({ summary: 'Verify Key'})
+  @ApiOperation({ summary: 'Verify Key' })
   @ApiCreatedResponse({
     description: 'Key verified successfully',
   })

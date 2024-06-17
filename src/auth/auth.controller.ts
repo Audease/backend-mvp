@@ -5,7 +5,6 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  HttpException,
   Logger,
   UnauthorizedException,
   NotFoundException,
@@ -20,7 +19,6 @@ import {
   resetPasswordDto,
 } from './dto/misc-dto';
 import { LoginDto } from './dto/login-dto';
-import { CreateUserDto } from './dto/create-user.dto';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import {
   ApiConflictResponse,
@@ -77,57 +75,6 @@ export class AuthController {
     }
   }
 
-  @Post('register')
-  @ApiOperation({ summary: 'Create user account' })
-  @ApiCreatedResponse({
-    description: 'User created successfully',
-  })
-  @HttpCode(HttpStatus.CREATED)
-  async register(@Body() createUserDto: CreateUserDto) {
-    try {
-      return await this.authService.createUser(createUserDto);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @Post('verify-school')
-  @ApiOperation({ summary: 'Verify school' })
-  @ApiOkResponse({
-    description: 'The school verification was successful',
-  })
-  @ApiNotFoundResponse({
-    description: 'Invalid Key',
-  })
-  @HttpCode(HttpStatus.OK)
-  async verifySchool(@Body() verifyDto: verifyDto) {
-    try {
-      return await this.authService.verifySchool(verifyDto.keyId);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new NotFoundException(error.message);
-    }
-  }
-
-  @Post('verify')
-  @ApiOperation({ summary: 'Verify onboarding key' })
-  @ApiOkResponse({
-    description: 'Key verified successfully',
-  })
-  @ApiNotFoundResponse({
-    description: 'Invalid Key',
-  })
-  @HttpCode(HttpStatus.OK)
-  async verify(@Body() verifyDto: verifyDto) {
-    try {
-      return await this.authService.verifyKey(verifyDto.keyId);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new NotFoundException(error.message);
-    }
-  }
-
   @Post('refresh-token')
   @ApiOperation({ summary: 'Get refresh token' })
   @ApiOkResponse({
@@ -148,8 +95,8 @@ export class AuthController {
     }
   }
 
-  @Post('create-school')
-  @ApiOperation({ summary: 'Add school' })
+  @Post('signup')
+  @ApiOperation({ summary: 'Create a school and create a user account' })
   @ApiCreatedResponse({
     description:
       'The message that verifies that the actions have been performed and the onboarding key for the school verification and registration',

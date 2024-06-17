@@ -10,7 +10,7 @@ export class CollegeVerificationService {
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly mailService: MailService,
-    private redisService: RedisService,
+    private redisService: RedisService
   ) {}
 
   get redis() {
@@ -29,7 +29,7 @@ export class CollegeVerificationService {
 
     const school = await this.authRepository.updateStatus(
       college_id,
-      RegistrationStatus.VERIFIED,
+      RegistrationStatus.VERIFIED
     );
 
     const verifyUrl = `${process.env.FRONTEND_URL}/verify?token=${key}`;
@@ -47,7 +47,7 @@ export class CollegeVerificationService {
         last_name,
         school_name,
         verifyUrl,
-      },
+      }
     );
     return {
       message: 'School verified successfully',

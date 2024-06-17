@@ -20,19 +20,13 @@ describe('CollegeVerificationController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CollegeVerificationController],
       providers: [
-        {
-          provide: CollegeVerificationService,
-          useValue: {
-            verifyKey: jest.fn(),
-            verifySchool: jest.fn(),
-          },
-        },
+        CollegeVerificationService,
         {
           provide: RedisService,
           useValue: {
             getClient: jest.fn().mockReturnValue({
-              hset: jest.fn(),
               hget: jest.fn(),
+              hset: jest.fn(),
               hdel: jest.fn(),
               set: jest.fn(),
               get: jest.fn(),
@@ -40,7 +34,12 @@ describe('CollegeVerificationController', () => {
             }),
           },
         },
-        MailService,
+        {
+          provide: MailService,
+          useValue: {
+            sendTemplateMail: jest.fn(),
+          },
+        },
         {
           provide: AuthRepository,
           useValue: {
@@ -53,7 +52,7 @@ describe('CollegeVerificationController', () => {
     }).compile();
 
     service = module.get<CollegeVerificationService>(
-      CollegeVerificationService,
+      CollegeVerificationService
     );
     redis = module.get<RedisService>(RedisService);
     mailService = module.get<MailService>(MailService);
@@ -74,18 +73,18 @@ describe('CollegeVerificationController', () => {
         college_id: uuidValue2,
       };
 
-      redis.getClient = jest.fn().mockReturnValue({
-        hget: jest.fn().mockResolvedValueOnce(JSON.stringify(userData)),
-      });
-      authRepository.updateStatus = jest.fn().mockResolvedValueOnce(schoolData);
-      mailService.sendTemplateMail = jest.fn().mockResolvedValueOnce({});
+      const hgetMock = jest.fn().mockResolvedValue(JSON.stringify(userData));
+      (redis.getClient as jest.Mock).mockReturnValue({ hget: hgetMock });
+
+      (authRepository.updateStatus as jest.Mock).mockResolvedValue(schoolData);
+      (mailService.sendTemplateMail as jest.Mock).mockResolvedValue({});
 
       const result = await service.verifySchool(key);
 
-      expect(redis.getClient().hget).toHaveBeenCalledWith('onboarding', key);
+      expect(hgetMock).toHaveBeenCalledWith('onboarding', key);
       expect(authRepository.updateStatus).toHaveBeenCalledWith(
         uuidValue2,
-        RegistrationStatus.VERIFIED,
+        RegistrationStatus.VERIFIED
       );
       expect(mailService.sendTemplateMail).toHaveBeenCalled();
       expect(result).toEqual({ message: 'School verified successfully' });
@@ -94,12 +93,11 @@ describe('CollegeVerificationController', () => {
     it('should throw NotFoundException if the key is invalid', async () => {
       const key = 'invalidKey';
 
-      redis.getClient = jest.fn().mockReturnValueOnce({
-        hget: jest.fn().mockResolvedValueOnce(null),
-      });
+      const hgetMock = jest.fn().mockResolvedValue(null);
+      (redis.getClient as jest.Mock).mockReturnValue({ hget: hgetMock });
 
       await expect(service.verifySchool(key)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
   });
@@ -114,22 +112,20 @@ describe('CollegeVerificationController', () => {
         college_id: uuidValue2,
       };
 
-      redis.getClient = jest.fn().mockReturnValue({
-        hget: jest.fn().mockResolvedValueOnce(JSON.stringify(userData)),
-      });
+      const hgetMock = jest.fn().mockResolvedValue(JSON.stringify(userData));
+      (redis.getClient as jest.Mock).mockReturnValue({ hget: hgetMock });
 
       const result = await service.verifyKey(key);
 
-      expect(redis.getClient().hget).toHaveBeenCalledWith('onboarding', key);
+      expect(hgetMock).toHaveBeenCalledWith('onboarding', key);
       expect(result).toEqual({ message: 'Key verified successfully' });
     });
 
     it('should throw NotFoundException if the key is invalid', async () => {
       const key = 'invalidKey';
 
-      redis.getClient = jest.fn().mockReturnValueOnce({
-        hget: jest.fn().mockResolvedValueOnce(null),
-      });
+      const hgetMock = jest.fn().mockResolvedValue(null);
+      (redis.getClient as jest.Mock).mockReturnValue({ hget: hgetMock });
 
       await expect(service.verifyKey(key)).rejects.toThrow(NotFoundException);
     });

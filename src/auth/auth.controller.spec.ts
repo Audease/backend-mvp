@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { LoginDto } from '../auth/dto/login-dto';
+import { LoginDto } from './dto/login-dto';
 import { AuthRepository } from './auth.repository';
 import { JwtAuthService } from './jwt.service';
 import { RedisService } from '../shared/services/redis.service';
@@ -9,18 +9,10 @@ import { MailService } from '../shared/services/mail.service';
 import { UserService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
-import { CreateUserDto } from './dto/create-user.dto';
-import { verifyDto } from './dto/misc-dto';
-// import { IVerify } from './auth.interface';
-
 import { initiateResetDto } from './dto/misc-dto';
 import { resetPasswordDto } from './dto/misc-dto';
 import { TokenResponse } from '../utils/interface/token.interface';
-import {
-  UnauthorizedException,
-  HttpException,
-  NotFoundException,
-} from '@nestjs/common';
+import { UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { DbTransactionFactory } from '../shared/services/transactions/TransactionManager';
 
 describe('AuthController', () => {
@@ -136,119 +128,9 @@ describe('AuthController', () => {
       jest.spyOn(authService, 'login').mockRejectedValue(error);
 
       await expect(controller.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
+        UnauthorizedException
       );
       expect(authService.login).toHaveBeenCalledWith(loginDto);
-    });
-  });
-
-  describe('verifyKey', () => {
-    it('should call authService.verify and return the result', async () => {
-      const verifyDto: verifyDto = {
-        keyId: 'keyId',
-      };
-
-      const expectedResult = {
-        message: 'Key verified successfully',
-      };
-
-      jest
-        .spyOn(authService, 'verifyKey')
-        .mockResolvedValue(expectedResult as never);
-
-      const result = await controller.verify(verifyDto);
-
-      expect(authService.verifyKey).toHaveBeenCalledWith(verifyDto.keyId);
-      expect(result).toEqual(expectedResult);
-    });
-
-    it('should throw NotFoundException if authService.verify throws an error', async () => {
-      const verifyDto: verifyDto = {
-        keyId: 'keyId',
-      };
-      const error = new Error('Key verification failed');
-
-      jest.spyOn(authService, 'verifyKey').mockRejectedValue(error);
-
-      await expect(controller.verify(verifyDto)).rejects.toThrow(
-        NotFoundException,
-      );
-      expect(authService.verifyKey).toHaveBeenCalledWith(verifyDto.keyId);
-    });
-  });
-
-  describe('verifySchool', () => {
-    it('should call authService.verifySchool and return the result', async () => {
-      const verifyDto: verifyDto = {
-        keyId: 'keyId',
-      };
-
-      // const expectedResult = {
-      //   message: 'School verified successfully',
-      // };
-
-      jest
-        .spyOn(authService, 'verifySchool')
-        .mockResolvedValue(new NotFoundException('Invalid key'));
-
-      // const result = await controller.verify(verifyDto);
-
-      await expect(controller.verify(verifyDto)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('should throw NotFoundException if authService.verifySchool throws an error', async () => {
-      const verifyDto: verifyDto = {
-        keyId: 'keyId',
-      };
-      const error = new Error('Key verification failed');
-
-      jest.spyOn(authService, 'verifySchool').mockRejectedValue(error);
-
-      await expect(controller.verify(verifyDto)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-  });
-
-  describe('createUser', () => {
-    it('should call authService.createUser and return the result', async () => {
-      const createUserDto: CreateUserDto = {
-        keyId: 'keyId',
-        username: 'teslim.edencollege.admin',
-        password: 'password1234',
-      };
-
-      const expectedResult = {
-        message: 'User created successfully',
-      };
-
-      jest
-        .spyOn(authService, 'createUser')
-        .mockResolvedValue(expectedResult as never);
-
-      const result = await controller.register(createUserDto);
-
-      expect(authService.createUser).toHaveBeenCalledWith(createUserDto);
-      expect(result).toEqual(expectedResult);
-    });
-
-    it('should throw InternalServerErrorException if authService.createUser throws an error', async () => {
-      const createUserDto: CreateUserDto = {
-        keyId: 'keyId',
-        username: 'teslim.edencollege.admin',
-        password: 'password1234',
-      };
-
-      const error = new Error('User creation failed');
-
-      jest.spyOn(authService, 'createUser').mockRejectedValue(error);
-
-      await expect(controller.register(createUserDto)).rejects.toThrow(
-        HttpException,
-      );
-      expect(authService.createUser).toHaveBeenCalledWith(createUserDto);
     });
   });
 
@@ -329,7 +211,7 @@ describe('AuthController', () => {
       const result = await controller.initiateReset(initiateResetDto);
 
       expect(authService.initiatePasswordReset).toHaveBeenCalledWith(
-        initiateResetDto.email,
+        initiateResetDto.email
       );
 
       expect(result).toEqual(expectedResult);
@@ -345,11 +227,11 @@ describe('AuthController', () => {
       jest.spyOn(authService, 'initiatePasswordReset').mockRejectedValue(error);
 
       await expect(controller.initiateReset(initiateResetDto)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
 
       expect(authService.initiatePasswordReset).toHaveBeenCalledWith(
-        initiateResetDto.email,
+        initiateResetDto.email
       );
     });
   });
@@ -387,7 +269,7 @@ describe('AuthController', () => {
       jest.spyOn(authService, 'resetPassword').mockRejectedValue(error);
 
       await expect(controller.resetPassword(resetPasswordDto)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
 
       expect(authService.resetPassword).toHaveBeenCalledWith(resetPasswordDto);
