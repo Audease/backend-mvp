@@ -121,9 +121,9 @@ describe('AuthController (e2e)', () => {
           password: 'password1234',
         })
         .expect(201)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.message).toEqual(
-            'School created successfully check your mail for further instructions',
+            'School created successfully check your mail for further instructions'
           );
           expect(res.body.keyId).toBeDefined();
           keyId = res.body.keyId;
@@ -139,7 +139,7 @@ describe('AuthController (e2e)', () => {
           keyId: keyId,
         })
         .expect(200)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.message).toEqual('Key verified successfully');
         });
     });
@@ -162,7 +162,7 @@ describe('AuthController (e2e)', () => {
           keyId: keyId,
         })
         .expect(200)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.message).toEqual('School verified successfully');
         });
     });
@@ -211,7 +211,7 @@ describe('AuthController (e2e)', () => {
           password: 'password1234',
         })
         .expect(200)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.token.access.token).toBeDefined();
           expect(res.body.token.refresh.token).toBeDefined();
           refreshToken = res.body.token.refresh.token;
@@ -237,7 +237,7 @@ describe('AuthController (e2e)', () => {
           refreshToken: refreshToken,
         })
         .expect(200)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.token);
         });
     });

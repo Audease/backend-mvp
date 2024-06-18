@@ -31,7 +31,7 @@ describe('CollegeVerificationController (e2e)', () => {
           keyId: 'test',
         })
         .expect(200)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body).toBeDefined();
         });
     });

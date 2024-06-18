@@ -28,7 +28,7 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly userService: UserService,
     private redisService: RedisService,
-    private readonly dbTransactionFactory: DbTransactionFactory,
+    private readonly dbTransactionFactory: DbTransactionFactory
   ) {}
 
   get redis() {
@@ -65,7 +65,7 @@ export class AuthService {
 
       const data = await this.userService.createTransaction(
         createSchoolDto,
-        transactionManager,
+        transactionManager
       );
 
       user = await this.userService.createUserTransaction(
@@ -79,7 +79,7 @@ export class AuthService {
           role,
         },
         data.id,
-        transactionManager,
+        transactionManager
       );
       await this.redis.hset(
         'onboarding',
@@ -89,11 +89,12 @@ export class AuthService {
           first_name: user.first_name,
           last_name: user.last_name,
           college_id: data.id,
-        }),
+        })
       );
       await transactionRunner.commitTransaction();
       return {
-        message: 'School created successfully check your mail for further instructions',
+        message:
+          'School created successfully check your mail for further instructions',
         keyId: onboardingKey,
       };
     } catch (error) {

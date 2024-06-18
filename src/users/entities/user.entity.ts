@@ -10,9 +10,8 @@ import {
 import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
 import { Recruiter } from '../../recruiter/entities/recruiter.entity';
-import { Student } from '../../students/entities/student.entity'
+import { Student } from '../../students/entities/student.entity';
 import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
-
 
 @Entity('users')
 export class Users {
@@ -51,9 +50,11 @@ export class Users {
   @OneToOne(() => Student, student => student.user)
   student: Student;
 
-  
-@OneToOne(() => FinancialAidOfficer, financialAidOfficer => financialAidOfficer.user)
-financialAidOfficer: FinancialAidOfficer;
+  @OneToOne(
+    () => FinancialAidOfficer,
+    financialAidOfficer => financialAidOfficer.user
+  )
+  financialAidOfficer: FinancialAidOfficer;
 
   @CreateDateColumn({
     nullable: false,

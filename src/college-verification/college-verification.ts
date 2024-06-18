@@ -53,7 +53,7 @@ describe('CollegeVerificationController', () => {
     }).compile();
 
     service = module.get<CollegeVerificationService>(
-      CollegeVerificationService,
+      CollegeVerificationService
     );
     redis = module.get<RedisService>(RedisService);
     mailService = module.get<MailService>(MailService);
@@ -85,7 +85,7 @@ describe('CollegeVerificationController', () => {
       expect(redis.getClient().hget).toHaveBeenCalledWith('onboarding', key);
       expect(authRepository.updateStatus).toHaveBeenCalledWith(
         uuidValue2,
-        RegistrationStatus.VERIFIED,
+        RegistrationStatus.VERIFIED
       );
       expect(mailService.sendTemplateMail).toHaveBeenCalled();
       expect(result).toEqual({ message: 'School verified successfully' });
@@ -99,7 +99,7 @@ describe('CollegeVerificationController', () => {
       });
 
       await expect(service.verifySchool(key)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
   });

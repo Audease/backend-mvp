@@ -417,7 +417,7 @@ describe('AuthService', () => {
 
       await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
       await expect(service.login(loginData)).rejects.toThrow(
-        'Invalid username or password',
+        'Invalid username or password'
       );
     });
 
@@ -436,7 +436,7 @@ describe('AuthService', () => {
 
       await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
       await expect(service.login(loginData)).rejects.toThrowError(
-        'Invalid username or password',
+        'Invalid username or password'
       );
     });
   });

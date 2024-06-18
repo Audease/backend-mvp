@@ -28,7 +28,7 @@ export class UserService {
 
   async createTransaction(
     data: Partial<CreateSchoolDto>,
-    transaction: EntityManager,
+    transaction: EntityManager
   ): Promise<School> {
     const getSchoolrepo = transaction.getRepository(School);
 
@@ -46,7 +46,7 @@ export class UserService {
   async createUserTransaction(
     users: UserSchema,
     college_id: string,
-    transaction: EntityManager,
+    transaction: EntityManager
   ) {
     const college = await transaction.findOne(School, {
       where: { id: college_id },

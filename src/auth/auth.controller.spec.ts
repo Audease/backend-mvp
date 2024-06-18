@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { LoginDto } from '../auth/dto/login-dto';
+import { LoginDto } from './dto/login-dto';
 import { AuthRepository } from './auth.repository';
 import { JwtAuthService } from './jwt.service';
 import { RedisService } from '../shared/services/redis.service';
@@ -136,7 +136,7 @@ describe('AuthController', () => {
       jest.spyOn(authService, 'login').mockRejectedValue(error);
 
       await expect(controller.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
+        UnauthorizedException
       );
       expect(authService.login).toHaveBeenCalledWith(loginDto);
     });
@@ -171,7 +171,7 @@ describe('AuthController', () => {
       jest.spyOn(authService, 'verifyKey').mockRejectedValue(error);
 
       await expect(controller.verify(verifyDto)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
       expect(authService.verifyKey).toHaveBeenCalledWith(verifyDto.keyId);
     });
@@ -194,7 +194,7 @@ describe('AuthController', () => {
       // const result = await controller.verify(verifyDto);
 
       await expect(controller.verify(verifyDto)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
 
@@ -207,7 +207,7 @@ describe('AuthController', () => {
       jest.spyOn(authService, 'verifySchool').mockRejectedValue(error);
 
       await expect(controller.verify(verifyDto)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
     });
   });
@@ -246,7 +246,7 @@ describe('AuthController', () => {
       jest.spyOn(authService, 'createUser').mockRejectedValue(error);
 
       await expect(controller.register(createUserDto)).rejects.toThrow(
-        HttpException,
+        HttpException
       );
       expect(authService.createUser).toHaveBeenCalledWith(createUserDto);
     });
@@ -329,7 +329,7 @@ describe('AuthController', () => {
       const result = await controller.initiateReset(initiateResetDto);
 
       expect(authService.initiatePasswordReset).toHaveBeenCalledWith(
-        initiateResetDto.email,
+        initiateResetDto.email
       );
 
       expect(result).toEqual(expectedResult);
@@ -345,11 +345,11 @@ describe('AuthController', () => {
       jest.spyOn(authService, 'initiatePasswordReset').mockRejectedValue(error);
 
       await expect(controller.initiateReset(initiateResetDto)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
 
       expect(authService.initiatePasswordReset).toHaveBeenCalledWith(
-        initiateResetDto.email,
+        initiateResetDto.email
       );
     });
   });
@@ -387,7 +387,7 @@ describe('AuthController', () => {
       jest.spyOn(authService, 'resetPassword').mockRejectedValue(error);
 
       await expect(controller.resetPassword(resetPasswordDto)).rejects.toThrow(
-        NotFoundException,
+        NotFoundException
       );
 
       expect(authService.resetPassword).toHaveBeenCalledWith(resetPasswordDto);
