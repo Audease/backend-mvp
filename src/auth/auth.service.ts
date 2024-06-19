@@ -44,7 +44,7 @@ export class AuthService {
       await transactionRunner.startTransaction();
 
       const transactionManager = transactionRunner.transactionManager;
-      const { college_name, username, password } = createSchoolDto;
+      const { college_name, username, password, email } = createSchoolDto;
       const schoolExists = await this.authRepository.findSchool(college_name);
 
       if (schoolExists) {
@@ -62,6 +62,14 @@ export class AuthService {
         this.logger.error('Username already exists');
         throw new ConflictException('Username already exists');
       }
+      
+      const emailExists = await this.userService.getUserByEmail(email);
+
+      if (emailExists) {
+        this.logger.error('Email already exists')
+        throw new ConflictException('Email already exists')
+      }
+
 
       const data = await this.userService.createTransaction(
         createSchoolDto,
@@ -92,7 +100,7 @@ export class AuthService {
         })
       );
 
-      const full_name = `${user.first_name} ${user.last_name}`;
+      const login_url = `${process.env.FRONTEND_URL}/signIn`
 
       sendSlackNotification(
         `A *school just created an account* with the following details, *School*: ${data.college_name} \n *located_at*: ${data.address_line1} \n *county*: ${data.county}, *country* : ${data.country} \n *onboardingKey*: ${onboardingKey}`
@@ -105,8 +113,9 @@ export class AuthService {
         },
         'school-onboarding',
         {
-          full_name,
+          username: user.username,
           first_name: user.first_name,
+          login_url
         }
       );
 

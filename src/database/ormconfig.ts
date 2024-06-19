@@ -21,6 +21,7 @@ export const databaseOptions: DataSourceOptions = {
   entities: ['dist/src/**/*.entity.js'],
   migrations: ['src/database/migrations/*.ts'],
   migrationsTableName: 'audease_migration_table',
+  ssl: isTest ? false : { rejectUnauthorized: false },
 };
 
 export const dataSource = new DataSource(databaseOptions);
