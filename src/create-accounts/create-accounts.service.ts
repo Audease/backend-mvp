@@ -98,7 +98,7 @@ export class CreateAccountsService {
 
     await this.recruiterRepository.save(recruiter);
 
-    const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
+    const loginUrl = `${process.env.FRONTEND_URL}`;
     const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
@@ -115,7 +115,7 @@ export class CreateAccountsService {
       }
     );
 
-    this.logger.log('Recruiter account created')
+    this.logger.log('Recruiter account created');
     return {
       message: 'User created successfully',
     };
@@ -180,7 +180,7 @@ export class CreateAccountsService {
 
     await this.financialAidOfficerRepository.save(financialAidOfficer);
 
-    const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
+    const loginUrl = `${process.env.FRONTEND_URL}`;
     const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
@@ -197,7 +197,7 @@ export class CreateAccountsService {
       }
     );
 
-    this.logger.log('Financial Aid Officer Account created')
+    this.logger.log('Financial Aid Officer Account created');
     return {
       message: 'User created successfully',
     };
@@ -259,7 +259,7 @@ export class CreateAccountsService {
 
     await this.studentRepository.save(student);
 
-    const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
+    const loginUrl = `${process.env.FRONTEND_URL}`;
     const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
@@ -276,7 +276,7 @@ export class CreateAccountsService {
       }
     );
 
-    this.logger.log('Student account created')
+    this.logger.log('Student account created');
     return {
       message: 'User created successfully',
     };
@@ -292,7 +292,7 @@ export class CreateAccountsService {
     const adminUsername = admin.username;
     const sanitizedCollegeName = adminUsername.split('.')[1];
     const college_id = admin.school.id;
-   
+
     let generated_username =
       `${createUserDto.first_name}.${sanitizedCollegeName}.auditor`.toLowerCase();
     const generated_password = crypto
@@ -345,7 +345,7 @@ export class CreateAccountsService {
       2 * 24 * 60 * 60 * 1000
     );
 
-    const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
+    const loginUrl = `${process.env.FRONTEND_URL}`;
     const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
@@ -362,7 +362,7 @@ export class CreateAccountsService {
       }
     );
 
-    this.logger.log('Auditor account created')
+    this.logger.log('Auditor account created');
     return {
       message: 'User created successfully',
     };

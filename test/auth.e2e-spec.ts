@@ -127,7 +127,7 @@ describe('AuthController (e2e)', () => {
           );
           expect(res.body.keyId).toBeDefined();
           keyId = res.body.keyId;
-          console.log(keyId)
+          console.log(keyId);
         });
     }, 10000);
   });

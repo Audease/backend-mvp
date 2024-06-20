@@ -16,22 +16,18 @@ export class FinancialAidOfficerController {
   // constructor(
   //   private readonly financialAidOfficerService: FinancialAidOfficerService
   // ) {}
-
   // @Post()
   // create(@Body() createFinancialAidOfficerDto: CreateFinancialAidOfficerDto) {
   //   return this.financialAidOfficerService.create(createFinancialAidOfficerDto);
   // }
-
   // @Get()
   // findAll() {
   //   return this.financialAidOfficerService.findAll();
   // }
-
   // @Get(':id')
   // findOne(@Param('id') id: string) {
   //   return this.financialAidOfficerService.findOne(+id);
   // }
-
   // @Patch(':id')
   // update(
   //   @Param('id') id: string,
@@ -42,7 +38,6 @@ export class FinancialAidOfficerController {
   //     updateFinancialAidOfficerDto
   //   );
   // }
-
   // @Delete(':id')
   // remove(@Param('id') id: string) {
   //   return this.financialAidOfficerService.remove(+id);
