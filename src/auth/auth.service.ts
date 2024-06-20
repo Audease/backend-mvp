@@ -208,6 +208,8 @@ export class AuthService {
     // Store the key on redis for 24 hours
     await this.redis.set(resetKey, user.id, 'EX', 86400);
 
+    const name = user.first_name;
+
     await this.mailService.sendTemplateMail(
       {
         to: email,
@@ -215,6 +217,7 @@ export class AuthService {
       },
       'password-reset',
       {
+        first_name: name,
         resetUrl,
       }
     );
