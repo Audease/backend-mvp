@@ -4,7 +4,7 @@ import { School } from '../shared/entities/school.entity';
 import { Roles } from '../shared/entities/role.entity';
 import { Repository, EntityManager } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateSchoolDto } from 'src/auth/dto/create-school.dto';
+import { CreateSchoolDto } from '../auth/dto/create-school.dto';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { Injectable } from '@nestjs/common';
 import { RegistrationStatus } from '../utils/enum/registration_status';

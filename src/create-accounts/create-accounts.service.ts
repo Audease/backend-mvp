@@ -25,8 +25,8 @@ export class CreateAccountsService {
   constructor(
     private readonly accountRepository: AccountRepository,
     private readonly userService: UserService,
-     private readonly mailService: MailService,
-     private redisService: RedisService,
+    private readonly mailService: MailService,
+    private redisService: RedisService,
     @InjectRepository(FinancialAidOfficer)
     private readonly financialAidOfficerRepository: Repository<FinancialAidOfficer>,
     @InjectRepository(Recruiter)
@@ -41,7 +41,6 @@ export class CreateAccountsService {
     return this.redisService.getClient();
   }
 
-
   async addRecruiter(userId: string, createUserDto: CreateAccountDto) {
     const admin = await this.accountRepository.findAdmin(userId);
     if (!admin) {
@@ -49,9 +48,9 @@ export class CreateAccountsService {
       throw new NotFoundException('User not found');
     }
 
-    const college_name = admin.school.college_name;
     const college_id = admin.school.id;
-    const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
+    const adminUsername = admin.username;
+    const sanitizedCollegeName = adminUsername.split('.')[1];
     let generated_username =
       `${createUserDto.first_name}.${sanitizedCollegeName}.recruiter`.toLowerCase();
     const generated_password = crypto
@@ -67,7 +66,7 @@ export class CreateAccountsService {
     if (userExists) {
       const randomNumber = Math.floor(Math.random() * 1000);
       generated_username =
-        `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}`.toLowerCase();
+        `${createUserDto.first_name}${randomNumber}.${sanitizedCollegeName}.recruiter`.toLowerCase();
     }
 
     const emailExists = await this.userService.getUserByEmail(
@@ -99,13 +98,13 @@ export class CreateAccountsService {
 
     await this.recruiterRepository.save(recruiter);
 
-    const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
+    const loginUrl = `${process.env.FRONTEND_URL}`;
     const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
       {
         to: createUserDto.email,
-        subject: 'Welcome to Audease',
+        subject: 'Your Audease Account Has Been Created!',
       },
       'welcome-users',
       {
@@ -116,6 +115,7 @@ export class CreateAccountsService {
       }
     );
 
+    this.logger.log('Recruiter account created');
     return {
       message: 'User created successfully',
     };
@@ -131,11 +131,11 @@ export class CreateAccountsService {
       throw new NotFoundException('User not found');
     }
 
-    const college_name = admin.school.college_name;
+    const adminUsername = admin.username;
+    const sanitizedCollegeName = adminUsername.split('.')[1];
     const college_id = admin.school.id;
-    const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
     let generated_username =
-      `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}.finance`.toLowerCase();
+      `${createUserDto.first_name}.${sanitizedCollegeName}.finance`.toLowerCase();
     const generated_password = crypto
       .randomBytes(12)
       .toString('hex')
@@ -149,7 +149,7 @@ export class CreateAccountsService {
     if (userExists) {
       const randomNumber = Math.floor(Math.random() * 1000);
       generated_username =
-        `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.finance`.toLowerCase();
+        `${createUserDto.first_name}${randomNumber}.${sanitizedCollegeName}.finance`.toLowerCase();
     }
 
     const emailExists = await this.userService.getUserByEmail(
@@ -180,13 +180,13 @@ export class CreateAccountsService {
 
     await this.financialAidOfficerRepository.save(financialAidOfficer);
 
-    const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
+    const loginUrl = `${process.env.FRONTEND_URL}`;
     const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
       {
         to: createUserDto.email,
-        subject: 'Welcome to Audease',
+        subject: 'Your Audease Account Has Been Created!',
       },
       'welcome-users',
       {
@@ -196,6 +196,8 @@ export class CreateAccountsService {
         loginUrl,
       }
     );
+
+    this.logger.log('Financial Aid Officer Account created');
     return {
       message: 'User created successfully',
     };
@@ -208,11 +210,11 @@ export class CreateAccountsService {
       throw new NotFoundException('User not found');
     }
 
-    const college_name = admin.school.college_name;
+    const adminUsername = admin.username;
+    const sanitizedCollegeName = adminUsername.split('.')[1];
     const college_id = admin.school.id;
-    const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
     let generated_username =
-      `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}.student`.toLowerCase();
+      `${createUserDto.first_name}.${sanitizedCollegeName}.student`.toLowerCase();
     const generated_password = crypto
       .randomBytes(12)
       .toString('hex')
@@ -226,7 +228,7 @@ export class CreateAccountsService {
     if (userExists) {
       const randomNumber = Math.floor(Math.random() * 1000);
       generated_username =
-        `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.student`.toLowerCase();
+        `${createUserDto.first_name}${randomNumber}.${sanitizedCollegeName}.student`.toLowerCase();
     }
 
     const emailExists = await this.userService.getUserByEmail(
@@ -256,14 +258,14 @@ export class CreateAccountsService {
     });
 
     await this.studentRepository.save(student);
-    
-    const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
+
+    const loginUrl = `${process.env.FRONTEND_URL}`;
     const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
       {
         to: createUserDto.email,
-        subject: 'Welcome to Audease',
+        subject: 'Your Audease Account Has Been Created!',
       },
       'welcome-users',
       {
@@ -273,6 +275,8 @@ export class CreateAccountsService {
         loginUrl,
       }
     );
+
+    this.logger.log('Student account created');
     return {
       message: 'User created successfully',
     };
@@ -285,11 +289,12 @@ export class CreateAccountsService {
       throw new NotFoundException('User not found');
     }
 
-    const college_name = admin.school.college_name;
+    const adminUsername = admin.username;
+    const sanitizedCollegeName = adminUsername.split('.')[1];
     const college_id = admin.school.id;
-    const sanitizedCollegeName = college_name.replace(/\s+/g, '').toLowerCase();
+
     let generated_username =
-      `${createUserDto.first_name}_${createUserDto.last_name}.${sanitizedCollegeName}.auditor`.toLowerCase();
+      `${createUserDto.first_name}.${sanitizedCollegeName}.auditor`.toLowerCase();
     const generated_password = crypto
       .randomBytes(12)
       .toString('hex')
@@ -301,14 +306,17 @@ export class CreateAccountsService {
       await this.userService.getUserByUsername(generated_username);
 
     if (userExists) {
-      const randomNumber = Math.floor(Math.random()* 1000)
-      generated_username = `${createUserDto.first_name}_${createUserDto.last_name}${randomNumber}.${sanitizedCollegeName}.auditor`.toLowerCase();
+      const randomNumber = Math.floor(Math.random() * 1000);
+      generated_username =
+        `${createUserDto.first_name}${randomNumber}.${sanitizedCollegeName}.auditor`.toLowerCase();
     }
 
-    const emailExists = await this.userService.getUserByEmail(createUserDto.email);
-    if (emailExists){
+    const emailExists = await this.userService.getUserByEmail(
+      createUserDto.email
+    );
+    if (emailExists) {
       this.logger.error('Email already exists');
-      throw new ConflictException('Email already exists')
+      throw new ConflictException('Email already exists');
     }
     const user = await this.userService.createUserWithCollegeId(
       {
@@ -323,32 +331,40 @@ export class CreateAccountsService {
       college_id
     );
 
-    await this.redis.set(`auditor_password:${user.id}`, user.password, 'EX', 2 * 24 * 60 * 60);
+    await this.redis.set(
+      `auditor_password:${user.id}`,
+      user.password,
+      'EX',
+      2 * 24 * 60 * 60
+    );
 
-    setTimeout(async () => {
-      await this.userRepository.update(user.id, { password: null });
-    }, 2 * 24 * 60 * 60 * 1000); 
+    setTimeout(
+      async () => {
+        await this.userRepository.update(user.id, { password: null });
+      },
+      2 * 24 * 60 * 60 * 1000
+    );
 
-  
-    const loginUrl = `${process.env.FRONTEND_URL}/auth/login}`;
-    const first_name = createUserDto.first_name
+    const loginUrl = `${process.env.FRONTEND_URL}`;
+    const first_name = createUserDto.first_name;
 
     await this.mailService.sendTemplateMail(
       {
         to: createUserDto.email,
-        subject: 'Welcome to Audease',
+        subject: 'Your Audease Account Has Been Created!',
       },
       'welcome-users',
       {
-      first_name,
-      generated_username,
-      generated_password,
-       loginUrl,
-      })
+        first_name,
+        generated_username,
+        generated_password,
+        loginUrl,
+      }
+    );
+
+    this.logger.log('Auditor account created');
     return {
       message: 'User created successfully',
     };
   }
-
-
 }
