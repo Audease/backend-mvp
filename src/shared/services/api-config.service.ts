@@ -11,6 +11,7 @@ import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import type { dbConfigs } from '../types/dbConfig';
 import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
 import { Student } from '../../students/entities/student.entity';
+import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -33,6 +34,7 @@ export class ApiConfigService {
         Recruiter,
         FinancialAidOfficer,
         Student,
+        ProspectiveStudent
       ],
       migrationsRun: true,
       username,
