@@ -60,7 +60,6 @@ export class School {
   @OneToMany(() => ProspectiveStudent, applicants => applicants.school)
   applicants: ProspectiveStudent[];
 
-
   @OneToMany(
     () => FinancialAidOfficer,
     financialAidOfficers => financialAidOfficers.school

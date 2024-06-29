@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 import { Recruiter } from './recruiter.entity';
 
-
 @Entity('prospective_students')
 export class ProspectiveStudent {
   @PrimaryGeneratedColumn('uuid')
@@ -28,10 +27,10 @@ export class ProspectiveStudent {
   @Column('varchar', { length: 255, nullable: true })
   email: string;
 
-  @Column('number', { nullable: true })
+  @Column('integer', { nullable: true })
   NI_number: number;
 
-  @Column('number', { nullable: true })
+  @Column('integer', { nullable: true })
   passport_number: number;
 
   @Column('varchar', { length: 255, nullable: true })
@@ -40,7 +39,7 @@ export class ProspectiveStudent {
   @Column('varchar', { length: 255, nullable: true })
   funding: string;
 
-  @Column('number', { nullable: true })
+  @Column('integer', { nullable: true })
   level: number;
 
   @Column('varchar', { length: 255, nullable: true })
@@ -50,7 +49,7 @@ export class ProspectiveStudent {
   chosen_course: string;
 
   @ManyToOne(() => Recruiter, recruiter => recruiter.applicants)
-  @JoinColumn({ name: 'recruiter_id'})
+  @JoinColumn({ name: 'recruiter_id' })
   recruiter: Recruiter;
 
   @ManyToOne(() => School, school => school.applicants)

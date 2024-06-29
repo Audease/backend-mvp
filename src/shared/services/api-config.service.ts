@@ -34,7 +34,7 @@ export class ApiConfigService {
         Recruiter,
         FinancialAidOfficer,
         Student,
-        ProspectiveStudent
+        ProspectiveStudent,
       ],
       migrationsRun: true,
       username,
