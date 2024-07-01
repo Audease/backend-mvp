@@ -80,10 +80,8 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetCurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateLearnerDto } from './dto/create-learner.dto';
 
-
 @ApiTags('Recruiter')
 @Controller('recruiter')
-
 export class RecruiterController {
   private readonly logger = new Logger(RecruiterController.name);
 
@@ -113,14 +111,13 @@ export class RecruiterController {
       this.logger.error(error.message, error.stack);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  };
-//   @Post(':userId/upload')
-//   @UseInterceptors(FileInterceptor('file'))
-//   async uploadFile(
-//     @Param('userId', ParseUUIDPipe) userId: string,
-//     @UploadedFile() file: Express.Multer.File
-//   ) {
-   
-  
-// }
   }
+  //   @Post(':userId/upload')
+  //   @UseInterceptors(FileInterceptor('file'))
+  //   async uploadFile(
+  //     @Param('userId', ParseUUIDPipe) userId: string,
+  //     @UploadedFile() file: Express.Multer.File
+  //   ) {
+
+  // }
+}
