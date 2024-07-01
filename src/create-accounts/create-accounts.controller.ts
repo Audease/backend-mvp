@@ -14,6 +14,7 @@ import { GetCurrentUserId } from '../shared/decorators/get-current-user-id.decor
 import { CreateAccountDto } from './dto/create-create-account.dto';
 import {
   ApiBearerAuth,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiOperation,
   ApiTags,
@@ -32,6 +33,9 @@ export class CreateAccountsController {
   @ApiOperation({ summary: 'Create recruiter account' })
   @ApiCreatedResponse({
     description: 'User created successfully',
+  })
+  @ApiConflictResponse({
+    description: 'Email already exists',
   })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
@@ -57,6 +61,9 @@ export class CreateAccountsController {
   @ApiOperation({ summary: 'Create financial aid officer account' })
   @ApiCreatedResponse({
     description: 'User created successfully',
+  })
+  @ApiConflictResponse({
+    description: 'Email already exists',
   })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
@@ -84,6 +91,9 @@ export class CreateAccountsController {
   @ApiCreatedResponse({
     description: 'User created successfully',
   })
+  @ApiConflictResponse({
+    description: 'Email already exists',
+  })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
@@ -106,6 +116,9 @@ export class CreateAccountsController {
   @ApiOperation({ summary: 'Create auditor account' })
   @ApiCreatedResponse({
     description: 'User created successfully',
+  })
+  @ApiConflictResponse({
+    description: 'Email already exists',
   })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',

@@ -1,9 +1,19 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { RecruiterService } from './recruiter.service';
 import { RecruiterController } from './recruiter.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ProspectiveStudent } from './entities/prospective-student.entity';
+import { Repository } from 'typeorm';
+import { UsersModule } from '../users/users.module';
+import { Users } from '../users/entities/user.entity';
+import { Recruiter } from './entities/recruiter.entity';
 
 @Module({
+  imports: [
+    TypeOrmModule.forFeature([ProspectiveStudent, Users, Recruiter]),
+    UsersModule,
+  ],
   controllers: [RecruiterController],
-  providers: [RecruiterService],
+  providers: [RecruiterService, Repository, Logger],
 })
 export class RecruiterModule {}
