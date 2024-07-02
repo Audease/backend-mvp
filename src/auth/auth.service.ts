@@ -62,14 +62,13 @@ export class AuthService {
         this.logger.error('Username already exists');
         throw new ConflictException('Username already exists');
       }
-      
+
       const emailExists = await this.userService.getUserByEmail(email);
 
       if (emailExists) {
-        this.logger.error('Email already exists')
-        throw new ConflictException('Email already exists')
+        this.logger.error('Email already exists');
+        throw new ConflictException('Email already exists');
       }
-
 
       const data = await this.userService.createTransaction(
         createSchoolDto,
@@ -100,7 +99,7 @@ export class AuthService {
         })
       );
 
-      const login_url = `${process.env.FRONTEND_URL}/signIn`
+      const login_url = `${process.env.FRONTEND_URL}/signIn`;
 
       sendSlackNotification(
         `A *school just created an account* with the following details, *School*: ${data.college_name} \n *located_at*: ${data.address_line1} \n *county*: ${data.county}, *country* : ${data.country} \n *onboardingKey*: ${onboardingKey}`
@@ -115,7 +114,7 @@ export class AuthService {
         {
           username: user.username,
           first_name: user.first_name,
-          login_url
+          login_url,
         }
       );
 
