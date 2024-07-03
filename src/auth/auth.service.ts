@@ -199,6 +199,7 @@ export class AuthService {
       'email-otp',
       {
         code,
+        first_name: user.first_name,
       }
     );
   }
