@@ -33,6 +33,12 @@ export class Users {
   @Column('varchar', { length: 255, nullable: false })
   password: string;
 
+  @Column('boolean', { nullable: false })
+  '2fa_required': boolean;
+
+  @Column('boolean', { nullable: false })
+  is_active: boolean;
+
   @Column('varchar', { length: 255, nullable: false })
   phone: string;
 

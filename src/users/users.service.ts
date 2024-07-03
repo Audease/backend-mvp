@@ -84,10 +84,7 @@ export class UserService {
     });
   }
 
-  async update(
-    id: string,
-    updateUserDto: Partial<CreateUserDto>
-  ): Promise<Users> {
+  async update(id: string, updateUserDto: Partial<Users>): Promise<Users> {
     await this.userRepository.update(id, updateUserDto);
     return await this.userRepository.findOne({
       where: { id },

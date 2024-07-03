@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({
@@ -15,4 +15,12 @@ export class LoginDto {
   })
   @IsString()
   password: string;
+
+  @ApiProperty({
+    description: 'The device token of the contact person',
+    example: 'iuytredr6789i8uygtfre456',
+  })
+  @IsOptional()
+  @IsString()
+  deviceToken: string;
 }

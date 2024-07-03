@@ -122,7 +122,7 @@ export class CreateProspectiveStudents1719251695229
     );
 
     await queryRunner.createForeignKey(
-      'students',
+      'prospective_students',
       new TableForeignKey({
         columnNames: ['school_id'],
         referencedColumnNames: ['id'],
@@ -134,28 +134,14 @@ export class CreateProspectiveStudents1719251695229
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Drop the foreign keys first
-    const prospectiveStudentsTable: any =
-      await queryRunner.getTable('students');
-    const recruiterForeignKey = prospectiveStudentsTable.foreignKeys.find(
-      fk => fk.name === 'FK_recruiter_id_prospective_students'
+    await queryRunner.dropForeignKey(
+      'prospective_students',
+      'FK_recruiter_id_prospective_students'
     );
-    const schoolForeignKey = prospectiveStudentsTable.foreignKeys.find(
-      fk => fk.name === 'FK_school_id_prospective_students'
+    await queryRunner.dropForeignKey(
+      'prospective_students',
+      'FK_school_id_prospective_students'
     );
-
-    if (recruiterForeignKey) {
-      await queryRunner.dropForeignKey(
-        'prospective_students',
-        recruiterForeignKey
-      );
-    }
-    if (schoolForeignKey) {
-      await queryRunner.dropForeignKey(
-        'prospective_students',
-        schoolForeignKey
-      );
-    }
     await queryRunner.dropTable('prospective_students');
   }
 }

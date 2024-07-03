@@ -191,15 +191,17 @@ describe('AuthService', () => {
   // });
 
   describe('login', () => {
-    it('should return a token if the credentials are valid', async () => {
+    it('should return a token if the credentials are valid and 2FA is not required', async () => {
       const loginData = {
         username: 'testuser',
         password: 'password',
+        deviceToken: 'test-device-token',
       };
       const userData = {
         id: 'user-id',
         username: 'testuser',
         password: await bcrypt.hash('password', 10),
+        '2fa_required': false,
       };
       const roleData = {
         id: 'role-id',
@@ -224,10 +226,50 @@ describe('AuthService', () => {
       expect(result).toEqual({ token });
     });
 
+    it('should return a token if 2FA is required and device token is valid', async () => {
+      const loginData = {
+        username: 'testuser',
+        password: 'password',
+        deviceToken: 'valid-device-token',
+      };
+      const userData = {
+        id: 'user-id',
+        username: 'testuser',
+        password: await bcrypt.hash('password', 10),
+        '2fa_required': true,
+      };
+      const roleData = {
+        id: 'role-id',
+        name: 'SCHOOL_ADMIN',
+      };
+      const token = 'test-token';
+
+      userService.getUserByUsername = jest.fn().mockResolvedValueOnce(userData);
+      userService.getUserRoleById = jest.fn().mockResolvedValueOnce(roleData);
+      jwtService.generateAuthTokens = jest.fn().mockResolvedValueOnce(token);
+      redisService.getClient().get = jest.fn().mockResolvedValueOnce('true');
+
+      const result = await service.login(loginData);
+
+      expect(userService.getUserByUsername).toHaveBeenCalledWith(
+        loginData.username
+      );
+      expect(redisService.getClient().get).toHaveBeenCalledWith(
+        `device_token:${userData.id}:${loginData.deviceToken}`
+      );
+      expect(userService.getUserRoleById).toHaveBeenCalledWith(userData.id);
+      expect(jwtService.generateAuthTokens).toHaveBeenCalledWith(
+        userData.id,
+        roleData.id
+      );
+      expect(result).toEqual({ token });
+    });
+
     it('should throw NotFoundException if the username is invalid', async () => {
       const loginData = {
         username: 'invaliduser',
         password: 'password',
+        deviceToken: 'test-device-token',
       };
 
       userService.getUserByUsername = jest.fn().mockResolvedValueOnce(null);
@@ -242,6 +284,7 @@ describe('AuthService', () => {
       const loginData = {
         username: 'testuser',
         password: 'wrongpassword',
+        deviceToken: 'test-device-token',
       };
       const userData = {
         id: 'user-id',
@@ -252,10 +295,88 @@ describe('AuthService', () => {
       userService.getUserByUsername = jest.fn().mockResolvedValueOnce(userData);
 
       await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
-      await expect(service.login(loginData)).rejects.toThrowError(
+      await expect(service.login(loginData)).rejects.toThrow(
         'Invalid username or password'
       );
     });
+
+    it('should throw NotFoundException if the user has no password', async () => {
+      const loginData = {
+        username: 'testuser',
+        password: 'password',
+        deviceToken: 'test-device-token',
+      };
+      const userData = {
+        id: 'user-id',
+        username: 'testuser',
+        password: null,
+      };
+
+      userService.getUserByUsername = jest.fn().mockResolvedValueOnce(userData);
+
+      await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
+      await expect(service.login(loginData)).rejects.toThrow(
+        'Invalid username or password'
+      );
+    });
+
+    it('should throw NotFoundException if the user has no id', async () => {
+      const loginData = {
+        username: 'testuser',
+        password: 'password',
+        deviceToken: 'test-device-token',
+      };
+      const userData = {
+        username: 'testuser',
+        password: await bcrypt.hash('password', 10),
+      };
+
+      userService.getUserByUsername = jest.fn().mockResolvedValueOnce(userData);
+
+      await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
+      await expect(service.login(loginData)).rejects.toThrow('Invalid user');
+    });
+
+    // it('should throw ForbiddenException if 2FA is required and no device token is provided', async () => {
+    //   const loginData = {
+    //     username: 'testuser',
+    //     password: 'password',
+    //   };
+    //   const userData = {
+    //     id: 'user-id',
+    //     username: 'testuser',
+    //     password: await bcrypt.hash('password', 10),
+    //     '2fa_required': true,
+    //   };
+
+    //   userService.getUserByUsername = jest.fn().mockResolvedValueOnce(userData);
+
+    //   await expect(service.login(loginData)).rejects.toThrow(
+    //     'Invalid username or password'
+    //   );
+    // });
+
+    // it('should throw NotFoundException if 2FA is required and device token is invalid', async () => {
+    //   const loginData = {
+    //     username: 'testuser',
+    //     password: 'password',
+    //     deviceToken: 'invalid-device-token',
+    //   };
+    //   const userData = {
+    //     id: 'user-id',
+    //     username: 'testuser',
+    //     password: await bcrypt.hash('password', 10),
+    //     '2fa_required': true,
+    //   };
+
+    //   userService.getUserByUsername = jest.fn().mockResolvedValueOnce(userData);
+    //   redisService.getClient().get = jest.fn().mockResolvedValueOnce(null);
+
+    //   await expect(service.login(loginData)).rejects.toThrow(NotFoundException);
+    //   await expect(service.login(loginData)).rejects.toThrow(
+    //     'Invalid device token'
+    //   );
+    // });
   });
   describe('refreshToken', () => {
     it('should generate a new access token', async () => {

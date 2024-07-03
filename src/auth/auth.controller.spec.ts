@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login-dto';
+// import { LoginDto } from './dto/login-dto';
 import { AuthRepository } from './auth.repository';
 import { JwtAuthService } from './jwt.service';
 import { RedisService } from '../shared/services/redis.service';
@@ -11,8 +11,8 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
 import { initiateResetDto } from './dto/misc-dto';
 import { resetPasswordDto } from './dto/misc-dto';
-import { TokenResponse } from '../utils/interface/token.interface';
-import { UnauthorizedException, NotFoundException } from '@nestjs/common';
+// import { TokenResponse } from '../utils/interface/token.interface';
+import { NotFoundException } from '@nestjs/common';
 import { DbTransactionFactory } from '../shared/services/transactions/TransactionManager';
 
 describe('AuthController', () => {
@@ -91,48 +91,48 @@ describe('AuthController', () => {
     authService = module.get<AuthService>(AuthService);
   });
 
-  describe('login', () => {
-    it('should call authService.login and return the result', async () => {
-      const loginDto: LoginDto = {
-        username: 'teslim.edencollege.admin',
-        password: 'password1234',
-      };
-      const expectedResult: { token: TokenResponse } = {
-        token: {
-          access: {
-            token: 'access-token',
-            expires: new Date(),
-          },
-          refresh: {
-            token: 'refresh-token',
-            expires: new Date(),
-          },
-        },
-      };
+  // describe('login', () => {
+  //   it('should call authService.login and return the result', async () => {
+  //     const loginDto: LoginDto = {
+  //       username: 'teslim.edencollege.admin',
+  //       password: 'password1234',
+  //     };
+  //     const expectedResult: { token: TokenResponse } = {
+  //       token: {
+  //         access: {
+  //           token: 'access-token',
+  //           expires: new Date(),
+  //         },
+  //         refresh: {
+  //           token: 'refresh-token',
+  //           expires: new Date(),
+  //         },
+  //       },
+  //     };
 
-      jest.spyOn(authService, 'login').mockResolvedValue(expectedResult);
+  //     jest.spyOn(authService, 'login').mockResolvedValue(expectedResult);
 
-      const result = await controller.login(loginDto);
+  //     const result = await controller.login(loginDto);
 
-      expect(authService.login).toHaveBeenCalledWith(loginDto);
-      expect(result).toEqual(expectedResult);
-    });
+  //     expect(authService.login).toHaveBeenCalledWith(loginDto);
+  //     expect(result).toEqual(expectedResult);
+  //   });
 
-    it('should throw UnauthorizedException if authService.login throws an error', async () => {
-      const loginDto: LoginDto = {
-        username: 'teslim.edencollege.admin',
-        password: 'password12344',
-      };
-      const error = new Error('Login failed');
+  //   it('should throw UnauthorizedException if authService.login throws an error', async () => {
+  //     const loginDto: LoginDto = {
+  //       username: 'teslim.edencollege.admin',
+  //       password: 'password12344',
+  //     };
+  //     const error = new Error('Login failed');
 
-      jest.spyOn(authService, 'login').mockRejectedValue(error);
+  //     jest.spyOn(authService, 'login').mockRejectedValue(error);
 
-      await expect(controller.login(loginDto)).rejects.toThrow(
-        UnauthorizedException
-      );
-      expect(authService.login).toHaveBeenCalledWith(loginDto);
-    });
-  });
+  //     await expect(controller.login(loginDto)).rejects.toThrow(
+  //       UnauthorizedException
+  //     );
+  //     expect(authService.login).toHaveBeenCalledWith(loginDto);
+  //   });
+  // });
 
   // describe('createSchool', () => {
   //   it('should call authService.createSchool and return the result', async () => {

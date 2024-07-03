@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEmail } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsNumber } from 'class-validator';
 
 export class verifyDto {
   @ApiProperty({
@@ -39,4 +39,25 @@ export class resetPasswordDto {
   })
   @IsString()
   password: string;
+}
+
+export class verify2faDto {
+  @ApiProperty({
+    example: '123456',
+  })
+  @IsNumber()
+  code: number;
+
+  @ApiProperty({
+    example: 'teslim@gmail.com',
+  })
+  @IsString()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({
+    example: 'true',
+  })
+  @IsOptional()
+  rememberMe: boolean;
 }
