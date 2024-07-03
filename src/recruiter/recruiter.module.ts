@@ -4,15 +4,11 @@ import { RecruiterController } from './recruiter.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProspectiveStudent } from './entities/prospective-student.entity';
 import { Repository } from 'typeorm';
-import { UsersModule } from '../users/users.module';
 import { Users } from '../users/entities/user.entity';
 import { Recruiter } from './entities/recruiter.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ProspectiveStudent, Users, Recruiter]),
-    UsersModule,
-  ],
+  imports: [TypeOrmModule.forFeature([ProspectiveStudent, Users, Recruiter])],
   controllers: [RecruiterController],
   providers: [RecruiterService, Repository, Logger],
 })

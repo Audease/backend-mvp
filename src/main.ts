@@ -1,4 +1,4 @@
-import { NestFactory, HttpAdapterHost, Reflector } from '@nestjs/core';
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import {
   BadRequestException,
   ValidationPipe,
@@ -8,7 +8,6 @@ import { AllExceptionFilter } from './shared/filters';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import { setupSwagger } from './swagger.config';
-import { RoleGuard } from './auth/role.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -44,7 +43,6 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new AllExceptionFilter(httpAdapterHost));
-  app.useGlobalGuards(new RoleGuard(new Reflector()));
 
   setupSwagger(app);
   await app.listen(port);

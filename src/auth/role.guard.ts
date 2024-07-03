@@ -1,46 +1,22 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-} from '@nestjs/common';
-import { Role } from '../utils/enum/role';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-
-import { ROLES_KEY } from '../shared/decorators/roles.decorator';
+import { Observable } from 'rxjs';
 
 @Injectable()
-export class RoleGuard implements CanActivate {
+export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
-  canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+  canActivate(
+    context: ExecutionContext
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
       context.getHandler(),
       context.getClass(),
     ]);
-
-    // if (!requiredRoles || requiredRoles.length === 0) {
-    //   return true;
-    // }
     if (!requiredRoles) {
       return true;
     }
-
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
-
-
-    if (!user) {
-      throw new ForbiddenException('User not found');
-    }
-    if (!user.role) {
-      throw new ForbiddenException('User role not found');
-    }
-    if (!requiredRoles.some(role => user.role === role)) {
-      throw new ForbiddenException(
-        'You do not have the required role to perform this action'
-      );
-    }
-    return true;
+    const { user } = context.switchToHttp().getRequest();
+    return requiredRoles.some(role => user.roles?.includes(role));
   }
 }

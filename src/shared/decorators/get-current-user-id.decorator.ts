@@ -1,12 +1,10 @@
-import { ExecutionContext, createParamDecorator } from '@nestjs/common';
+// current-user-id.decorator.ts
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-export const GetCurrentUserId = createParamDecorator(
-  (data: undefined, context: ExecutionContext) => {
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
-    if (!user) {
-      throw new Error('User not found in request');
-    }
-    return user['sub'];
+export const CurrentUserId = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    // console.log(request.);
+    return request.user?.id;
   }
 );

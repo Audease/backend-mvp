@@ -9,8 +9,11 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../shared/decorators/roles.decorator';
+import { Role } from '../utils/enum/role';
+import { RolesGuard } from '../auth/role.guard';
 import { CreateAccountsService } from './create-accounts.service';
-import { GetCurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
+import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateAccountDto } from './dto/create-create-account.dto';
 import {
   ApiBearerAuth,
@@ -23,12 +26,13 @@ import {
 
 @ApiTags('Create Accounts')
 @Controller('create-account')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class CreateAccountsController {
   private readonly logger = new Logger(CreateAccountsController.name);
   constructor(private readonly createAccountsService: CreateAccountsService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post('/recruiter')
+  @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create recruiter account' })
   @ApiCreatedResponse({
@@ -42,7 +46,7 @@ export class CreateAccountsController {
   })
   @HttpCode(HttpStatus.CREATED)
   async register(
-    @GetCurrentUserId() userId: string,
+    @CurrentUserId() userId: string,
     @Body() createUserDto: CreateAccountDto
   ) {
     try {
@@ -55,8 +59,8 @@ export class CreateAccountsController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @UseGuards(JwtAuthGuard)
   @Post('/financial-aid-officer')
+  @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create financial aid officer account' })
   @ApiCreatedResponse({
@@ -70,7 +74,7 @@ export class CreateAccountsController {
   })
   @HttpCode(HttpStatus.CREATED)
   async create(
-    @GetCurrentUserId() userId: string,
+    @CurrentUserId() userId: string,
     @Body() createUserDto: CreateAccountDto
   ) {
     try {
@@ -84,8 +88,8 @@ export class CreateAccountsController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('/student')
+  @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create student account' })
   @ApiCreatedResponse({
@@ -99,7 +103,7 @@ export class CreateAccountsController {
   })
   @HttpCode(HttpStatus.CREATED)
   async createStudent(
-    @GetCurrentUserId() userId: string,
+    @CurrentUserId() userId: string,
     @Body() createUserDto: CreateAccountDto
   ) {
     try {
@@ -110,8 +114,8 @@ export class CreateAccountsController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('/auditor')
+  @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create auditor account' })
   @ApiCreatedResponse({
@@ -125,7 +129,7 @@ export class CreateAccountsController {
   })
   @HttpCode(HttpStatus.CREATED)
   async createExternalAuditor(
-    @GetCurrentUserId() userId: string,
+    @CurrentUserId() userId: string,
     @Body() createUserDto: CreateAccountDto
   ) {
     try {
