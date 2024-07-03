@@ -6,7 +6,7 @@ import { JwtAuthService } from './jwt.service';
 import { RedisService } from '../shared/services/redis.service';
 import { MailService } from '../shared/services/mail.service';
 import { UserService } from '../users/users.service';
-import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 // import { CreateSchoolDto } from './dto/create-school.dto';
 // import { Role } from '../utils/enum/role';
 import * as bcrypt from 'bcrypt';

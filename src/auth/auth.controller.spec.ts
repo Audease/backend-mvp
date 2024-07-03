@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login-dto';
+// import { LoginDto } from './dto/login-dto';
 import { AuthRepository } from './auth.repository';
 import { JwtAuthService } from './jwt.service';
 import { RedisService } from '../shared/services/redis.service';
@@ -11,8 +11,8 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
 import { initiateResetDto } from './dto/misc-dto';
 import { resetPasswordDto } from './dto/misc-dto';
-import { TokenResponse } from '../utils/interface/token.interface';
-import { UnauthorizedException, NotFoundException } from '@nestjs/common';
+// import { TokenResponse } from '../utils/interface/token.interface';
+import { NotFoundException } from '@nestjs/common';
 import { DbTransactionFactory } from '../shared/services/transactions/TransactionManager';
 
 describe('AuthController', () => {
