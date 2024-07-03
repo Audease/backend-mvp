@@ -10,8 +10,9 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
 import { RecruiterModule } from './recruiter/recruiter.module';
+import { roles } from './app.roles';
+import { AccessControlModule } from 'nest-access-control';
 import { CollegeVerificationModule } from './college-verification/college-verification.module';
-import { RoleGuard } from './auth/role.guard';
 import { CreateAccountsModule } from './create-accounts/create-accounts.module';
 import { FinancialAidOfficerModule } from './financial-aid-officer/financial-aid-officer.module';
 import { StudentsModule } from './students/students.module';
@@ -39,12 +40,9 @@ import { StudentsModule } from './students/students.module';
     CollegeVerificationModule,
     FinancialAidOfficerModule,
     StudentsModule,
+    AccessControlModule.forRoles(roles),
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    { provide: 'APP_GUARD', useClass: ThrottlerGuard },
-    { provide: 'APP_GUARD', useClass: RoleGuard },
-  ],
+  providers: [AppService, { provide: 'APP_GUARD', useClass: ThrottlerGuard }],
 })
 export class AppModule {}

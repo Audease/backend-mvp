@@ -1,5 +1,9 @@
 import { NestFactory, HttpAdapterHost } from '@nestjs/core';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import {
+  BadRequestException,
+  ValidationPipe,
+  VersioningType,
+} from '@nestjs/common';
 import { AllExceptionFilter } from './shared/filters';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
@@ -27,6 +31,14 @@ async function bootstrap() {
     new ValidationPipe({
       transform: true,
       whitelist: true,
+      forbidNonWhitelisted: true,
+      exceptionFactory: errors => {
+        const errorMessages = errors.map(
+          error =>
+            `${error.property} has wrong value ${error.value}, ${Object.values(error.constraints).join(', ')}`
+        );
+        return new BadRequestException(errorMessages);
+      },
     })
   );
 

@@ -18,12 +18,19 @@ import { Recruiter } from '../recruiter/entities/recruiter.entity';
 import { Repository } from 'typeorm';
 import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './jwt.strategy';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([School, Token, Users, Roles, Recruiter]),
     RedisModule,
     UsersModule,
+    JwtModule.register({
+      secret: process.env.ACCESS_TOKEN_SECRET,
+      signOptions: {
+        expiresIn: '15m',
+      },
+    }),
   ],
   controllers: [AuthController],
   providers: [

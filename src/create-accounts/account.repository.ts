@@ -14,7 +14,7 @@ export class AccountRepository {
   async findAdmin(userId: string) {
     return await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['school', 'recruiter'],
+      relations: ['school'],
     });
   }
 }

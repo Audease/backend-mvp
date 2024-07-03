@@ -8,6 +8,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserService } from '../users/users.service';
 import * as dotenv from 'dotenv';
+import { AuthService } from './auth.service';
 
 dotenv.config();
 
@@ -15,7 +16,8 @@ dotenv.config();
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     public readonly userService: UserService,
-    public readonly configService: ConfigService
+    public readonly configService: ConfigService,
+    private readonly authService: AuthService
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -34,9 +36,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException();
     }
-
     const userRole = await this.userService.getUserRoleById(user.id);
 
-    return { ...user, ...userRole, roles: [userRole.role] };
+    return { id: user.id, roles: [userRole.role] };
   }
 }
