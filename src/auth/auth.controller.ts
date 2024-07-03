@@ -9,17 +9,21 @@ import {
   UnauthorizedException,
   NotFoundException,
   ConflictException,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   verifyDto,
   refreshTokenDto,
   initiateResetDto,
   resetPasswordDto,
+  verify2faDto,
 } from './dto/misc-dto';
 import { LoginDto } from './dto/login-dto';
 import { CreateSchoolDto } from './dto/create-school.dto';
+import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import {
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -29,6 +33,7 @@ import {
   ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { TokenResponseDto } from './dto/token-response.dto';
 
@@ -72,6 +77,83 @@ export class AuthController {
     } catch (error) {
       this.logger.error(error.message);
       throw new UnauthorizedException(error.message);
+    }
+  }
+
+  @Post('2fa-verify')
+  @ApiOperation({ summary: 'Verify 2fa' })
+  @ApiOkResponse({
+    description: '2fa verified successfully',
+  })
+  @ApiNotFoundResponse({
+    description: 'Invalid code or email',
+  })
+  @HttpCode(HttpStatus.OK)
+  async verify(@Body() verify2faDto: verify2faDto) {
+    try {
+      return await this.authService.verify2fa(verify2faDto);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new NotFoundException(error.message);
+    }
+  }
+
+  @Post('initiate-verify')
+  @ApiOperation({ summary: 'Initiate verification' })
+  @ApiOkResponse({
+    description:
+      'Verification initiated check your mail for further instructions',
+  })
+  @ApiNotFoundResponse({
+    description: 'Invalid email',
+  })
+  @HttpCode(HttpStatus.OK)
+  async initiateVerify(@Body() initiateResetDto: initiateResetDto) {
+    try {
+      return await this.authService.send2faEmail(initiateResetDto.email);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new NotFoundException(error.message);
+    }
+  }
+
+  @Post('enable2fa')
+  @ApiOperation({ summary: 'Enable Two factor authentication' })
+  @ApiOkResponse({
+    description: '2fa enabled successfully',
+  })
+  @ApiNotFoundResponse({
+    description: 'Invalid user',
+  })
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async enable2fa(@CurrentUserId() userId: string) {
+    try {
+      return await this.authService.enable2fa(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new NotFoundException(error.message);
+    }
+  }
+
+  @Post('disable2fa')
+  @ApiOperation({ summary: 'Disable Two factor authentication' })
+  @ApiOkResponse({
+    description: '2fa disabled successfully',
+  })
+  @ApiNotFoundResponse({
+    description: 'Invalid user',
+  })
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async disable2fa(@CurrentUserId() userId: string) {
+    try {
+      return await this.authService.disable2fa(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new NotFoundException(error.message);
     }
   }
 

@@ -54,12 +54,12 @@ export class CreateUsers1716504816987 implements MigrationInterface {
           {
             name: '2fa_required',
             type: 'boolean',
-            isNullable: false,
+            default: false,
           },
           {
             name: 'is_active',
             type: 'boolean',
-            isNullable: false,
+            default: true,
           },
           {
             name: 'phone',

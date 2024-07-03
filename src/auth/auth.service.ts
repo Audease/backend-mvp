@@ -5,6 +5,7 @@ import { MailService } from '../shared/services/mail.service';
 import { UserService } from '../users/users.service';
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -133,18 +134,17 @@ export class AuthService {
     }
   }
 
-  async login(data: { username: string; password: string }) {
-    const { username, password } = data;
+  async login(data: {
+    username: string;
+    password: string;
+    deviceToken?: string;
+  }) {
+    const { username, password, deviceToken } = data;
 
     const user = await this.userService.getUserByUsername(username);
 
-    if (!user) {
-      this.logger.error('Invalid username');
-      throw new NotFoundException('Invalid username or password');
-    }
-
-    if (!user.password) {
-      this.logger.error('Invalid password');
+    if (!user || !user.password || !user.id) {
+      this.logger.error('Invalid username or password');
       throw new NotFoundException('Invalid username or password');
     }
 
@@ -155,10 +155,93 @@ export class AuthService {
       throw new NotFoundException('Invalid username or password');
     }
 
-    // Add a null check for user.id
-    if (!user.id) {
-      this.logger.error('Invalid user');
-      throw new NotFoundException('Invalid user');
+    if (user['2fa_required'] === true) {
+      if (!deviceToken) {
+        this.logger.error('Two factor authentication required');
+        throw new ForbiddenException('Two factor authentication required');
+      }
+
+      const isValidDeviceToken = await this.redis.get(
+        `device_token:${user.id}:${deviceToken}`
+      );
+
+      if (!isValidDeviceToken) {
+        this.logger.error('Invalid device token');
+        throw new NotFoundException('Invalid device token');
+      }
+    }
+
+    const role = await this.userService.getUserRoleById(user.id);
+    const token = await this.jwtService.generateAuthTokens(user.id, role.id);
+
+    return { token };
+  }
+  async send2faEmail(email: string) {
+    const user = await this.userService.getUserByEmail(email);
+
+    if (!user) {
+      this.logger.error('Invalid email');
+      throw new NotFoundException('Invalid email');
+    }
+
+    // Generate a random 6 digit code
+    const code = Math.floor(100000 + Math.random() * 900000);
+
+    // Store the code on redis for 5 minutes
+
+    await this.redis.set(`2fa:${user.id}`, code, 'EX', 300);
+
+    await this.mailService.sendTemplateMail(
+      {
+        to: email,
+        subject: 'Two Factor Authentication Code',
+      },
+      'email-otp',
+      {
+        code,
+      }
+    );
+  }
+
+  async verify2fa(data: { email: string; code: number; rememberMe?: boolean }) {
+    const { email, code } = data;
+
+    const user = await this.userService.getUserByEmail(email);
+
+    if (!user) {
+      this.logger.error('Invalid email');
+      throw new NotFoundException('Invalid email');
+    }
+
+    const storedCode = await this.redis.get(`2fa:${user.id}`);
+
+    if (!storedCode) {
+      this.logger.error('Invalid code');
+      throw new NotFoundException('Invalid code');
+    }
+
+    if (storedCode !== code.toString()) {
+      this.logger.error('Invalid code');
+      throw new NotFoundException('Invalid code');
+    }
+
+    if (data.rememberMe == true) {
+      const deviceToken = crypto.randomBytes(30).toString('hex');
+      await this.redis.set(
+        `device_token:${user.id}:${deviceToken}`,
+        'true',
+        'EX',
+        2592000
+      );
+
+      const role = await this.userService.getUserRoleById(user.id);
+
+      const token = await this.jwtService.generateAuthTokens(user.id, role.id);
+
+      return {
+        token,
+        deviceToken,
+      };
     }
 
     const role = await this.userService.getUserRoleById(user.id);
@@ -253,6 +336,36 @@ export class AuthService {
 
     return {
       message: 'Password reset successfully',
+    };
+  }
+
+  async enable2fa(userId: string) {
+    const user = await this.userService.findOne(userId);
+
+    if (!user) {
+      this.logger.error('Invalid user');
+      throw new NotFoundException('Invalid user');
+    }
+
+    await this.userService.update(user.id, { '2fa_required': true });
+
+    return {
+      message: '2fa enabled successfully',
+    };
+  }
+
+  async disable2fa(userId: string) {
+    const user = await this.userService.findOne(userId);
+
+    if (!user) {
+      this.logger.error('Invalid user');
+      throw new NotFoundException('Invalid user');
+    }
+
+    await this.userService.update(user.id, { '2fa_required': false });
+
+    return {
+      message: '2fa disabled successfully',
     };
   }
 }
