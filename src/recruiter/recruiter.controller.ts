@@ -6,13 +6,19 @@ import {
   HttpStatus,
   Logger,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { RecruiterService } from './recruiter.service';
 import { Role } from '../utils/enum/role';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConflictResponse,
+  ApiConsumes,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -21,10 +27,11 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../shared/decorators/roles.decorator';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateLearnerDto } from './dto/create-learner.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Recruiter')
 @UseGuards(JwtAuthGuard)
-@Controller('recruiter')
+@Controller('recruitment')
 export class RecruiterController {
   private readonly logger = new Logger(RecruiterController.name);
 
@@ -37,6 +44,9 @@ export class RecruiterController {
   @ApiCreatedResponse({
     description: 'Learner created successfully',
   })
+  @ApiConflictResponse({ description: 'Email or mobile number already exist'})
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
@@ -55,12 +65,42 @@ export class RecruiterController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  //   @Post(':userId/upload')
-  //   @UseInterceptors(FileInterceptor('file'))
-  //   async uploadFile(
-  //     @Param('userId', ParseUUIDPipe) userId: string,
-  //     @UploadedFile() file: Express.Multer.File
-  //   ) {
-
-  // }
+  @Post('/upload')
+  @Roles(Role.SCHOOL_RECRUITER)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'File upload',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiOperation({ summary: 'Create leaners by importing file' })
+  @ApiCreatedResponse({
+    description: 'Learner created successfully',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @CurrentUserId() userId: string,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    try {
+      return await this.recruiterService.importLearners(userId, file);
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

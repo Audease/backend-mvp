@@ -12,8 +12,6 @@ import { Repository } from 'typeorm';
 import { CreateLearnerDto } from './dto/create-learner.dto';
 import { Recruiter } from './entities/recruiter.entity';
 import { Users } from '../users/entities/user.entity';
-// import * as csvParse from 'csv-parse/lib/sync';
-// import { Readable } from 'stream';
 import { parse } from 'csv-parse';
 
 @Injectable()
@@ -37,12 +35,12 @@ export class RecruiterService {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
-
+   
     const recruiter = await this.recruiterRepository.findOne({
       where: { user: { id: userId } },
       relations: ['school'],
     });
-
+   
     if (!recruiter) {
       this.logger.error('Recruiter not found for the user');
       throw new NotFoundException('Recruiter not found for the user');
@@ -81,6 +79,7 @@ export class RecruiterService {
       date_of_birth: formattedDate,
       mobile_number: createLearnerDto.mobile_number,
       email: createLearnerDto.email,
+      NI_number: createLearnerDto.NI_number,
       passport_number: createLearnerDto.passport_number,
       home_address: createLearnerDto.home_address,
       funding: createLearnerDto.funding,
@@ -96,7 +95,7 @@ export class RecruiterService {
     return { message: 'You just created a learner', newLearner };
   }
 
-  async createLearnersFromCSV(userId: string, file: Express.Multer.File) {
+  async importLearners(userId: string, file: Express.Multer.File) {
     const loggedInUser = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -152,6 +151,7 @@ export class RecruiterService {
         date_of_birth: formattedDate,
         mobile_number: record.mobile_number,
         email: record.email,
+        NI_number: record.NI_number,
         passport_number: record.passport_number,
         home_address: record.home_address,
         funding: record.funding,
