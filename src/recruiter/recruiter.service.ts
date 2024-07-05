@@ -14,6 +14,7 @@ import { Recruiter } from './entities/recruiter.entity';
 import { Users } from '../users/entities/user.entity';
 import { parse } from 'csv-parse';
 import { PaginationParamsDto } from './dto/pagination-params.dto';
+import { UpdateLearnerDto } from './dto/update-learner.dto';
 
 @Injectable()
 export class RecruiterService {
@@ -247,5 +248,49 @@ export class RecruiterService {
     }
 
     return student;
+  }
+
+  async editInformation(
+    userId: string,
+    studentId: string,
+    updateLearnerDto: UpdateLearnerDto
+  ) {
+    const loggedInUser = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const recruiter = await this.recruiterRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['school'],
+    });
+
+    if (!recruiter) {
+      this.logger.error('Recruiter not found for the user');
+      throw new NotFoundException('Recruiter not found for the user');
+    }
+
+    const student = await this.learnerRepository.findOne({
+      where: { id: studentId, recruiter: { id: recruiter.id } },
+    });
+
+    if (!student) {
+      throw new NotFoundException(`Learner with id: ${studentId} not found`);
+    }
+
+   
+    const updatedInfo = await this.learnerRepository.preload({
+      id: studentId,
+      ...updateLearnerDto,
+    });
+
+    if (!updatedInfo) {
+      throw new NotFoundException(`Learner with id: ${studentId} not found`);
+    }
+
+    return await this.learnerRepository.save(updatedInfo);
   }
 }
