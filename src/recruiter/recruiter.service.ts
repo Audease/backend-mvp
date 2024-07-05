@@ -13,6 +13,7 @@ import { CreateLearnerDto } from './dto/create-learner.dto';
 import { Recruiter } from './entities/recruiter.entity';
 import { Users } from '../users/entities/user.entity';
 import { parse } from 'csv-parse';
+import { PaginationParamsDto } from './dto/pagination-params.dto';
 
 @Injectable()
 export class RecruiterService {
@@ -35,12 +36,12 @@ export class RecruiterService {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
-   
+
     const recruiter = await this.recruiterRepository.findOne({
       where: { user: { id: userId } },
       relations: ['school'],
     });
-   
+
     if (!recruiter) {
       this.logger.error('Recruiter not found for the user');
       throw new NotFoundException('Recruiter not found for the user');
@@ -168,5 +169,83 @@ export class RecruiterService {
     const newLearners = await this.learnerRepository.save(learners);
     this.logger.log('Learners created successfully from CSV');
     return { message: 'You just created learners from CSV', newLearners };
+  }
+
+  async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
+    const { page, limit, search } = paginationParams;
+
+    const loggedInUser = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const recruiter = await this.recruiterRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['school'],
+    });
+
+    if (!recruiter) {
+      this.logger.error('Recruiter not found for the user');
+      throw new NotFoundException('Recruiter not found for the user');
+    }
+
+    const queryBuilder = this.learnerRepository
+      .createQueryBuilder('student')
+      .leftJoinAndSelect('student.recruiter', 'recruiter')
+      .where('recruiter.id = :recruiterId', {
+        recruiterId: recruiter.id,
+      });
+
+    if (search) {
+      queryBuilder.andWhere(
+        'student.name LIKE :search OR student.email LIKE :search',
+        { search: `%${search}%` }
+      );
+    }
+
+    const [results, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: results,
+      total,
+      page,
+      lastPage: Math.ceil(total / limit),
+    };
+  }
+
+  async getStudent(userId: string, studentId: string) {
+    const loggedInUser = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const recruiter = await this.recruiterRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['school'],
+    });
+
+    if (!recruiter) {
+      this.logger.error('Recruiter not found for the user');
+      throw new NotFoundException('Recruiter not found for the user');
+    }
+
+    const student = await this.learnerRepository.findOne({
+      where: { id: studentId, recruiter: { id: recruiter.id } },
+    });
+
+    if (!student) {
+      throw new NotFoundException(`Learner with id: ${studentId} not found`);
+    }
+
+    return student;
   }
 }

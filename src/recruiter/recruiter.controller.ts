@@ -1,11 +1,14 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpException,
   HttpStatus,
   Logger,
+  Param,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -20,6 +23,8 @@ import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOperation,
+  ApiParam,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -28,6 +33,7 @@ import { Roles } from '../shared/decorators/roles.decorator';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateLearnerDto } from './dto/create-learner.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PaginationParamsDto } from './dto/pagination-params.dto';
 
 @ApiTags('Recruiter')
 @UseGuards(JwtAuthGuard)
@@ -44,7 +50,7 @@ export class RecruiterController {
   @ApiCreatedResponse({
     description: 'Learner created successfully',
   })
-  @ApiConflictResponse({ description: 'Email or mobile number already exist'})
+  @ApiConflictResponse({ description: 'Email or mobile number already exist' })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
   @ApiUnauthorizedResponse({
@@ -98,6 +104,79 @@ export class RecruiterController {
   ) {
     try {
       return await this.recruiterService.importLearners(userId, file);
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get('/students')
+  @Roles(Role.SCHOOL_RECRUITER)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search query for filtering results',
+  })
+  @ApiOperation({ summary: 'View information of all students' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async findAll(
+    @CurrentUserId() userId: string,
+    @Query() paginationParams: PaginationParamsDto
+  ) {
+    try {
+      return await this.recruiterService.getAllStudents(
+        userId,
+        paginationParams
+      );
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get('/students/:studentId')
+  @Roles(Role.SCHOOL_RECRUITER)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'studentId',
+    type: String,
+    description: 'ID of the student',
+  })
+  @ApiOperation({ summary: 'View information of a student' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
+  @ApiNotFoundResponse({
+    description: 'Student with studentId not found for the user',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async findOne(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string
+  ) {
+    try {
+      return await this.recruiterService.getStudent(userId, studentId);
     } catch (error) {
       this.logger.error(error.message, error.stack);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
