@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Logger,
   Param,
+  Patch,
   Post,
   Query,
   UploadedFile,
@@ -34,6 +35,7 @@ import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorato
 import { CreateLearnerDto } from './dto/create-learner.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PaginationParamsDto } from './dto/pagination-params.dto';
+import { UpdateLearnerDto } from './dto/update-learner.dto';
 
 @ApiTags('Recruiter')
 @UseGuards(JwtAuthGuard)
@@ -177,6 +179,41 @@ export class RecruiterController {
   ) {
     try {
       return await this.recruiterService.getStudent(userId, studentId);
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Patch('/students/:studentId')
+  @Roles(Role.SCHOOL_RECRUITER)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'studentId',
+    type: String,
+    description: 'ID of the student',
+  })
+  @ApiOperation({ summary: 'Update/Edit information of a student' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
+  @ApiNotFoundResponse({
+    description: 'Student with studentId not found for the user',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async update(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string,
+    @Body() updateLearnerDto: UpdateLearnerDto
+  ) {
+    try {
+      return await this.recruiterService.editInformation(
+        userId,
+        studentId,
+        updateLearnerDto
+      );
     } catch (error) {
       this.logger.error(error.message, error.stack);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
