@@ -27,11 +27,11 @@ export class ProspectiveStudent {
   @Column('varchar', { length: 255, nullable: true })
   email: string;
 
-  @Column('integer', { nullable: true })
-  NI_number: number;
+  @Column('varchar', { length: 255, nullable: true })
+  NI_number: string;
 
-  @Column('integer', { nullable: true })
-  passport_number: number;
+  @Column('varchar', { length: 255, nullable: true })
+  passport_number: string;
 
   @Column('varchar', { length: 255, nullable: true })
   home_address: string;

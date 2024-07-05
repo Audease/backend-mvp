@@ -39,13 +39,22 @@ export class CreateLearnerDto {
   @IsNotEmpty()
   email: string;
 
+  
+  @ApiProperty({
+    description: 'The NI number of the learner',
+    example: '1239557',
+  })
+  @IsString()
+  @IsNotEmpty()
+  NI_number: string;
+
   @ApiProperty({
     description: 'The passport number of the learner',
     example: '1239847',
   })
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  passport_number: number;
+  passport_number: string;
 
   @ApiProperty({
     description: 'The home address of the learner',

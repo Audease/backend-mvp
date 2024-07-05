@@ -47,12 +47,14 @@ export class CreateProspectiveStudents1719251695229
           },
           {
             name: 'NI_number',
-            type: 'integer',
+            type: 'varchar',
+            length: '255',
             isNullable: true,
           },
           {
             name: 'passport_number',
-            type: 'integer',
+            type: 'varchar',
+            length: '255',
             isNullable: true,
           },
           {
@@ -134,14 +136,28 @@ export class CreateProspectiveStudents1719251695229
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropForeignKey(
-      'prospective_students',
-      'FK_recruiter_id_prospective_students'
+    const prospectiveStudentsTable = await queryRunner.getTable(
+      'prospective_students'
     );
-    await queryRunner.dropForeignKey(
-      'prospective_students',
-      'FK_school_id_prospective_students'
+    const recruiterForeignKey = prospectiveStudentsTable.foreignKeys.find(
+      fk => fk.name === 'FK_recruiter_id_prospective_students'
     );
+    const schoolForeignKey = prospectiveStudentsTable.foreignKeys.find(
+      fk => fk.name === 'FK_school_id_prospective_students'
+    );
+
+    if (recruiterForeignKey) {
+      await queryRunner.dropForeignKey(
+        'prospective_students',
+        recruiterForeignKey
+      );
+    }
+    if (schoolForeignKey) {
+      await queryRunner.dropForeignKey(
+        'prospective_students',
+        schoolForeignKey
+      );
+    }
     await queryRunner.dropTable('prospective_students');
   }
 }
