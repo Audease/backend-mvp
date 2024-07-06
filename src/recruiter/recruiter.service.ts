@@ -281,7 +281,6 @@ export class RecruiterService {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
 
-   
     const updatedInfo = await this.learnerRepository.preload({
       id: studentId,
       ...updateLearnerDto,
@@ -292,5 +291,42 @@ export class RecruiterService {
     }
 
     return await this.learnerRepository.save(updatedInfo);
+  }
+
+  async deleteStudent(userId: string, studentId: string) {
+    const loggedInUser = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const recruiter = await this.recruiterRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['school'],
+    });
+
+    if (!recruiter) {
+      this.logger.error('Recruiter not found for the user');
+      throw new NotFoundException('Recruiter not found for the user');
+    }
+
+    const student = await this.learnerRepository.findOneBy({
+      id: studentId,
+      recruiter: { id: recruiter.id },
+    });
+
+    if (!student) {
+      this.logger.error('Learner not found');
+      throw new NotFoundException(`Learner not found`);
+    }
+
+    const result = await this.learnerRepository.delete(studentId);
+
+    if (result.affected === 0) {
+      this.logger.error('Site could not be deleted');
+      throw new NotFoundException('Site could not be deleted');
+    }
   }
 }

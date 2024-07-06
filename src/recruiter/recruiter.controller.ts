@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpException,
@@ -48,7 +49,7 @@ export class RecruiterController {
   @Post('/create')
   @Roles(Role.SCHOOL_RECRUITER)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create Learner' })
+  @ApiOperation({ summary: 'Create Learner on the recruiter dashboard' })
   @ApiCreatedResponse({
     description: 'Learner created successfully',
   })
@@ -89,7 +90,9 @@ export class RecruiterController {
       },
     },
   })
-  @ApiOperation({ summary: 'Create leaners by importing file' })
+  @ApiOperation({
+    summary: 'Create leaners by importing file on the recruiter dashboard',
+  })
   @ApiCreatedResponse({
     description: 'Learner created successfully',
   })
@@ -133,7 +136,9 @@ export class RecruiterController {
     required: false,
     description: 'Search query for filtering results',
   })
-  @ApiOperation({ summary: 'View information of all students' })
+  @ApiOperation({
+    summary: 'View information of all students on the recruiter dashboard',
+  })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
   @ApiUnauthorizedResponse({
@@ -163,7 +168,9 @@ export class RecruiterController {
     type: String,
     description: 'ID of the student',
   })
-  @ApiOperation({ summary: 'View information of a student' })
+  @ApiOperation({
+    summary: 'View information of a student on the recruiter dashboard',
+  })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
   @ApiNotFoundResponse({
@@ -193,7 +200,9 @@ export class RecruiterController {
     type: String,
     description: 'ID of the student',
   })
-  @ApiOperation({ summary: 'Update/Edit information of a student' })
+  @ApiOperation({
+    summary: 'Update/Edit information of a student on the recruiter dashboard',
+  })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
   @ApiNotFoundResponse({
@@ -214,6 +223,41 @@ export class RecruiterController {
         studentId,
         updateLearnerDto
       );
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Delete('/students/:studentId')
+  @Roles(Role.SCHOOL_RECRUITER)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'studentId',
+    type: String,
+    description: 'ID of the student',
+  })
+  @ApiOperation({
+    summary: 'Delete information of a student on the recruiter dashboard',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
+  @ApiNotFoundResponse({
+    description: 'Student with studentId not found for the user',
+  })
+  @ApiNotFoundResponse({
+    description: 'Student could not be deleted',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string
+  ) {
+    try {
+      return await this.recruiterService.deleteStudent(userId, studentId);
     } catch (error) {
       this.logger.error(error.message, error.stack);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
