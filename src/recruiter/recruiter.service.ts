@@ -15,6 +15,7 @@ import { Users } from '../users/entities/user.entity';
 import { parse } from 'csv-parse';
 import { PaginationParamsDto } from './dto/pagination-params.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
+import { FilterStudentsDto } from './dto/filter-params.dto';
 
 @Injectable()
 export class RecruiterService {
@@ -328,5 +329,58 @@ export class RecruiterService {
       this.logger.error('Site could not be deleted');
       throw new NotFoundException('Site could not be deleted');
     }
+  }
+
+  async getFilteredStudents(userId: string, filterDto: FilterStudentsDto) {
+    const { funding, chosen_course, page, limit } = filterDto;
+
+    const loggedInUser = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const recruiter = await this.recruiterRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['school'],
+    });
+
+    if (!recruiter) {
+      this.logger.error('Recruiter not found for the user');
+      throw new NotFoundException('Recruiter not found for the user');
+    }
+
+    const queryBuilder = this.learnerRepository
+      .createQueryBuilder('student')
+      .leftJoinAndSelect('student.recruiter', 'recruiter')
+      .where('recruiter.id = :recruiterId', {
+        recruiterId: recruiter.id,
+      });
+
+   
+
+    if (funding) {
+      queryBuilder.andWhere('student.funding LIKE :funding', {
+        funding: `%${funding}%`,
+      });
+    }
+
+    if (chosen_course) {
+      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
+        chosen_course: `%${chosen_course}%`,
+      });
+    }
+
+    const total = await queryBuilder.getCount();
+
+    const data = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+
+    return { data, total };
   }
 }

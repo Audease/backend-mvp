@@ -37,6 +37,7 @@ import { CreateLearnerDto } from './dto/create-learner.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PaginationParamsDto } from './dto/pagination-params.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
+import { FilterStudentsDto } from './dto/filter-params.dto';
 
 @ApiTags('Recruiter')
 @UseGuards(JwtAuthGuard)
@@ -160,6 +161,58 @@ export class RecruiterController {
     }
   }
 
+  @Get('students/filters')
+  @Roles(Role.SCHOOL_RECRUITER)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'funding',
+    type: String,
+    required: false,
+    description: 'Funding query for filtering results',
+  })
+  @ApiQuery({
+    name: 'chosen_course',
+    type: String,
+    required: false,
+    description: 'Chosen course query for filtering results',
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of items per page',
+  })
+  @ApiOperation({
+    summary:
+      'Filter students based on funding and chosen course on the recruiter dashboard',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async filter(
+    @CurrentUserId() userId: string,
+    @Query() filterParams: FilterStudentsDto
+  ) {
+    try {
+      return await this.recruiterService.getFilteredStudents(
+        userId,
+        filterParams
+      );
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Get('/students/:studentId')
   @Roles(Role.SCHOOL_RECRUITER)
   @ApiBearerAuth()
@@ -192,6 +245,7 @@ export class RecruiterController {
     }
   }
 
+  
   @Patch('/students/:studentId')
   @Roles(Role.SCHOOL_RECRUITER)
   @ApiBearerAuth()
@@ -263,4 +317,8 @@ export class RecruiterController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  
+
+  
 }
