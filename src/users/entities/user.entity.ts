@@ -12,6 +12,7 @@ import { School } from '../../shared/entities/school.entity';
 import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 import { Student } from '../../students/entities/student.entity';
 import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
+import { Document } from '../../shared/entities/document.entity';
 
 @Entity('users')
 export class Users {
@@ -61,6 +62,9 @@ export class Users {
     financialAidOfficer => financialAidOfficer.user
   )
   financialAidOfficer: FinancialAidOfficer;
+
+  @ManyToOne(() => Document, document => document.user)
+  documents: Document[];
 
   @CreateDateColumn({
     nullable: false,
