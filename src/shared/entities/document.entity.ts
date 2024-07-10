@@ -2,9 +2,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
   JoinColumn,
   CreateDateColumn,
+  ManyToOne,
 } from 'typeorm';
 import { Users } from '../../users/entities/user.entity';
 

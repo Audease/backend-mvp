@@ -16,6 +16,7 @@ import { CollegeVerificationModule } from './college-verification/college-verifi
 import { CreateAccountsModule } from './create-accounts/create-accounts.module';
 import { FinancialAidOfficerModule } from './financial-aid-officer/financial-aid-officer.module';
 import { StudentsModule } from './students/students.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { StudentsModule } from './students/students.module';
     CollegeVerificationModule,
     FinancialAidOfficerModule,
     StudentsModule,
+    AdminModule,
     AccessControlModule.forRoles(roles),
   ],
   controllers: [AppController],

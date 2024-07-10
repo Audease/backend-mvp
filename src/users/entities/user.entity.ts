@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   JoinColumn,
   OneToOne,
+  OneToMany,
 } from 'typeorm';
 import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
@@ -63,7 +64,7 @@ export class Users {
   )
   financialAidOfficer: FinancialAidOfficer;
 
-  @ManyToOne(() => Document, document => document.user)
+  @OneToMany(() => Document, document => document.user)
   documents: Document[];
 
   @CreateDateColumn({
