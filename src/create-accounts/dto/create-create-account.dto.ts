@@ -3,14 +3,15 @@ import { IsOptional, IsString } from 'class-validator';
 
 export class CreateAccountDto {
   @ApiProperty({
-    description: 'The first name of the recruiter',
+    description:
+      'The first name of the recruiter(or the account to be created)',
     example: 'Success',
   })
   @IsString()
   first_name: string;
 
   @ApiProperty({
-    description: 'The last name of the recruiter',
+    description: 'The last name of the recruiter(or the account to be created)',
     example: 'Abhulimen',
   })
   @IsString()
@@ -21,14 +22,15 @@ export class CreateAccountDto {
   username?: string;
 
   @ApiProperty({
-    description: 'The phone number of the recruiter',
+    description:
+      'The phone number of the recruiter(or the account to be created)',
     example: '+445896868',
   })
   @IsString()
   phone: string;
 
   @ApiProperty({
-    description: 'The email name of the recruiter',
+    description: 'The email of the recruiter(or the account to be created)',
     example: 'abhulimensuccess@gmail.com',
   })
   @IsString()

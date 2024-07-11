@@ -139,4 +139,33 @@ export class CreateAccountsController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @Post('/accessor')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create accessor account' })
+  @ApiCreatedResponse({
+    description: 'User created successfully',
+  })
+  @ApiConflictResponse({
+    description: 'Email already exists',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async createAccessor(
+    @CurrentUserId() userId: string,
+    @Body() createUserDto: CreateAccountDto
+  ) {
+    try {
+      return await this.createAccountsService.addAccessor(
+        userId,
+        createUserDto
+      );
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
