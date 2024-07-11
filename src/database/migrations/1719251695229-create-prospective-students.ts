@@ -87,6 +87,12 @@ export class CreateProspectiveStudents1719251695229
             isNullable: true,
           },
           {
+            name: 'application',
+            type: 'varchar',
+            length: '255',
+            isNullable: true
+          },
+          {
             name: 'recruiter_id',
             type: 'uuid',
             isNullable: false,

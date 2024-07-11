@@ -48,6 +48,9 @@ export class ProspectiveStudent {
   @Column('varchar', { length: 255, nullable: true })
   chosen_course: string;
 
+  @Column('varchar', { length: 255, nullable: true })
+  application: string;
+
   @ManyToOne(() => Recruiter, recruiter => recruiter.applicants)
   @JoinColumn({ name: 'recruiter_id' })
   recruiter: Recruiter;

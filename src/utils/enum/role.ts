@@ -5,4 +5,7 @@ export enum Role {
   EXTERNAL_AUDITOR = 'external_auditor',
   SCHOOL_RECRUITER = 'school_recruiter',
   FINANCIAL_OFFICER = 'financial_officer',
+  ACCESSOR = 'accessor',
+  BKSD = 'bksd',
+  INDUCTOR = 'inductor',
 }

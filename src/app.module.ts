@@ -16,6 +16,8 @@ import { CollegeVerificationModule } from './college-verification/college-verifi
 import { CreateAccountsModule } from './create-accounts/create-accounts.module';
 import { FinancialAidOfficerModule } from './financial-aid-officer/financial-aid-officer.module';
 import { StudentsModule } from './students/students.module';
+import { AccessorModule } from './accessor/accessor.module';
+import { BksdModule } from './bksd/bksd.module';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { StudentsModule } from './students/students.module';
     FinancialAidOfficerModule,
     StudentsModule,
     AccessControlModule.forRoles(roles),
+    AccessorModule,
+    BksdModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: 'APP_GUARD', useClass: ThrottlerGuard }],

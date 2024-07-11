@@ -12,6 +12,7 @@ import { FinancialAidOfficer } from '../financial-aid-officer/entities/financial
 import { MailService } from '../shared/services/mail.service';
 import { Student } from '../students/entities/student.entity';
 import { RedisModule } from '../shared/module/redis.module';
+import { Accessor } from '../accessor/entities/accessor.entity';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { RedisModule } from '../shared/module/redis.module';
       Users,
       FinancialAidOfficer,
       Student,
+      Accessor
     ]),
     UsersModule,
     RedisModule,

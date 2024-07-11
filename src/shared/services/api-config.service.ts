@@ -12,6 +12,7 @@ import type { dbConfigs } from '../types/dbConfig';
 import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
 import { Student } from '../../students/entities/student.entity';
 import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
+import { Accessor } from '../../accessor/entities/accessor.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -35,6 +36,7 @@ export class ApiConfigService {
         FinancialAidOfficer,
         Student,
         ProspectiveStudent,
+        Accessor
       ],
       migrationsRun: true,
       username,
