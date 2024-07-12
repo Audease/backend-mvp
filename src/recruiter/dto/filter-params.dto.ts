@@ -1,5 +1,5 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsPositive, IsString } from "class-validator";
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsPositive, IsString } from 'class-validator';
 
 export class FilterStudentsDto {
   @IsOptional()
@@ -21,6 +21,4 @@ export class FilterStudentsDto {
   @IsPositive()
   @ApiPropertyOptional()
   limit?: number = 10;
-  
-
 }
