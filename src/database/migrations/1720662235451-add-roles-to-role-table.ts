@@ -4,8 +4,10 @@ export class AddRolesToRoleTable1720662235451 implements MigrationInterface {
   name = 'AddRolesToRoleTable1720662235451';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.startTransaction();
     // Check and add 'accessor' enum value if it doesn't exist
-    await queryRunner.query(`
+    try {
+      await queryRunner.query(`
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'roles_role_enum') THEN
@@ -18,8 +20,8 @@ export class AddRolesToRoleTable1720662235451 implements MigrationInterface {
       $$;
     `);
 
-    // Check and add 'bksd' enum value if it doesn't exist
-    await queryRunner.query(`
+      // Check and add 'bksd' enum value if it doesn't exist
+      await queryRunner.query(`
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'bksd' AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'roles_role_enum')) THEN
@@ -29,8 +31,8 @@ export class AddRolesToRoleTable1720662235451 implements MigrationInterface {
       $$;
     `);
 
-    // Check and add 'inductor' enum value if it doesn't exist
-    await queryRunner.query(`
+      // Check and add 'inductor' enum value if it doesn't exist
+      await queryRunner.query(`
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'inductor' AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'roles_role_enum')) THEN
@@ -40,13 +42,19 @@ export class AddRolesToRoleTable1720662235451 implements MigrationInterface {
       $$;
     `);
 
-    // Insert new roles into the roles table
-    await queryRunner.query(`
+      await queryRunner.commitTransaction();
+
+      // Insert new roles into the roles table
+      await queryRunner.query(`
       INSERT INTO roles (role, description) VALUES 
       ('accessor', 'Has access to action specific to accessor'),
       ('bksd', 'Has access to action specific to bksd'),
       ('inductor', 'Has access to action specific to inductor')
     `);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } 
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
