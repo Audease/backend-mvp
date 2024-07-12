@@ -9,6 +9,7 @@ import { UsersModule } from '../users/users.module';
 import { Repository } from 'typeorm';
 import { Student } from '../students/entities/student.entity';
 import { MailService } from '../shared/services/mail.service';
+import { BksdRepository } from './bksd.repository';
 
 @Module({
   imports: [
@@ -16,7 +17,9 @@ import { MailService } from '../shared/services/mail.service';
     UsersModule,
   ],
   controllers: [BksdController],
-  providers: [BksdService, Repository, Logger, MailService],
-  exports: [BksdService],
+
+  providers: [BksdService, Repository, Logger, MailService, BksdRepository],
+  exports: [BksdService]
+
 })
 export class BksdModule {}
