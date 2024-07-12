@@ -102,7 +102,7 @@ export class CreateProspectiveStudents1719251695229
             name: 'application',
             type: 'varchar',
             length: '255',
-            isNullable: true
+            isNullable: true,
           },
           {
             name: 'recruiter_id',

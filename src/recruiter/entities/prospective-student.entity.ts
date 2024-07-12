@@ -23,7 +23,7 @@ export class ProspectiveStudent {
 
   @Column('varchar', { length: 255, nullable: true })
   middle_name: string;
-  
+
   @Column('date', { nullable: false })
   date_of_birth: string;
 
@@ -78,7 +78,7 @@ export class ProspectiveStudent {
     name: 'updated_at',
   })
   updated_at: Date;
-  
+
   @Column('varchar', { length: 255, nullable: true, default: 'Pending' })
   application_status: string;
 }

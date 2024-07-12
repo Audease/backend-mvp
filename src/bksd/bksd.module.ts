@@ -15,11 +15,11 @@ import { BksdRepository } from './bksd.repository';
   imports: [
     TypeOrmModule.forFeature([Users, Accessor, ProspectiveStudent, Student]),
     UsersModule,
-
   ],
   controllers: [BksdController],
+
   providers: [BksdService, Repository, Logger, MailService, BksdRepository],
   exports: [BksdService]
-  
+
 })
 export class BksdModule {}

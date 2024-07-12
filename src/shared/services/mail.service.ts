@@ -3,7 +3,7 @@ import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
 import * as path from 'path';
 import { Logger } from '@nestjs/common';
 import * as fs from 'fs';
-import { Mail } from '../../utils/interface/mail.interface';
+import { Mail, PdfMail } from '../../utils/interface/mail.interface';
 
 @Injectable()
 export class MailService {
@@ -57,6 +57,44 @@ export class MailService {
         .setReplyTo(sentFrom)
         .setSubject(mail.subject)
         .setHtml(compiledTemplate);
+
+      await this.mailsender.email.send(emailParams);
+
+      this.logger.log(`Mail sent to ${mail.to}`);
+    } catch (error) {
+      this.logger.error(`Failed to send mail: ${error}`);
+      throw new InternalServerErrorException('Failed to send mail');
+    }
+  }
+
+  // Send email with attachment
+  public async sendMailWithAttachment(
+    mail: PdfMail,
+    templateName: string,
+    data: Record<string, string | number>
+  ): Promise<void> {
+    try {
+      const templateContent = MailService.getTemplateContent(templateName);
+      const compiledTemplate = MailService.compileTemplate(
+        templateContent,
+        data
+      );
+      const sentFrom = new Sender(process.env.EMAIL_FROM, 'Audease');
+      const recipient = [new Recipient(mail.to)];
+
+      const emailParams = new EmailParams()
+        .setFrom(sentFrom)
+        .setTo(recipient)
+        .setReplyTo(sentFrom)
+        .setSubject(mail.subject)
+        .setHtml(compiledTemplate)
+        .setAttachments([
+          {
+            content: mail.content,
+            filename: mail.filename,
+            disposition: 'attachment',
+          },
+        ]);
 
       await this.mailsender.email.send(emailParams);
 

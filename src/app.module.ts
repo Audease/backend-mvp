@@ -18,6 +18,7 @@ import { FinancialAidOfficerModule } from './financial-aid-officer/financial-aid
 import { StudentsModule } from './students/students.module';
 import { AccessorModule } from './accessor/accessor.module';
 import { BksdModule } from './bksd/bksd.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { BksdModule } from './bksd/bksd.module';
     CollegeVerificationModule,
     FinancialAidOfficerModule,
     StudentsModule,
+    AdminModule,
     AccessControlModule.forRoles(roles),
     AccessorModule,
     BksdModule,

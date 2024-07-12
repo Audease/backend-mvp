@@ -25,8 +25,10 @@ export class BksdService {
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
     private readonly userService: UserService,
+
     private readonly mailService: MailService,
     private readonly bksdRepository: BksdRepository
+
   ) {}
 
   async sendLearnerMail(userId: string, applicantId: string) {

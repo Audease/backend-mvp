@@ -22,7 +22,7 @@ import { Accessor } from '../accessor/entities/accessor.entity';
       Users,
       FinancialAidOfficer,
       Student,
-      Accessor
+      Accessor,
     ]),
     UsersModule,
     RedisModule,
@@ -35,6 +35,6 @@ import { Accessor } from '../accessor/entities/accessor.entity';
     Logger,
     MailService,
   ],
-  exports: [CreateAccountsService]
+  exports: [CreateAccountsService],
 })
 export class CreateAccountsModule {}
