@@ -9,17 +9,34 @@ import {
 
 export class CreateLearnerDto {
   @ApiProperty({
-    description: 'The name of the learner',
-    example: 'Test Learner',
+    description: 'The first name of the learner',
+    example: 'Test ',
   })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  first_name: string;
+
+  @ApiProperty({
+    description: 'The last name of the learner',
+    example: 'Test ',
+  })
+  @IsString()
+  @IsNotEmpty()
+  last_name: string;
+
+  @ApiProperty({
+    description: 'The middle name of the learner',
+    example: 'Test ',
+  })
+  @IsString()
+  @IsOptional()
+  middle_name?: string;
 
   @ApiProperty({
     description: 'The date of birth of the learner',
     example: '1990-09-01',
   })
+  @IsNotEmpty()
   @IsDateString()
   date_of_birth: string;
 

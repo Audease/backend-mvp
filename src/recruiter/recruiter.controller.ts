@@ -39,7 +39,7 @@ import { PaginationParamsDto } from './dto/pagination-params.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { FilterStudentsDto } from './dto/filter-params.dto';
 
-@ApiTags('Recruiter')
+@ApiTags('Recruiter Dashboard')
 @UseGuards(JwtAuthGuard)
 @Controller('recruitment')
 export class RecruiterController {

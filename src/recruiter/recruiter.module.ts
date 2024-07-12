@@ -11,5 +11,6 @@ import { Recruiter } from './entities/recruiter.entity';
   imports: [TypeOrmModule.forFeature([ProspectiveStudent, Users, Recruiter])],
   controllers: [RecruiterController],
   providers: [RecruiterService, Repository, Logger],
+  exports: [RecruiterService],
 })
 export class RecruiterModule {}
