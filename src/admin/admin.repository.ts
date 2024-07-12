@@ -72,7 +72,7 @@ export class AdminRepository {
       first_name: result.first_name,
       last_name: result.last_name,
       date_of_birth: result.date_of_birth,
-      address: result.address,
+      address: result.home_address,
       email: result.user?.email,
       username: result.user?.username,
       created_at: result.created_at,
