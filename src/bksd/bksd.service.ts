@@ -1,8 +1,11 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Users } from '../users/entities/user.entity';
-import { Accessor } from '../accessor/entities/accessor.entity';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { UserService } from '../users/users.service';
 import * as crypto from 'crypto';
@@ -10,50 +13,41 @@ import * as bcrypt from 'bcrypt';
 import { Role } from '../utils/enum/role';
 import { Student } from '../students/entities/student.entity';
 import { MailService } from '../shared/services/mail.service';
+import { BksdRepository } from './bksd.repository';
+import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 
 @Injectable()
 export class BksdService {
   private readonly logger = new Logger(BksdService.name);
   constructor(
-    @InjectRepository(Users)
-    private readonly userRepository: Repository<Users>,
-    @InjectRepository(Accessor)
-    private readonly accessorRepository: Repository<Accessor>,
     @InjectRepository(ProspectiveStudent)
     private readonly learnerRepository: Repository<ProspectiveStudent>,
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
     private readonly userService: UserService,
     private readonly mailService: MailService,
+    private readonly bksdRepository: BksdRepository
   ) {}
 
   async sendLearnerMail(userId: string, applicantId: string) {
     // check if the logged in user is an accessor
-    const loggedInUser = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['school'],
-    });
+    const loggedInUser = await this.bksdRepository.findUser(userId);
     if (!loggedInUser) {
-      console.log('loggedIn user not found');
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const accessor = await this.accessorRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['school'],
-    });
+    const accessor = await this.bksdRepository.findAccessor(userId);
 
     if (!accessor) {
       this.logger.error('Accessor not found for the user');
       throw new NotFoundException('Accessor not found for the user');
     }
 
-    const learner = await this.learnerRepository.findOne({
-      where: { id: applicantId, school: { id: accessor.school.id } },
-      relations: ['school', 'recruiter'],
-    });
-
+    const learner = await this.bksdRepository.findLearner(
+      applicantId,
+      accessor
+    );
     if (learner) {
       const accessorUsername = loggedInUser.username;
       const sanitizedCollegeName = accessorUsername.split('.')[1];
@@ -131,5 +125,71 @@ export class BksdService {
       this.logger.error('Learner not found');
       throw new NotFoundException('Learner not found');
     }
+  }
+
+  async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
+    const { page, limit, search } = paginationParams;
+
+    const loggedInUser = await this.bksdRepository.findUser(userId)
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const accessor = await this.bksdRepository.findAccessor(userId)
+
+    if (!accessor) {
+      this.logger.error('Accessor not found for the user');
+      throw new NotFoundException('Accessor not found for the user');
+    }
+
+    const queryBuilder = this.learnerRepository
+      .createQueryBuilder('student')
+      .where('student.school = :schoolId', {
+        schoolId: accessor.school.id,
+      });
+
+
+    if (search) {
+      queryBuilder.andWhere(
+        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
+        { search: `%${search}%` }
+      );
+    }
+
+    const [results, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: results,
+      total,
+      page,
+      lastPage: Math.ceil(total / limit),
+    };
+  }
+
+  async getStudent(userId: string, studentId: string) {
+    const loggedInUser = await this.bksdRepository.findUser(userId)
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const accessor = await this.bksdRepository.findAccessor(userId)
+
+    if (!accessor) {
+      this.logger.error('Accessor not found for the user');
+      throw new NotFoundException('Accessor not found for the user');
+    }
+
+    const student = await this.bksdRepository.findLearner(studentId, accessor)
+
+    if (!student) {
+      throw new NotFoundException(`Learner with id: ${studentId} not found`);
+    }
+
+    return student;
   }
 }
