@@ -23,6 +23,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { CreateLearnerDto } from '../recruiter/dto/create-learner.dto';
 
 @ApiTags('Create Accounts')
 @Controller('create-account')
@@ -104,10 +105,13 @@ export class CreateAccountsController {
   @HttpCode(HttpStatus.CREATED)
   async createStudent(
     @CurrentUserId() userId: string,
-    @Body() createUserDto: CreateAccountDto
+    @Body() createLearnerDto: CreateLearnerDto
   ) {
     try {
-      return await this.createAccountsService.addStudent(userId, createUserDto);
+      return await this.createAccountsService.addStudent(
+        userId,
+        createLearnerDto
+      );
     } catch (error) {
       this.logger.error(error.message);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);

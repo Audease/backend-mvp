@@ -35,5 +35,6 @@ import { Accessor } from '../accessor/entities/accessor.entity';
     Logger,
     MailService,
   ],
+  exports: [CreateAccountsService]
 })
 export class CreateAccountsModule {}

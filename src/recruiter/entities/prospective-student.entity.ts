@@ -16,8 +16,14 @@ export class ProspectiveStudent {
   id: string;
 
   @Column('varchar', { length: 255, nullable: false })
-  name: string;
+  first_name: string;
 
+  @Column('varchar', { length: 255, nullable: false })
+  last_name: string;
+
+  @Column('varchar', { length: 255, nullable: true })
+  middle_name: string;
+  
   @Column('date', { nullable: false })
   date_of_birth: string;
 
@@ -48,8 +54,8 @@ export class ProspectiveStudent {
   @Column('varchar', { length: 255, nullable: true })
   chosen_course: string;
 
-  @Column('varchar', { length: 255, nullable: true })
-  application: string;
+  @Column('varchar', { length: 255, nullable: true, default: 'Not sent' })
+  application_mail: string;
 
   @ManyToOne(() => Recruiter, recruiter => recruiter.applicants)
   @JoinColumn({ name: 'recruiter_id' })
@@ -72,4 +78,7 @@ export class ProspectiveStudent {
     name: 'updated_at',
   })
   updated_at: Date;
+  
+  @Column('varchar', { length: 255, nullable: true, default: 'Pending' })
+  application_status: string;
 }
