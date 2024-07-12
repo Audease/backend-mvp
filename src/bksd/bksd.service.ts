@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Users } from '../users/entities/user.entity';
@@ -24,7 +29,7 @@ export class BksdService {
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
     private readonly userService: UserService,
-    private readonly mailService: MailService,
+    private readonly mailService: MailService
   ) {}
 
   async sendLearnerMail(userId: string, applicantId: string) {

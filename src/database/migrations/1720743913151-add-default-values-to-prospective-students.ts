@@ -12,7 +12,6 @@ export class AddDefaultValuesToProspectiveStudents1720743913151
       `);
   }
 
-
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
         ALTER TABLE "prospective_students"

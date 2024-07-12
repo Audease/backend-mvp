@@ -10,7 +10,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-
 @Entity('accessors')
 export class Accessor {
   @PrimaryGeneratedColumn('uuid')

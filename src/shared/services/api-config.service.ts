@@ -13,6 +13,7 @@ import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financ
 import { Student } from '../../students/entities/student.entity';
 import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
 import { Accessor } from '../../accessor/entities/accessor.entity';
+import { Document } from '../entities/document.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -36,7 +37,8 @@ export class ApiConfigService {
         FinancialAidOfficer,
         Student,
         ProspectiveStudent,
-        Accessor
+        Accessor,
+        Document,
       ],
       migrationsRun: true,
       username,

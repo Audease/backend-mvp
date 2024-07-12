@@ -56,7 +56,6 @@ export class CreateLearnerDto {
   @IsNotEmpty()
   email: string;
 
-  
   @ApiProperty({
     description: 'The NI number of the learner',
     example: '1239557',

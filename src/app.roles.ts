@@ -16,5 +16,3 @@ roles
   .createOwn('create-recruiter')
   .updateOwn('create-recruiter')
   .deleteOwn('create-recruiter');
-
-  

@@ -31,6 +31,13 @@ export class AuthRepository {
     });
   }
 
+  // Find school with the user id
+  async findSchoolByUserId(userId: string): Promise<School> {
+    return await this.schoolRepository.findOne({
+      where: { users: { id: userId } },
+    });
+  }
+
   async findSchool(name: string): Promise<School> {
     return await this.schoolRepository.findOne({
       where: { college_name: name },

@@ -373,8 +373,6 @@ export class RecruiterService {
         recruiterId: recruiter.id,
       });
 
-   
-
     if (funding) {
       queryBuilder.andWhere('student.funding LIKE :funding', {
         funding: `%${funding}%`,
@@ -393,7 +391,6 @@ export class RecruiterService {
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
-
 
     return { data, total };
   }

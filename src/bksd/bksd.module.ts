@@ -14,11 +14,9 @@ import { MailService } from '../shared/services/mail.service';
   imports: [
     TypeOrmModule.forFeature([Users, Accessor, ProspectiveStudent, Student]),
     UsersModule,
-
   ],
   controllers: [BksdController],
   providers: [BksdService, Repository, Logger, MailService],
-  exports: [BksdService]
-  
+  exports: [BksdService],
 })
 export class BksdModule {}
