@@ -245,7 +245,6 @@ export class RecruiterController {
     }
   }
 
-  
   @Patch('/students/:studentId')
   @Roles(Role.SCHOOL_RECRUITER)
   @ApiBearerAuth()
@@ -317,8 +316,4 @@ export class RecruiterController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
-  
-
-  
 }

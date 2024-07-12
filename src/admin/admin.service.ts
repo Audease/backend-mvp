@@ -35,7 +35,12 @@ export class AdminService {
   }
 
   async getStudentById(studentId: string) {
-    return this.adminRepository.getStudentById(studentId);
+    try {
+      return this.adminRepository.getStudentById(studentId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async uploadDocument(userId: string, file: Express.Multer.File) {
@@ -47,19 +52,35 @@ export class AdminService {
         throw new NotFoundException('User not found');
       }
 
-      const upload = await this.cloudinaryService.uploadImage(file.path);
+      const upload = await this.cloudinaryService.uploadBuffer(file);
 
       const document = await this.adminRepository.saveDocument({
         user,
         cloudinaryUrl: upload.secure_url,
-        fileName: upload.original_filename,
-        fileType: upload.format,
+        fileName: file.filename,
+        fileType: file.mimetype,
       });
 
       return {
         message: 'Document uploaded successfully',
         document_link: document.cloudinaryUrl,
       };
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async searchStudent(userId: string, search: string) {
+    try {
+      const getSchool = await this.authRepository.findSchoolByUserId(userId);
+
+      if (!getSchool) {
+        this.logger.error('School not found');
+        throw new NotFoundException('School not found');
+      }
+
+      return this.adminRepository.searchStudentBySchoolId(getSchool.id, search);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);

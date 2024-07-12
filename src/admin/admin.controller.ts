@@ -43,7 +43,7 @@ export class AdminController {
   @Get('/students')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
-  @ApiParam({
+  @ApiQuery({
     name: 'page',
     type: Number,
     required: false,
@@ -72,7 +72,7 @@ export class AdminController {
   ) {
     try {
       const { limit, page } = pagination;
-      return await this.adminService.getPaginatedStudents(userId, limit, page);
+      return await this.adminService.getPaginatedStudents(userId, page, limit);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
@@ -152,6 +152,36 @@ export class AdminController {
       return await this.adminService.uploadDocument(userId, file);
     } catch (error) {
       this.logger.error(error.message, error.stack);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Get('/students/search')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: true,
+    description: 'Search query',
+  })
+  @ApiOperation({
+    summary: 'Search for students in the school',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Student not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async searchStudents(
+    @CurrentUserId() userId: string,
+    @Query('search') search: string
+  ) {
+    try {
+      return await this.adminService.searchStudent(userId, search);
+    } catch (error) {
+      this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
     }
   }

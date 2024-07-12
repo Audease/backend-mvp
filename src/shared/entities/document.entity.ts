@@ -14,7 +14,7 @@ export class Document {
   id: string;
 
   @ManyToOne(() => Users, user => user.documents)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'userId' })
   user: Users;
 
   @Column('varchar', { length: 255, nullable: false })
@@ -29,7 +29,7 @@ export class Document {
   @CreateDateColumn({
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',
-    name: 'uploaded_at',
+    name: 'uploadedAt',
   })
   uploadedAt: Date;
 }
