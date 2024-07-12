@@ -19,6 +19,7 @@ import { Student } from '../students/entities/student.entity';
 import { RedisService } from '../shared/services/redis.service';
 import { Users } from '../users/entities/user.entity';
 import { Accessor } from '../accessor/entities/accessor.entity';
+import { CreateLearnerDto } from '../recruiter/dto/create-learner.dto';
 
 @Injectable()
 export class CreateAccountsService {
@@ -206,7 +207,7 @@ export class CreateAccountsService {
     };
   }
 
-  async addStudent(userId: string, createUserDto: CreateAccountDto) {
+  async addStudent(userId: string, createLearnerDto: CreateLearnerDto) {
     const admin = await this.accountRepository.findAdmin(userId);
     if (!admin) {
       this.logger.error('User not found');
@@ -217,7 +218,7 @@ export class CreateAccountsService {
     const sanitizedCollegeName = adminUsername.split('.')[1];
     const college_id = admin.school.id;
     let generated_username =
-      `${createUserDto.first_name}.${sanitizedCollegeName}.student`.toLowerCase();
+      `${createLearnerDto.first_name}.${sanitizedCollegeName}.student`.toLowerCase();
     const generated_password = crypto
       .randomBytes(12)
       .toString('hex')
@@ -231,11 +232,11 @@ export class CreateAccountsService {
     if (userExists) {
       const randomNumber = Math.floor(Math.random() * 1000);
       generated_username =
-        `${createUserDto.first_name}${randomNumber}.${sanitizedCollegeName}.learner`.toLowerCase();
+        `${createLearnerDto.first_name}${randomNumber}.${sanitizedCollegeName}.learner`.toLowerCase();
     }
 
     const emailExists = await this.userService.getUserByEmail(
-      createUserDto.email
+      createLearnerDto.email
     );
     if (emailExists) {
       this.logger.error('Email already exists');
@@ -245,17 +246,17 @@ export class CreateAccountsService {
       {
         username: generated_username,
         password: await bcrypt.hashSync(generated_password, 10),
-        email: createUserDto.email,
-        phone: createUserDto.phone,
-        first_name: createUserDto.first_name,
-        last_name: createUserDto.last_name,
+        email: createLearnerDto.email,
+        phone: createLearnerDto.mobile_number,
+        first_name: createLearnerDto.first_name,
+        last_name: createLearnerDto.last_name,
         role,
       },
       college_id
     );
 
     const student = this.studentRepository.create({
-      ...createUserDto,
+      ...createLearnerDto,
       user,
       school: admin.school,
     });
@@ -263,11 +264,11 @@ export class CreateAccountsService {
     await this.studentRepository.save(student);
 
     const loginUrl = `${process.env.FRONTEND_URL}`;
-    const first_name = createUserDto.first_name;
+    const first_name = createLearnerDto.first_name;
 
     await this.mailService.sendTemplateMail(
       {
-        to: createUserDto.email,
+        to: createLearnerDto.email,
         subject: 'Your Audease Account Has Been Created!',
       },
       'welcome-users',

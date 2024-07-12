@@ -23,10 +23,22 @@ export class CreateProspectiveStudents1719251695229
             default: 'uuid_generate_v4()',
           },
           {
-            name: 'name',
+            name: 'first_name',
             type: 'varchar',
             length: '255',
             isNullable: false,
+          },
+          {
+            name: 'last_name',
+            type: 'varchar',
+            length: '255',
+            isNullable: false,
+          },
+          {
+            name: 'middle_name',
+            type: 'varchar',
+            length: '255',
+            isNullable: true,
           },
           {
             name: 'date_of_birth',

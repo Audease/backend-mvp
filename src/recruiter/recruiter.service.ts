@@ -78,7 +78,9 @@ export class RecruiterService {
     const formattedDate = formatDate(createLearnerDto.date_of_birth);
 
     const learner = this.learnerRepository.create({
-      name: createLearnerDto.name,
+      first_name: createLearnerDto.first_name,
+      last_name: createLearnerDto.last_name,
+      middle_name: createLearnerDto.middle_name,
       date_of_birth: formattedDate,
       mobile_number: createLearnerDto.mobile_number,
       email: createLearnerDto.email,
@@ -141,16 +143,28 @@ export class RecruiterService {
 
       const formatDate = (dateStr: string): string => {
         const date = new Date(dateStr);
+        if (isNaN(date.getTime())) {
+          throw new Error(`Invalid date format: ${dateStr}`);
+        }
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
       };
 
-      const formattedDate = formatDate(record.date_of_birth);
+      let formattedDate;
+      try {
+        formattedDate = formatDate(record.date_of_birth);
+      } catch (error) {
+        this.logger.error(`Error formatting date for record: ${record}`);
+        this.logger.error(error.message);
+        continue;
+      }
 
       const learner = this.learnerRepository.create({
-        name: record.name,
+        first_name: record.first_name,
+        last_name: record.last_name,
+        middle_name: record.middle_name,
         date_of_birth: formattedDate,
         mobile_number: record.mobile_number,
         email: record.email,

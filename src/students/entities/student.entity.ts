@@ -22,10 +22,37 @@ export class Student {
   last_name: string;
 
   @Column('varchar', { length: 255, nullable: true })
+  middle_name: string;
+
+  @Column('varchar', { length: 255, nullable: true })
   date_of_birth?: string;
 
   @Column('varchar', { length: 255, nullable: true })
-  address?: string;
+  mobile_number: string;
+
+  @Column('varchar', { length: 255, nullable: true })
+  email: string;
+
+  @Column('varchar', { length: 255, nullable: true })
+  NI_number: string;
+
+  @Column('varchar', { length: 255, nullable: true })
+  passport_number: string;
+
+  @Column('varchar', { length: 255, nullable: true })
+  home_address: string;
+
+  @Column('varchar', { length: 255, nullable: true })
+  funding: string;
+
+  @Column('integer', { nullable: true })
+  level: number;
+
+  @Column('varchar', { length: 255, nullable: true })
+  awarding: string;
+
+  @Column('varchar', { length: 255, nullable: true })
+  chosen_course: string;
 
   @OneToOne(() => Users, user => user.student)
   @JoinColumn({ name: 'user_id' })
