@@ -30,6 +30,7 @@ import { Roles } from '../shared/decorators/roles.decorator';
 import { Role } from '../utils/enum/role';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
+import { FilterBksdDto } from './dto/bksd-filter.dto';
 
 @ApiTags('BKSD DASHBOARD')
 @Controller('bksd')
@@ -110,6 +111,61 @@ export class BksdController {
     }
   }
 
+  @Get('students/filters')
+  @Roles(Role.ACCESSOR)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'funding',
+    type: String,
+    required: false,
+    description: 'Funding query for filtering results',
+  })
+  @ApiQuery({
+    name: 'chosen_course',
+    type: String,
+    required: false,
+    description: 'Chosen course query for filtering results',
+  })
+  @ApiQuery({
+    name: 'application_mail',
+    type: String,
+    required: false,
+    description: 'Mail status query for filtering results',
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of items per page',
+  })
+  @ApiOperation({
+    summary:
+      'Filter students based on funding, chosen course and mail status  on the recruiter BKSD dashboard',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async filter(
+    @CurrentUserId() userId: string,
+    @Query() filterParams: FilterBksdDto
+  ) {
+    try {
+      return await this.bksdService.getFilteredStudents(userId, filterParams);
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Get('/students/:studentId')
   @Roles(Role.ACCESSOR)
   @ApiBearerAuth()
@@ -142,4 +198,5 @@ export class BksdController {
     }
   }
 
+  
 }

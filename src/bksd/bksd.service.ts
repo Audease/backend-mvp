@@ -15,6 +15,7 @@ import { Student } from '../students/entities/student.entity';
 import { MailService } from '../shared/services/mail.service';
 import { BksdRepository } from './bksd.repository';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
+import { FilterBksdDto } from './dto/bksd-filter.dto';
 
 @Injectable()
 export class BksdService {
@@ -28,7 +29,6 @@ export class BksdService {
 
     private readonly mailService: MailService,
     private readonly bksdRepository: BksdRepository
-
   ) {}
 
   async sendLearnerMail(userId: string, applicantId: string) {
@@ -132,13 +132,13 @@ export class BksdService {
   async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
     const { page, limit, search } = paginationParams;
 
-    const loggedInUser = await this.bksdRepository.findUser(userId)
+    const loggedInUser = await this.bksdRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const accessor = await this.bksdRepository.findAccessor(userId)
+    const accessor = await this.bksdRepository.findAccessor(userId);
 
     if (!accessor) {
       this.logger.error('Accessor not found for the user');
@@ -150,7 +150,6 @@ export class BksdService {
       .where('student.school = :schoolId', {
         schoolId: accessor.school.id,
       });
-
 
     if (search) {
       queryBuilder.andWhere(
@@ -173,25 +172,75 @@ export class BksdService {
   }
 
   async getStudent(userId: string, studentId: string) {
-    const loggedInUser = await this.bksdRepository.findUser(userId)
+    const loggedInUser = await this.bksdRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const accessor = await this.bksdRepository.findAccessor(userId)
+    const accessor = await this.bksdRepository.findAccessor(userId);
 
     if (!accessor) {
       this.logger.error('Accessor not found for the user');
       throw new NotFoundException('Accessor not found for the user');
     }
 
-    const student = await this.bksdRepository.findLearner(studentId, accessor)
+    const student = await this.bksdRepository.findLearner(studentId, accessor);
 
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
 
     return student;
+  }
+
+  async getFilteredStudents(userId: string, filterDto: FilterBksdDto) {
+    const { funding, chosen_course, application_mail, page, limit } = filterDto;
+
+    const loggedInUser = await this.bksdRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const accessor = await this.bksdRepository.findAccessor(userId);
+
+    if (!accessor) {
+      this.logger.error('Accessor not found for the user');
+      throw new NotFoundException('Accessor not found for the user');
+    }
+
+    const queryBuilder = this.learnerRepository
+      .createQueryBuilder('student')
+      .where('student.school = :schoolId', {
+        schoolId: accessor.school.id,
+      });
+
+    if (funding) {
+      queryBuilder.andWhere('student.funding LIKE :funding', {
+        funding: `%${funding}%`,
+      });
+    }
+
+    if (chosen_course) {
+      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
+        chosen_course: `%${chosen_course}%`,
+      });
+    }
+
+    if (application_mail) {
+      queryBuilder.andWhere('student.application_mail LIKE :application_mail', {
+        application_mail: `%${application_mail}%`,
+      });
+    }
+
+    const total = await queryBuilder.getCount();
+
+    const data = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return { data, total };
   }
 }
