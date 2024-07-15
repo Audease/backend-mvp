@@ -10,12 +10,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProspectiveStudent } from './entities/prospective-student.entity';
 import { Repository } from 'typeorm';
 import { CreateLearnerDto } from './dto/create-learner.dto';
-import { Recruiter } from './entities/recruiter.entity';
 import { Users } from '../users/entities/user.entity';
 import { parse } from 'csv-parse';
 import { PaginationParamsDto } from './dto/pagination-params.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { FilterStudentsDto } from './dto/filter-params.dto';
+import { RecruiterRepository } from './recruiter.repository';
 
 @Injectable()
 export class RecruiterService {
@@ -24,38 +24,27 @@ export class RecruiterService {
   constructor(
     @InjectRepository(Users)
     private readonly userRepository: Repository<Users>,
-    @InjectRepository(Recruiter)
-    private readonly recruiterRepository: Repository<Recruiter>,
     @InjectRepository(ProspectiveStudent)
-    private readonly learnerRepository: Repository<ProspectiveStudent>
+    private readonly learnerRepository: Repository<ProspectiveStudent>,
+    private readonly recruiterRepository: RecruiterRepository
   ) {}
 
   async createLearner(userId: string, createLearnerDto: CreateLearnerDto) {
-    const loggedInUser = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+    const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['school'],
-    });
+    const recruiter = await this.recruiterRepository.findRecruiter(userId);
 
     if (!recruiter) {
       this.logger.error('Recruiter not found for the user');
       throw new NotFoundException('Recruiter not found for the user');
     }
 
-    const learnerExist = await this.learnerRepository.findOne({
-      where: [
-        { email: createLearnerDto.email },
-        { mobile_number: createLearnerDto.mobile_number },
-      ],
-      relations: ['school', 'recruiter'],
-    });
+    const learnerExist =
+      await this.recruiterRepository.findLearner(createLearnerDto);
 
     if (learnerExist) {
       if (
@@ -101,19 +90,13 @@ export class RecruiterService {
   }
 
   async importLearners(userId: string, file: Express.Multer.File) {
-    const loggedInUser = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+    const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['school'],
-    });
-
+    const recruiter = await this.recruiterRepository.findRecruiter(userId);
     if (!recruiter) {
       this.logger.error('Recruiter not found for the user');
       throw new NotFoundException('Recruiter not found for the user');
@@ -126,13 +109,7 @@ export class RecruiterService {
     });
 
     for await (const record of parser) {
-      const learnerExist = await this.learnerRepository.findOne({
-        where: [
-          { email: record.email },
-          { mobile_number: record.mobile_number },
-        ],
-        relations: ['school', 'recruiter'],
-      });
+      const learnerExist = await this.recruiterRepository.findLearner(record);
 
       if (learnerExist) {
         this.logger.warn(
@@ -190,19 +167,13 @@ export class RecruiterService {
   async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
     const { page, limit, search } = paginationParams;
 
-    const loggedInUser = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+    const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['school'],
-    });
-
+    const recruiter = await this.recruiterRepository.findRecruiter(userId);
     if (!recruiter) {
       this.logger.error('Recruiter not found for the user');
       throw new NotFoundException('Recruiter not found for the user');
@@ -217,7 +188,7 @@ export class RecruiterService {
 
     if (search) {
       queryBuilder.andWhere(
-        'student.name LIKE :search OR student.email LIKE :search',
+        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
         { search: `%${search}%` }
       );
     }
@@ -236,28 +207,22 @@ export class RecruiterService {
   }
 
   async getStudent(userId: string, studentId: string) {
-    const loggedInUser = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+    const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['school'],
-    });
-
+    const recruiter = await this.recruiterRepository.findRecruiter(userId);
     if (!recruiter) {
       this.logger.error('Recruiter not found for the user');
       throw new NotFoundException('Recruiter not found for the user');
     }
 
-    const student = await this.learnerRepository.findOne({
-      where: { id: studentId, recruiter: { id: recruiter.id } },
-    });
-
+    const student = await this.recruiterRepository.findStudent(
+      studentId,
+      recruiter
+    );
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
@@ -270,27 +235,23 @@ export class RecruiterService {
     studentId: string,
     updateLearnerDto: UpdateLearnerDto
   ) {
-    const loggedInUser = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+    const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['school'],
-    });
+    const recruiter = await this.recruiterRepository.findRecruiter(userId);
 
     if (!recruiter) {
       this.logger.error('Recruiter not found for the user');
       throw new NotFoundException('Recruiter not found for the user');
     }
 
-    const student = await this.learnerRepository.findOne({
-      where: { id: studentId, recruiter: { id: recruiter.id } },
-    });
+    const student = await this.recruiterRepository.findStudent(
+      studentId,
+      recruiter
+    );
 
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
@@ -309,18 +270,13 @@ export class RecruiterService {
   }
 
   async deleteStudent(userId: string, studentId: string) {
-    const loggedInUser = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+    const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['school'],
-    });
+    const recruiter = await this.recruiterRepository.findRecruiter(userId);
 
     if (!recruiter) {
       this.logger.error('Recruiter not found for the user');
@@ -348,18 +304,13 @@ export class RecruiterService {
   async getFilteredStudents(userId: string, filterDto: FilterStudentsDto) {
     const { funding, chosen_course, page, limit } = filterDto;
 
-    const loggedInUser = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+    const loggedInUser = await this.recruiterRepository.findUser(userId)
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['school'],
-    });
+    const recruiter = await this.recruiterRepository.findRecruiter(userId)
 
     if (!recruiter) {
       this.logger.error('Recruiter not found for the user');

@@ -6,11 +6,12 @@ import { ProspectiveStudent } from './entities/prospective-student.entity';
 import { Repository } from 'typeorm';
 import { Users } from '../users/entities/user.entity';
 import { Recruiter } from './entities/recruiter.entity';
+import { RecruiterRepository } from './recruiter.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProspectiveStudent, Users, Recruiter])],
   controllers: [RecruiterController],
-  providers: [RecruiterService, Repository, Logger],
+  providers: [RecruiterService, Repository, Logger, RecruiterRepository],
   exports: [RecruiterService],
 })
 export class RecruiterModule {}
