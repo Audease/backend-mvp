@@ -54,10 +54,12 @@ export class AdminService {
 
       const upload = await this.cloudinaryService.uploadBuffer(file);
 
+      console.log(upload);
+
       const document = await this.adminRepository.saveDocument({
         user,
         cloudinaryUrl: upload.secure_url,
-        fileName: file.filename,
+        fileName: file.originalname,
         fileType: file.mimetype,
       });
 

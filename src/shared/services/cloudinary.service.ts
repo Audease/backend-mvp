@@ -16,12 +16,12 @@ export class CloudinaryService {
     return result;
   }
 
-  async uploadBuffer(file: Express.Multer.File): Promise<any> {
+  async uploadBuffer(file: Express.Multer.File): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
           {
-            resource_type: 'auto',
+            resource_type: 'raw',
           },
           (error, result) => {
             if (error) return reject(error);

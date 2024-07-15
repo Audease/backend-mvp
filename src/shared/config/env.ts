@@ -26,4 +26,12 @@ export default () => ({
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
   jwtAccessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
   redisUrl: process.env.REDIS_URL,
+  Emailfrom: process.env.EMAIL_FROM,
+  mailerSend: process.env.MAILER_SEND_API_KEY,
+  SlackBotToken: process.env.SLACK_BOT_TOKEN,
+  SlackChannelId: process.env.SLACK_CHANNEL_ID,
+  ClouinaryApiKey: process.env.CLOUDINARY_API_KEY,
+  CloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
+  CloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  CloudinaryUrl: process.env.CLOUDINARY_URL,
 });

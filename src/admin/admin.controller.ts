@@ -40,6 +40,36 @@ export class AdminController {
 
   constructor(private readonly adminService: AdminService) {}
 
+  @Get('/students/search')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: true,
+    description: 'Search query',
+  })
+  @ApiOperation({
+    summary: 'Search for students in the school',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Student not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async searchStudents(
+    @CurrentUserId() userId: string,
+    @Query('search') search: string
+  ) {
+    try {
+      return await this.adminService.searchStudent(userId, search);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   @Get('/students')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
@@ -152,36 +182,6 @@ export class AdminController {
       return await this.adminService.uploadDocument(userId, file);
     } catch (error) {
       this.logger.error(error.message, error.stack);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  @Get('/students/search')
-  @Roles(Role.SCHOOL_ADMIN)
-  @ApiBearerAuth()
-  @ApiQuery({
-    name: 'search',
-    type: String,
-    required: true,
-    description: 'Search query',
-  })
-  @ApiOperation({
-    summary: 'Search for students in the school',
-  })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiNotFoundResponse({ description: 'Student not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.OK)
-  async searchStudents(
-    @CurrentUserId() userId: string,
-    @Query('search') search: string
-  ) {
-    try {
-      return await this.adminService.searchStudent(userId, search);
-    } catch (error) {
-      this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
     }
   }
