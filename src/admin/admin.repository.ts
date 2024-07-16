@@ -80,11 +80,8 @@ export class AdminRepository {
   }
 
   // Search student by school id using query builder and like operator without pagination
-  async searchStudentBySchoolId(
-    schoolId: string,
-    search: string
-  ): Promise<Student[]> {
-    return this.studentRepository
+  async searchStudentBySchoolId(schoolId: string, search: string) {
+    const result = await this.studentRepository
       .createQueryBuilder('student')
       .leftJoinAndSelect('student.user', 'user')
       .select([
@@ -107,6 +104,19 @@ export class AdminRepository {
         }
       )
       .getMany();
+
+    if (!result) return null;
+    // Flatten the structure
+    return result.map(student => ({
+      id: student.id,
+      first_name: student.first_name,
+      last_name: student.last_name,
+      date_of_birth: student.date_of_birth,
+      address: student.home_address,
+      email: student.user?.email,
+      username: student.user?.username,
+      created_at: student.created_at,
+    }));
   }
 
   async saveDocument(document: Partial<Document>): Promise<Document> {
