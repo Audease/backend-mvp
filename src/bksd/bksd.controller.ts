@@ -197,6 +197,4 @@ export class BksdController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
-  
 }

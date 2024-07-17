@@ -109,6 +109,45 @@ export class AdminController {
     }
   }
 
+  @Get('/logs')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of items per page',
+  })
+  @ApiOperation({
+    summary: 'View information a log of all actions performed by the admin',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({
+    description: 'This admin has not performed any actions yet',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getAllLogs(
+    @CurrentUserId() userId: string,
+    @Query() pagination: PaginationDto
+  ) {
+    try {
+      const { limit, page } = pagination;
+      return await this.adminService.getLogs(userId, page, limit);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   @Get('/students/:studentId')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
@@ -132,7 +171,7 @@ export class AdminController {
     @Param('studentId') studentId: string
   ) {
     try {
-      return await this.adminService.getStudentById(studentId);
+      return await this.adminService.getStudentById(userId, studentId);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
@@ -170,7 +209,7 @@ export class AdminController {
     description: 'Unauthorized',
   })
   @ApiInternalServerErrorResponse({
-    description: 'Issues uploading this file',
+    description: 'Issuguites uploading this file',
   })
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('file'))

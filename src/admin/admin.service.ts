@@ -8,6 +8,8 @@ import {
 import { CloudinaryService } from '../shared/services/cloudinary.service';
 import { Logger } from '@nestjs/common';
 import { UserService } from '../users/users.service';
+import { LogService } from '../shared/services/logger.service';
+import { LogType } from '../utils/enum/log_type';
 
 @Injectable()
 export class AdminService {
@@ -16,7 +18,8 @@ export class AdminService {
     private readonly adminRepository: AdminRepository,
     private readonly authRepository: AuthRepository,
     private readonly cloudinaryService: CloudinaryService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly logService: LogService
   ) {}
 
   async getPaginatedStudents(userId: string, page: number, limit: number) {
@@ -27,6 +30,15 @@ export class AdminService {
       throw new NotFoundException('School not found');
     }
 
+    await this.logService.createLog({
+      userId,
+      message: `Retrieved a paginated list of students for school `,
+      type: 'GET_STUDENTS',
+      method: 'GET',
+      route: '/students',
+      logType: LogType.ONE_TIME,
+    });
+
     return this.adminRepository.getStudentsBySchoolId(
       getSchool.id,
       page,
@@ -34,9 +46,18 @@ export class AdminService {
     );
   }
 
-  async getStudentById(studentId: string) {
+  async getStudentById(userId: string, studentId: string) {
     try {
-      return this.adminRepository.getStudentById(studentId);
+      const result = this.adminRepository.getStudentById(studentId);
+      await this.logService.createLog({
+        userId: userId, // Assuming student has a userId
+        message: `Retrieved the details of student ${(await result).first_name}`,
+        type: 'GET_STUDENT',
+        method: 'GET',
+        route: `/students/${studentId}`,
+        logType: LogType.ONE_TIME,
+      });
+      return result;
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
@@ -53,14 +74,20 @@ export class AdminService {
       }
 
       const upload = await this.cloudinaryService.uploadBuffer(file);
-
-      console.log(upload);
-
       const document = await this.adminRepository.saveDocument({
         user,
         cloudinaryUrl: upload.secure_url,
         fileName: file.originalname,
         fileType: file.mimetype,
+      });
+
+      await this.logService.createLog({
+        userId,
+        message: `Uploaded document ${file.originalname}`,
+        type: 'UPLOAD_DOCUMENT',
+        method: 'POST',
+        route: '/documents',
+        logType: LogType.REUSABLE,
       });
 
       return {
@@ -87,5 +114,9 @@ export class AdminService {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  async getLogs(userId: string, page: number, limit: number) {
+    return this.logService.getPaginatedLogs(userId, page, limit);
   }
 }
