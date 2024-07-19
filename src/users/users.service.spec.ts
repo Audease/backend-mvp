@@ -79,6 +79,7 @@ describe('UserService', () => {
           role: Role.SCHOOL_ADMIN,
           description: 'Has full access to the school system',
           rolePermission: null,
+          school: null,
           created_at: new Date(),
           updated_at: new Date(),
         },

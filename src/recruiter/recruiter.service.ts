@@ -304,13 +304,13 @@ export class RecruiterService {
   async getFilteredStudents(userId: string, filterDto: FilterStudentsDto) {
     const { funding, chosen_course, page, limit } = filterDto;
 
-    const loggedInUser = await this.recruiterRepository.findUser(userId)
+    const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId)
+    const recruiter = await this.recruiterRepository.findRecruiter(userId);
 
     if (!recruiter) {
       this.logger.error('Recruiter not found for the user');
