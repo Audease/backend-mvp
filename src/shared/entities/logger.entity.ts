@@ -8,7 +8,7 @@ import {
 import { LogType } from '../../utils/enum/log_type';
 
 @Entity('app_logs')
-export class Logger {
+export class AppLogger {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

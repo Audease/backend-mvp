@@ -11,6 +11,7 @@ import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
 import { Student } from '../../students/entities/student.entity';
 import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
+import { Roles } from './role.entity';
 
 @Entity('school')
 export class School {
@@ -59,6 +60,9 @@ export class School {
 
   @OneToMany(() => ProspectiveStudent, applicants => applicants.school)
   applicants: ProspectiveStudent[];
+
+  @OneToMany(() => Roles, roles => roles.school)
+  roles: Roles[];
 
   @OneToMany(
     () => FinancialAidOfficer,

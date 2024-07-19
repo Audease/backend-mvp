@@ -52,7 +52,6 @@ export class Users {
   @JoinColumn({ name: 'school_id' })
   school: School;
 
-
   @OneToOne(() => Recruiter, recruiter => recruiter.user)
   recruiter: Recruiter;
 

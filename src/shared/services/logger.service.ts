@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { Logger } from '../entities/logger.entity';
+import { AppLogger } from '../entities/logger.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { Users } from '../../users/entities/user.entity';
@@ -11,8 +11,8 @@ import { Logger as logs } from '@nestjs/common';
 export class LogService {
   private readonly logs = new logs(LogService.name);
   constructor(
-    @InjectRepository(Logger)
-    private logRepository: Repository<Logger>,
+    @InjectRepository(AppLogger)
+    private logRepository: Repository<AppLogger>,
     @InjectRepository(Users)
     private userRepository: Repository<Users>
   ) {}
@@ -24,7 +24,7 @@ export class LogService {
     method: string;
     route: string;
     logType: LogType;
-  }): Promise<Logger> {
+  }): Promise<AppLogger> {
     try {
       const log = this.logRepository.create({
         userId: data.userId,
@@ -38,6 +38,7 @@ export class LogService {
 
       return await this.logRepository.save(log);
     } catch (error) {
+      console.log(error);
       this.logs.error('Failed to create log entry');
       throw new InternalServerErrorException(
         'Failed to create log entry',
