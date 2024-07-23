@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -26,22 +26,11 @@ export class PaginationDto {
   limit?: number = 10;
 }
 
-export class PDFDto {
+export class EmailDto {
   @IsString()
+  @ApiProperty({
+    description: 'The email of the user',
+    example: 'teslimodumuyiwa@gmail.com',
+  })
   email: string;
-
-  @IsString()
-  first_name: string;
-
-  @IsString()
-  last_name: string;
-
-  @IsString()
-  department: string;
-
-  @IsString()
-  age: string;
-
-  @IsString()
-  middle_name: string;
 }
