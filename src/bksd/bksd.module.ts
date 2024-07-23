@@ -19,7 +19,7 @@ import { BksdRepository } from './bksd.repository';
   controllers: [BksdController],
 
   providers: [BksdService, Repository, Logger, MailService, BksdRepository],
-  exports: [BksdService]
+  exports: [BksdService, BksdRepository]
 
 })
 export class BksdModule {}
