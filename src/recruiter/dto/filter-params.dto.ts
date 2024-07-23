@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsPositive, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsOptional, IsString } from 'class-validator';
 
 export class FilterStudentsDto {
   @IsOptional()
@@ -13,12 +14,12 @@ export class FilterStudentsDto {
   chosen_course?: string;
 
   @IsOptional()
-  @IsPositive()
   @ApiPropertyOptional()
+  @Transform(({ value }) => parseInt(value, 10))
   page?: number = 1;
 
   @IsOptional()
-  @IsPositive()
+  @Transform(({ value }) => parseInt(value, 10))
   @ApiPropertyOptional()
   limit?: number = 10;
 }

@@ -8,6 +8,6 @@ import { School } from '../shared/entities/school.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([Users, Roles, School])],
   providers: [UserService],
-  exports: [UserService],
+  exports: [UserService, TypeOrmModule],
 })
 export class UsersModule {}

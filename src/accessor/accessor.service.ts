@@ -1,26 +1,92 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAccessorDto } from './dto/create-accessor.dto';
-import { UpdateAccessorDto } from './dto/update-accessor.dto';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
+import { BksdRepository } from '../bksd/bksd.repository';
+import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 
 @Injectable()
 export class AccessorService {
-  create(createAccessorDto: CreateAccessorDto) {
-    return 'This action adds a new accessor';
+  private readonly logger = new Logger(AccessorService.name);
+  constructor(
+    @InjectRepository(ProspectiveStudent)
+    private readonly learnerRepository: Repository<ProspectiveStudent>,
+    private readonly bksdRepository: BksdRepository
+  ) {}
+
+  async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
+    const { page, limit, search } = paginationParams;
+
+    const loggedInUser = await this.bksdRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const accessor = await this.bksdRepository.findAccessor(userId);
+
+    if (!accessor) {
+      this.logger.error('Accessor not found for the user');
+      throw new NotFoundException('Accessor not found for the user');
+    }
+
+    const queryBuilder = this.learnerRepository
+      .createQueryBuilder('student')
+      .where('student.school = :schoolId', {
+        schoolId: accessor.school.id,
+      })
+      .andWhere('student.application_mail = :application_mail', {
+        application_mail: 'Sent',
+      });
+
+    if (search) {
+      queryBuilder.andWhere(
+        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
+        { search: `%${search}%` }
+      );
+    }
+
+    const [results, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: results,
+      total,
+      page,
+      lastPage: Math.ceil(total / limit),
+    };
   }
 
-  findAll() {
-    return `This action returns all accessor`;
+  async getStudent(userId: string, studentId: string) {
+    const loggedInUser = await this.bksdRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const accessor = await this.bksdRepository.findAccessor(userId);
+
+    if (!accessor) {
+      this.logger.error('Accessor not found for the user');
+      throw new NotFoundException('Accessor not found for the user');
+    }
+
+    const student = await this.learnerRepository.findOne({
+      where: {
+        id: studentId,
+        application_mail: 'Sent',
+        school: { id: accessor.school.id },
+      },
+      relations: ['school', 'recruiter'],
+    });
+    
+    if (!student) {
+      throw new NotFoundException(`Learner with id: ${studentId} not found`);
+    }
+
+    return student;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} accessor`;
-  }
-
-  update(id: number, updateAccessorDto: UpdateAccessorDto) {
-    return `This action updates a #${id} accessor`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} accessor`;
-  }
 }
