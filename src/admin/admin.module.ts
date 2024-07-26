@@ -15,6 +15,9 @@ import { LogService } from '../shared/services/logger.service';
 import { AppLogger } from '../shared/entities/logger.entity';
 import { MailService } from '../shared/services/mail.service';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
+import { Permissions } from '../shared/entities/permission.entity';
+import { RolePermission } from '../shared/entities/rolepermission.entity';
+import { LogFolder } from '../shared/entities/folder.entity';
 
 @Module({
   imports: [
@@ -26,6 +29,10 @@ import { ProspectiveStudent } from '../recruiter/entities/prospective-student.en
       Roles,
       AppLogger,
       ProspectiveStudent,
+      Roles,
+      Permissions,
+      RolePermission,
+      LogFolder,
     ]),
   ],
   controllers: [AdminController],

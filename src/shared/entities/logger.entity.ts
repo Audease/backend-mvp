@@ -4,8 +4,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { LogType } from '../../utils/enum/log_type';
+import { LogFolder } from './folder.entity';
 
 @Entity('app_logs')
 export class AppLogger {
@@ -34,6 +37,13 @@ export class AppLogger {
     default: LogType.ONE_TIME,
   })
   logType: LogType;
+
+  @Column({ nullable: true })
+  deletedAt: Date;
+
+  @ManyToOne(() => LogFolder, { nullable: true })
+  @JoinColumn({ name: 'folder_id' })
+  folder: LogFolder;
 
   @CreateDateColumn({
     nullable: false,
