@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { BksdRepository } from '../bksd/bksd.repository';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
+import { MailService } from '../shared/services/mail.service';
 
 @Injectable()
 export class AccessorService {
@@ -11,7 +12,8 @@ export class AccessorService {
   constructor(
     @InjectRepository(ProspectiveStudent)
     private readonly learnerRepository: Repository<ProspectiveStudent>,
-    private readonly bksdRepository: BksdRepository
+    private readonly bksdRepository: BksdRepository,
+    private readonly mailService: MailService
   ) {}
 
   async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
@@ -81,7 +83,7 @@ export class AccessorService {
       },
       relations: ['school', 'recruiter'],
     });
-    
+
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
@@ -89,4 +91,104 @@ export class AccessorService {
     return student;
   }
 
+  async approveApplication(userId: string, studentId: string) {
+    const loggedInUser = await this.bksdRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const accessor = await this.bksdRepository.findAccessor(userId);
+
+    if (!accessor) {
+      this.logger.error('Accessor not found for the user');
+      throw new NotFoundException('Accessor not found for the user');
+    }
+
+    const student = await this.learnerRepository.findOne({
+      where: {
+        id: studentId,
+        application_mail: 'Sent',
+        school: { id: accessor.school.id },
+      },
+      relations: ['school', 'recruiter'],
+    });
+
+    if (!student) {
+      throw new NotFoundException(`Learner with id: ${studentId} not found`);
+    }
+
+    await this.learnerRepository.update(student.id, {
+      application_status: 'Approved',
+    });
+
+    const updatedStudent = await this.learnerRepository.findOne({
+      where: { id: student.id },
+      relations: ['school', 'recruiter'],
+    });
+
+    return {
+      message: "Learner's application has been approved",
+      student: updatedStudent,
+    };
+  }
+
+  async rejectApplication(userId: string, studentId: string) {
+    const loggedInUser = await this.bksdRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const accessor = await this.bksdRepository.findAccessor(userId);
+
+    if (!accessor) {
+      this.logger.error('Accessor not found for the user');
+      throw new NotFoundException('Accessor not found for the user');
+    }
+
+    const student = await this.learnerRepository.findOne({
+      where: {
+        id: studentId,
+        application_mail: 'Sent',
+        school: { id: accessor.school.id },
+      },
+      relations: ['school', 'recruiter'],
+    });
+
+    if (!student) {
+      throw new NotFoundException(`Learner with id: ${studentId} not found`);
+    }
+
+    await this.learnerRepository.update(student.id, {
+      application_status: 'Rejected',
+    });
+
+    const updatedStudent = await this.learnerRepository.findOne({
+      where: { id: student.id },
+      relations: ['school', 'recruiter'],
+    });
+
+    const loginUrl = `${process.env.FRONTEND_URL}`;
+    const first_name = updatedStudent.first_name;
+
+    await this.mailService.sendTemplateMail(
+      {
+        to: updatedStudent.email,
+        subject: 'Action Required: Verify Your Profile Details on Audease',
+      },
+      'rejection-mail',
+      {
+        first_name,
+        loginUrl
+      }
+    );
+
+
+
+    return {
+      message: "Learner's application has been rejected",
+      student: updatedStudent,
+    };
+  }
 }
