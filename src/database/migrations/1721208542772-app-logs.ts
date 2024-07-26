@@ -42,8 +42,13 @@ export class AppLogs1721208542772 implements MigrationInterface {
           {
             name: 'logType',
             type: 'enum',
-            enum: ['ONE_TIME', 'REUSABLE'],
+            enum: ['ONE_TIME', 'REDOABLE'],
             default: "'ONE_TIME'",
+          },
+          {
+            name: 'folder_id',
+            type: 'uuid',
+            isNullable: true,
           },
           {
             name: 'deletedAt',
