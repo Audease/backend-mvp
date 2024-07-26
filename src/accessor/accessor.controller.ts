@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Logger,
   Param,
+  Patch,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -110,4 +111,67 @@ export class AccessorController {
     }
   }
 
+  @Patch('approve-application/:studentId')
+  @Roles(Role.ACCESSOR)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'studentId',
+    type: String,
+    description: 'ID of the student',
+  })
+  @ApiOperation({
+    summary: "Approve a student's application on the Accessor dashboard",
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
+  @ApiNotFoundResponse({
+    description: 'Student with studentId not found for the user',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async approve(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string
+  ) {
+    try {
+      return await this.accessorService.approveApplication(userId, studentId);
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Patch('reject-application/:studentId')
+  @Roles(Role.ACCESSOR)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'studentId',
+    type: String,
+    description: 'ID of the student',
+  })
+  @ApiOperation({
+    summary: "Reject a student's application on the Accessor dashboard",
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
+  @ApiNotFoundResponse({
+    description: 'Student with studentId not found for the user',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async reject(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string
+  ) {
+    try {
+      return await this.accessorService.rejectApplication(userId, studentId);
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

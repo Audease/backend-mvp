@@ -8,6 +8,7 @@ import { BksdModule } from '../bksd/bksd.module';
 import { BksdRepository } from '../bksd/bksd.repository';
 import { UsersModule } from '../users/users.module';
 import { Accessor } from './entities/accessor.entity';
+import { MailService } from '../shared/services/mail.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([ProspectiveStudent, Accessor]),
@@ -15,7 +16,7 @@ import { Accessor } from './entities/accessor.entity';
     UsersModule,
   ],
   controllers: [AccessorController],
-  providers: [AccessorService, Repository, Logger, BksdRepository],
+  providers: [AccessorService, Repository, Logger, BksdRepository, MailService],
   exports: [AccessorService],
 })
 export class AccessorModule {}
