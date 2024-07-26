@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { BksdRepository } from '../bksd/bksd.repository';
-import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 import { MailService } from '../shared/services/mail.service';
 import { FilterDto } from '../bksd/dto/bksd-filter.dto';
 
@@ -19,7 +18,7 @@ export class AccessorService {
 
   async getAllStudents(userId: string, filters: FilterDto) {
     const { funding, chosen_course, application_status, page, limit, search } =
-    filters;
+      filters;
     const loggedInUser = await this.bksdRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
@@ -202,11 +201,9 @@ export class AccessorService {
       'rejection-mail',
       {
         first_name,
-        loginUrl
+        loginUrl,
       }
     );
-
-
 
     return {
       message: "Learner's application has been rejected",

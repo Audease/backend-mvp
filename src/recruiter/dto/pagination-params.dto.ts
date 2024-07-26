@@ -19,7 +19,6 @@ export class PaginationParamsDto {
   @IsString()
   @ApiPropertyOptional({
     description: 'Search query for filtering results',
-
   })
   search?: string;
 }

@@ -14,10 +14,10 @@ import { Accessor } from '../accessor/entities/accessor.entity';
   imports: [
     TypeOrmModule.forFeature([Inductor, Accessor, ProspectiveStudent]),
     BksdModule,
-    UsersModule
+    UsersModule,
   ],
   controllers: [InductorController],
   providers: [InductorService, Repository, Logger, BksdRepository],
-  exports: [InductorService]
+  exports: [InductorService],
 })
 export class InductorModule {}

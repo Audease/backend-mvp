@@ -18,7 +18,6 @@ import { AppLogger } from '../entities/logger.entity';
 
 import { Inductor } from '../../inductor/entities/inductor.entity';
 
-
 @Injectable()
 export class ApiConfigService {
   constructor(private configService: ConfigService) {}
@@ -45,8 +44,7 @@ export class ApiConfigService {
         Document,
         AppLogger,
 
-        Inductor
-
+        Inductor,
       ],
       migrationsRun: true,
       username,

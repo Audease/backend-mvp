@@ -23,7 +23,6 @@ export class FilterDto {
   @ApiPropertyOptional()
   application_status?: string;
 
-
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @ApiPropertyOptional()
@@ -38,7 +37,6 @@ export class FilterDto {
   @IsString()
   @ApiPropertyOptional({
     description: 'Search query for filtering results',
-
   })
   search?: string;
 }

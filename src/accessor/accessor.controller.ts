@@ -78,7 +78,6 @@ export class AccessorController {
     }
   }
 
-  
   @Get('/students/:studentId')
   @Roles(Role.ACCESSOR)
   @ApiBearerAuth()

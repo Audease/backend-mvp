@@ -21,7 +21,6 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
-import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 import { FilterDto } from '../bksd/dto/bksd-filter.dto';
 import { Role } from '../utils/enum/role';
 import { Roles } from '../shared/decorators/roles.decorator';
@@ -88,7 +87,7 @@ export class InductorController {
       this.logger.error(error.message, error.stack);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  };
+  }
 
   @Get('/students/:studentId')
   @Roles(Role.ACCESSOR)
@@ -121,6 +120,4 @@ export class InductorController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
- 
 }
