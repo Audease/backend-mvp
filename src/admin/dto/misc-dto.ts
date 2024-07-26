@@ -1,5 +1,6 @@
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, IsInt, Min } from 'class-validator';
+import { Role } from '../../utils/enum/role';
 import { Type } from 'class-transformer';
 
 export class param {
@@ -33,4 +34,20 @@ export class EmailDto {
     example: 'teslimodumuyiwa@gmail.com',
   })
   email: string;
+}
+
+export class AssignRoleDto {
+  @IsString()
+  @ApiProperty({
+    description: 'The user id of the user',
+    example: '1',
+  })
+  userId: string;
+
+  @IsString()
+  @ApiProperty({
+    description: 'The name of the role to assign',
+    example: '1',
+  })
+  role: Role;
 }
