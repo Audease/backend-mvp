@@ -46,6 +46,11 @@ export class AppLogs1721208542772 implements MigrationInterface {
             default: "'ONE_TIME'",
           },
           {
+            name: 'deletedAt',
+            type: 'timestamp',
+            isNullable: true,
+          },
+          {
             name: 'createdAt',
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',

@@ -15,6 +15,7 @@ import { ProspectiveStudent } from '../../recruiter/entities/prospective-student
 import { Accessor } from '../../accessor/entities/accessor.entity';
 import { Document } from '../entities/document.entity';
 import { AppLogger } from '../entities/logger.entity';
+import { LogFolder } from '../entities/folder.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -41,6 +42,7 @@ export class ApiConfigService {
         Accessor,
         Document,
         AppLogger,
+        LogFolder,
       ],
       migrationsRun: true,
       username,

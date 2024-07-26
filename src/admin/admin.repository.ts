@@ -5,6 +5,14 @@ import { Student } from '../students/entities/student.entity';
 import { Users } from '../users/entities/user.entity';
 import { Document } from '../shared/entities/document.entity';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
+import { Roles } from '../shared/entities/role.entity';
+import { Role } from '../utils/enum/role';
+import { Permissions } from '../shared/entities/permission.entity';
+import { School } from '../shared/entities/school.entity';
+import { RolePermission } from '../shared/entities/rolepermission.entity';
+import { RoleDto } from './dto/create-role.dto';
+import { LogFolder } from '../shared/entities/folder.entity';
+import { AppLogger } from '../shared/entities/logger.entity';
 
 @Injectable()
 export class AdminRepository {
@@ -16,7 +24,19 @@ export class AdminRepository {
     @InjectRepository(Document)
     private readonly documentRepository: Repository<Document>,
     @InjectRepository(ProspectiveStudent)
-    private readonly prospectiveStudentRepository: Repository<ProspectiveStudent>
+    private readonly prospectiveStudentRepository: Repository<ProspectiveStudent>,
+    @InjectRepository(Roles)
+    private readonly roleRepository: Repository<Roles>,
+    @InjectRepository(Permissions)
+    private readonly permissionRepository: Repository<Permissions>,
+    @InjectRepository(School)
+    private readonly schoolRepository: Repository<School>,
+    @InjectRepository(RolePermission)
+    private readonly rolepermissionRepoistory: Repository<RolePermission>,
+    @InjectRepository(LogFolder)
+    private readonly logFolderRepoistory: Repository<LogFolder>,
+    @InjectRepository(AppLogger)
+    private readonly appLoggerRepository: Repository<AppLogger>
   ) {}
   //   Get a paginated list of students based on the school id
   // async getStudentsBySchoolId(schoolId: string, page: number, limit: number) {
@@ -222,6 +242,187 @@ export class AdminRepository {
       studentId,
       prospectiveStudent
     );
+  }
+
+  // Update a user's role based on the user id and the role passed into the argument
+  async updateUserRole(userId: string, role: Role) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['role'],
+    });
+
+    if (!user) return null;
+
+    const newRole = await this.roleRepository.findOne({ where: { role } });
+
+    if (!newRole) return null;
+
+    user.role = newRole;
+
+    return this.userRepository.save(user);
+  }
+
+  async getRoles(schoolId: string) {
+    return this.roleRepository
+      .createQueryBuilder('roles')
+      .leftJoin('roles.school', 'school')
+      .select(['roles.id', 'roles.role', 'roles.description'])
+      .where('roles.school_id = :schoolId OR roles.school_id IS NULL', {
+        schoolId,
+      })
+      .getMany();
+  }
+
+  // Get a list of permissions
+  async getPermissions() {
+    return this.permissionRepository.find();
+  }
+
+  // Create a user with none as the role and relate it to a school
+  async createStaff(
+    schoolId: string,
+    user: Partial<Users>,
+    role: Roles,
+    username: string,
+    password: string
+  ) {
+    const college = await this.schoolRepository.findOne({
+      where: { id: schoolId },
+    });
+
+    const newUsers = this.userRepository.create({
+      ...user,
+      password: password,
+      username: username,
+      role: role,
+      school: college,
+    });
+
+    return await this.userRepository.save(newUsers);
+  }
+
+  async createRole(roleDto: RoleDto, schoolId: string) {
+    const { description, role, permission_id } = roleDto;
+
+    const school = await this.schoolRepository.findOne({
+      where: { id: schoolId },
+    });
+
+    const roles = this.roleRepository.create({
+      role,
+      description,
+      school: school,
+    });
+
+    const permissions = await this.permissionRepository.findOne({
+      where: { id: permission_id },
+    });
+
+    if (!permissions) return null;
+
+    const rolePermission = this.rolepermissionRepoistory.create({
+      role: roles,
+      permission: permissions,
+    });
+
+    await this.roleRepository.save(roles);
+
+    return await this.rolepermissionRepoistory.save(rolePermission);
+  }
+
+  async moveToTrash(logId: string): Promise<AppLogger> {
+    const log = await this.appLoggerRepository.findOne({
+      where: { id: logId },
+    });
+    log.deletedAt = new Date();
+    return this.appLoggerRepository.save(log);
+  }
+
+  async createFolder(name: string, userId: string): Promise<LogFolder> {
+    const folder = this.logFolderRepoistory.create({
+      name,
+      userId,
+    });
+    return this.logFolderRepoistory.save(folder);
+  }
+
+  async moveToFolder(logId: string[], folderId: string): Promise<AppLogger> {
+    const folder = await this.logFolderRepoistory.findOne({
+      where: { id: folderId },
+    });
+
+    logId.forEach(async id => {
+      const log = await this.appLoggerRepository.findOne({
+        where: { id },
+      });
+      log.folder = folder;
+      await this.appLoggerRepository.save(log);
+    });
+
+    return this.appLoggerRepository.findOne({
+      where: { id: logId[0] },
+    });
+  }
+
+  async getFolders(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<LogFolder[]> {
+    return this.logFolderRepoistory
+      .createQueryBuilder('folder')
+      .select(['folder.id', 'folder.name', 'folder.createdAt'])
+      .where('folder.userId = :userId', { userId })
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+  }
+
+  async getLogsByFolder(folderId: string, page: number, limit: number) {
+    // Use query builder to get logs by folder id
+    return this.appLoggerRepository
+      .createQueryBuilder('app_logger')
+      .select([
+        'app_logger.id',
+        'app_logger.message',
+        'app_logger.type',
+        'app_logger.method',
+        'app_logger.route',
+        'app_logger.logType',
+        'app_logger.createdAt',
+      ])
+      .where('app_logger.folder_id = :folderId', { folderId })
+      .andWhere('app_logger.deletedAt IS NULL')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('app_logger.createdAt', 'DESC')
+      .getMany();
+  }
+
+  // Duplicate log using the log id and a query builder
+  async duplicateLog(logId: string): Promise<AppLogger> {
+    const log = await this.appLoggerRepository.findOne({
+      where: { id: logId },
+    });
+
+    const newLog = this.appLoggerRepository.create({
+      ...log,
+      id: undefined,
+      createdAt: new Date(),
+    });
+
+    return this.appLoggerRepository.save(newLog);
+  }
+
+  // Edit log using the log id and a query builder
+  async editLog(logId: string, message: string): Promise<AppLogger> {
+    const log = await this.appLoggerRepository.findOne({
+      where: { id: logId },
+    });
+
+    log.message = message;
+
+    return this.appLoggerRepository.save(log);
   }
 
   async saveDocument(document: Partial<Document>): Promise<Document> {

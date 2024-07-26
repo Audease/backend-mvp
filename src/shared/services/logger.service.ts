@@ -53,6 +53,8 @@ export class LogService {
     const queryBuilder = this.logRepository
       .createQueryBuilder('log')
       .where('log.userId = :userId', { userId })
+      .andWhere('log.deletedAt IS NULL')
+      .andWhere('log.folder IS NULL')
       .orderBy('log.createdAt', 'DESC')
       .skip(skip)
       .take(limit);
