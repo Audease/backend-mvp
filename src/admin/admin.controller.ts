@@ -34,6 +34,8 @@ import { PaginationDto, EmailDto, AssignRoleDto } from './dto/misc-dto';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { RoleDto } from './dto/create-role.dto';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { createFolder, moveLogs, editLogs } from './dto/create-folder.dto';
 
 @ApiTags('Admin')
 @UseGuards(JwtAuthGuard)
@@ -501,10 +503,10 @@ export class AdminController {
   @HttpCode(HttpStatus.CREATED)
   async createFolder(
     @CurrentUserId() userId: string,
-    @Body() folderName: { name: string }
+    @Body() folderName: createFolder
   ) {
     try {
-      return await this.adminService.createFolder(userId, folderName.name);
+      return await this.adminService.createFolder(folderName.folder, userId);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
@@ -601,12 +603,6 @@ export class AdminController {
   @Post('folders/:folderId')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
-  @ApiParam({
-    name: 'folderId',
-    type: String,
-    required: true,
-    description: 'Folder ID',
-  })
   @ApiOperation({
     summary: 'Move logs to a folder',
   })
@@ -616,16 +612,12 @@ export class AdminController {
     description: 'Unauthorized',
   })
   @HttpCode(HttpStatus.OK)
-  async moveLogs(
-    @CurrentUserId() userId: string,
-    @Param('folderId') folderId: string,
-    @Body() logIds: { logIds: string[] }
-  ) {
+  async moveLogs(@CurrentUserId() userId: string, @Body() moveLogs: moveLogs) {
     try {
       return await this.adminService.moveFolder(
         userId,
-        folderId,
-        logIds.logIds
+        moveLogs.folderId,
+        moveLogs.logs
       );
     } catch (error) {
       this.logger.error(error.message);
@@ -664,12 +656,6 @@ export class AdminController {
   @Post('edit/:logId')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
-  @ApiParam({
-    name: 'logId',
-    type: String,
-    required: true,
-    description: 'Log ID',
-  })
   @ApiOperation({
     summary: 'Edit a log',
   })
@@ -679,12 +665,10 @@ export class AdminController {
     description: 'Unauthorized',
   })
   @HttpCode(HttpStatus.OK)
-  async editLog(
-    @Param('logId') logId: string,
-    @Body() log: { message: string }
-  ) {
+  async editLog(@Body() logs: editLogs) {
     try {
-      return await this.adminService.editLog(logId, log.message);
+      const { logId, message } = logs;
+      return await this.adminService.editLog(logId, message);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);

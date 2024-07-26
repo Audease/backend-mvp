@@ -64,7 +64,6 @@ export class CreateFolder1721755522918 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropForeignKey('log_folders', 'FK_log_folders_log_id');
-    await queryRunner.query(`DROP INDEX "IDX_log_folders_userId"`);
     await queryRunner.dropTable('log_folders');
   }
 }

@@ -302,7 +302,7 @@ export class AdminService {
       const password = bcrypt.hashSync(generated_password, 10);
 
       const username =
-        `${createStaffDto.first_name}.${user.school.college_name}.`.toLowerCase();
+        `${createStaffDto.first_name}.${user.school.college_name}`.toLowerCase();
 
       const staff = await this.adminRepository.createStaff(
         user.school.id,
@@ -402,7 +402,7 @@ export class AdminService {
         throw new NotFoundException('User not found');
       }
 
-      await this.adminRepository.createFolder(name, user.school.id);
+      await this.adminRepository.createFolder(name, userId);
 
       await this.logService.createLog({
         userId,
