@@ -15,7 +15,7 @@ import { Student } from '../students/entities/student.entity';
 import { MailService } from '../shared/services/mail.service';
 import { BksdRepository } from './bksd.repository';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
-import { FilterBksdDto } from './dto/bksd-filter.dto';
+import { FilterDto } from './dto/bksd-filter.dto';
 
 @Injectable()
 export class BksdService {
@@ -194,7 +194,7 @@ export class BksdService {
     return student;
   }
 
-  async getFilteredStudents(userId: string, filterDto: FilterBksdDto) {
+  async getFilteredStudents(userId: string, filterDto: FilterDto) {
     const { funding, chosen_course, application_mail, page, limit } = filterDto;
 
     const loggedInUser = await this.bksdRepository.findUser(userId);

@@ -30,7 +30,7 @@ import { Roles } from '../shared/decorators/roles.decorator';
 import { Role } from '../utils/enum/role';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
-import { FilterBksdDto } from './dto/bksd-filter.dto';
+import { FilterDto } from './dto/bksd-filter.dto';
 
 @ApiTags('BKSD DASHBOARD')
 @Controller('bksd')
@@ -156,7 +156,7 @@ export class BksdController {
   @HttpCode(HttpStatus.OK)
   async filter(
     @CurrentUserId() userId: string,
-    @Query() filterParams: FilterBksdDto
+    @Query() filterParams: FilterDto
   ) {
     try {
       return await this.bksdService.getFilteredStudents(userId, filterParams);

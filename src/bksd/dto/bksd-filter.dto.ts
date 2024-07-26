@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';
 
-export class FilterBksdDto {
+export class FilterDto {
   @IsOptional()
   @IsString()
   @ApiPropertyOptional()
@@ -18,6 +18,12 @@ export class FilterBksdDto {
   @ApiPropertyOptional()
   application_mail?: string;
 
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  application_status?: string;
+
+
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @ApiPropertyOptional()
@@ -27,4 +33,12 @@ export class FilterBksdDto {
   @Transform(({ value }) => parseInt(value, 10))
   @ApiPropertyOptional()
   limit?: number = 10;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description: 'Search query for filtering results',
+
+  })
+  search?: string;
 }

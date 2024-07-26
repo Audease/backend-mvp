@@ -19,6 +19,7 @@ import { StudentsModule } from './students/students.module';
 import { AccessorModule } from './accessor/accessor.module';
 import { BksdModule } from './bksd/bksd.module';
 import { AdminModule } from './admin/admin.module';
+import { InductorModule } from './inductor/inductor.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { AdminModule } from './admin/admin.module';
     AccessControlModule.forRoles(roles),
     AccessorModule,
     BksdModule,
+    InductorModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: 'APP_GUARD', useClass: ThrottlerGuard }],
