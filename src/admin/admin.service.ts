@@ -494,4 +494,43 @@ export class AdminService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  async saveSchoolDocument(userId: string, file: Express.Multer.File) {
+    try {
+      const user = await this.userService.findOne(userId);
+
+      if (!user) {
+        this.logger.error('User not found');
+        throw new NotFoundException('User not found');
+      }
+
+      const upload = await this.cloudinaryService.uploadBuffer(file);
+      const document = await this.adminRepository.saveDocumentWithSchoolId(
+        {
+          user,
+          cloudinaryUrl: upload.secure_url,
+          fileName: file.originalname,
+          fileType: file.mimetype,
+        },
+        user.school.id
+      );
+
+      await this.logService.createLog({
+        userId,
+        message: `Uploaded document ${file.originalname}`,
+        type: 'UPLOAD_DOCUMENT',
+        method: 'POST',
+        route: '/documents',
+        logType: LogType.REUSABLE,
+      });
+
+      return {
+        message: 'Document uploaded successfully',
+        document_link: document.cloudinaryUrl,
+      };
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }

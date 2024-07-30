@@ -79,7 +79,7 @@ export class AdminRepository {
         'student.first_name',
         'student.last_name',
         'student.date_of_birth',
-        'student.address',
+        'student.home_address',
         'student.created_at',
         'user.email',
         'user.username',
@@ -427,5 +427,22 @@ export class AdminRepository {
 
   async saveDocument(document: Partial<Document>): Promise<Document> {
     return this.documentRepository.save(document);
+  }
+
+  // Save document with the school id
+  async saveDocumentWithSchoolId(
+    document: Partial<Document>,
+    schoolId: string
+  ): Promise<Document> {
+    const school = await this.schoolRepository.findOne({
+      where: { id: schoolId },
+    });
+
+    const newDocument = this.documentRepository.create({
+      ...document,
+      school,
+    });
+
+    return this.documentRepository.save(newDocument);
   }
 }
