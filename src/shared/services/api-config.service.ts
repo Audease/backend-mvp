@@ -17,6 +17,7 @@ import { Document } from '../entities/document.entity';
 import { AppLogger } from '../entities/logger.entity';
 
 import { Inductor } from '../../inductor/entities/inductor.entity';
+import { LogFolder } from '../entities/folder.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -43,7 +44,7 @@ export class ApiConfigService {
         Accessor,
         Document,
         AppLogger,
-
+        LogFolder,
         Inductor,
       ],
       migrationsRun: true,

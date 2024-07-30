@@ -22,7 +22,7 @@ export const databaseOptions: DataSourceOptions = {
   migrations: ['src/database/migrations/*.ts'],
   migrationsTableName: 'audease_migration_table',
 
-  // ssl: isTest ? false : { rejectUnauthorized: false },
+  ssl: isTest ? false : { rejectUnauthorized: false },
 };
 
 export const dataSource = new DataSource(databaseOptions);
