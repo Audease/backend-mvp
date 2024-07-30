@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddNewColumnsToProspectiveStudentsTable1721089923447 implements MigrationInterface {
+export class AddNewColumnsToProspectiveStudentsTable1721089923447
+  implements MigrationInterface
+{
   name = 'AddNewColumnsToProspectiveStudentsTable1721089923447';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

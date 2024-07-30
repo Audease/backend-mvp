@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { BksdRepository } from '../bksd/bksd.repository';
-import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 import { MailService } from '../shared/services/mail.service';
+import { FilterDto } from '../bksd/dto/bksd-filter.dto';
 
 @Injectable()
 export class AccessorService {
@@ -16,9 +16,9 @@ export class AccessorService {
     private readonly mailService: MailService
   ) {}
 
-  async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
-    const { page, limit, search } = paginationParams;
-
+  async getAllStudents(userId: string, filters: FilterDto) {
+    const { funding, chosen_course, application_status, page, limit, search } =
+      filters;
     const loggedInUser = await this.bksdRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
@@ -45,6 +45,27 @@ export class AccessorService {
       queryBuilder.andWhere(
         'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
         { search: `%${search}%` }
+      );
+    }
+
+    if (funding) {
+      queryBuilder.andWhere('student.funding LIKE :funding', {
+        funding: `%${funding}%`,
+      });
+    }
+
+    if (chosen_course) {
+      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
+        chosen_course: `%${chosen_course}%`,
+      });
+    }
+
+    if (application_status) {
+      queryBuilder.andWhere(
+        'student.application_status LIKE :application_status',
+        {
+          application_mail: `%${application_status}%`,
+        }
       );
     }
 
@@ -180,11 +201,9 @@ export class AccessorService {
       'rejection-mail',
       {
         first_name,
-        loginUrl
+        loginUrl,
       }
     );
-
-
 
     return {
       message: "Learner's application has been rejected",
