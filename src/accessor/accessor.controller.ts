@@ -1,10 +1,12 @@
 import {
+  ConflictException,
   Controller,
   Get,
   HttpCode,
   HttpException,
   HttpStatus,
   Logger,
+  NotFoundException,
   Param,
   Patch,
   Query,
@@ -72,10 +74,20 @@ export class AccessorController {
         userId,
         paginationParams
       );
-    } catch (error) {
-      this.logger.error(error.message, error.stack);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    } 
+      catch (error) {
+        this.logger.error(error.message);
+        if (error instanceof NotFoundException) {
+          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+        } else if (error instanceof ConflictException) {
+          throw new HttpException(error.message, HttpStatus.CONFLICT);
+        } else {
+          throw new HttpException(
+            error.message,
+            HttpStatus.INTERNAL_SERVER_ERROR
+          );
+        }
+      }
   }
 
   @Get('/students/:studentId')
@@ -105,8 +117,17 @@ export class AccessorController {
     try {
       return await this.accessorService.getStudent(userId, studentId);
     } catch (error) {
-      this.logger.error(error.message, error.stack);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
     }
   }
 
@@ -137,8 +158,17 @@ export class AccessorController {
     try {
       return await this.accessorService.approveApplication(userId, studentId);
     } catch (error) {
-      this.logger.error(error.message, error.stack);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
     }
   }
 
@@ -169,8 +199,17 @@ export class AccessorController {
     try {
       return await this.accessorService.rejectApplication(userId, studentId);
     } catch (error) {
-      this.logger.error(error.message, error.stack);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
     }
   }
 }

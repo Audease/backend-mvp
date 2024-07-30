@@ -9,6 +9,8 @@ import {
   HttpStatus,
   HttpException,
   Query,
+  ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { BksdService } from './bksd.service';
 import {
@@ -61,7 +63,16 @@ export class BksdController {
       return await this.bksdService.sendLearnerMail(userId, learnerId);
     } catch (error) {
       this.logger.error(error.message);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
     }
   }
 
@@ -102,8 +113,17 @@ export class BksdController {
     try {
       return await this.bksdService.getAllStudents(userId, paginationParams);
     } catch (error) {
-      this.logger.error(error.message, error.stack);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
     }
   }
 
@@ -157,8 +177,17 @@ export class BksdController {
     try {
       return await this.bksdService.getFilteredStudents(userId, filterParams);
     } catch (error) {
-      this.logger.error(error.message, error.stack);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
     }
   }
 
@@ -188,9 +217,18 @@ export class BksdController {
   ) {
     try {
       return await this.bksdService.getStudent(userId, studentId);
-    } catch (error) {
-      this.logger.error(error.message, error.stack);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
     }
   }
 }
