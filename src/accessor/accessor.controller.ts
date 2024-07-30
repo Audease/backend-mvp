@@ -74,20 +74,19 @@ export class AccessorController {
         userId,
         paginationParams
       );
-    } 
-      catch (error) {
-        this.logger.error(error.message);
-        if (error instanceof NotFoundException) {
-          throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-        } else if (error instanceof ConflictException) {
-          throw new HttpException(error.message, HttpStatus.CONFLICT);
-        } else {
-          throw new HttpException(
-            error.message,
-            HttpStatus.INTERNAL_SERVER_ERROR
-          );
-        }
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
       }
+    }
   }
 
   @Get('/students/:studentId')

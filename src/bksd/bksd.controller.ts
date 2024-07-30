@@ -217,7 +217,7 @@ export class BksdController {
   ) {
     try {
       return await this.bksdService.getStudent(userId, studentId);
-    }catch (error) {
+    } catch (error) {
       this.logger.error(error.message);
       if (error instanceof NotFoundException) {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
