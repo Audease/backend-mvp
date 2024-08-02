@@ -7,6 +7,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { Users } from '../../users/entities/user.entity';
+import { School } from './school.entity';
 
 @Entity('documents')
 export class Document {
@@ -25,6 +26,10 @@ export class Document {
 
   @Column('varchar', { length: 255, nullable: false })
   cloudinaryUrl: string;
+
+  @ManyToOne(() => School, school => school.documents)
+  @JoinColumn({ name: 'school_id' })
+  school: School;
 
   @CreateDateColumn({
     nullable: false,
