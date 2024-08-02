@@ -11,13 +11,6 @@ export class RoleDto {
   role: Role;
 
   @ApiProperty({
-    description: 'The desciption for the role',
-    example: 'Has access to action specific to Zilly',
-  })
-  @IsString()
-  description: string;
-
-  @ApiProperty({
     description: 'The id of the permission',
     example: 'd00dd4be-f713-4db6-a2b9-035d086989f7',
   })
