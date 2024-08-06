@@ -79,7 +79,7 @@ export class AdminRepository {
         'student.first_name',
         'student.last_name',
         'student.date_of_birth',
-        'student.address',
+        'student.home_address',
         'student.created_at',
         'user.email',
         'user.username',
@@ -267,7 +267,7 @@ export class AdminRepository {
       .createQueryBuilder('roles')
       .leftJoin('roles.school', 'school')
       .select(['roles.id', 'roles.role', 'roles.description'])
-      .where('roles.school_id = :schoolId OR roles.school_id IS NULL', {
+      .where('roles.school_id = :schoolId', {
         schoolId,
       })
       .getMany();
@@ -280,29 +280,39 @@ export class AdminRepository {
 
   // Create a user with none as the role and relate it to a school
   async createStaff(
-    schoolId: string,
     user: Partial<Users>,
     role: Roles,
     username: string,
     password: string
   ) {
-    const college = await this.schoolRepository.findOne({
-      where: { id: schoolId },
-    });
+    // Update the user table to include the username and password
 
     const newUsers = this.userRepository.create({
       ...user,
-      password: password,
-      username: username,
-      role: role,
-      school: college,
+      username,
+      password,
+      role,
     });
 
     return await this.userRepository.save(newUsers);
   }
 
+  async inviteStaff(schooldId: string, email: string, role: Roles) {
+    const school = await this.schoolRepository.findOne({
+      where: { id: schooldId },
+    });
+
+    const user = this.userRepository.create({
+      email,
+      school,
+      role,
+    });
+
+    return this.userRepository.save(user);
+  }
+
   async createRole(roleDto: RoleDto, schoolId: string) {
-    const { description, role, permission_id } = roleDto;
+    const { role, permission_id } = roleDto;
 
     const school = await this.schoolRepository.findOne({
       where: { id: schoolId },
@@ -310,7 +320,6 @@ export class AdminRepository {
 
     const roles = this.roleRepository.create({
       role,
-      description,
       school: school,
     });
 
@@ -427,5 +436,22 @@ export class AdminRepository {
 
   async saveDocument(document: Partial<Document>): Promise<Document> {
     return this.documentRepository.save(document);
+  }
+
+  // Save document with the school id
+  async saveDocumentWithSchoolId(
+    document: Partial<Document>,
+    schoolId: string
+  ): Promise<Document> {
+    const school = await this.schoolRepository.findOne({
+      where: { id: schoolId },
+    });
+
+    const newDocument = this.documentRepository.create({
+      ...document,
+      school,
+    });
+
+    return this.documentRepository.save(newDocument);
   }
 }

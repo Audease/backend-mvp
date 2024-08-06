@@ -244,7 +244,39 @@ export class AdminService {
         throw new NotFoundException('Role not found');
       }
 
-      await this.adminRepository.updateUserRole(user.id, role);
+      const data = await this.adminRepository.updateUserRole(user.id, role);
+
+      const generated_password = crypto
+        .randomBytes(12)
+        .toString('hex')
+        .slice(0, 7);
+
+      const password = bcrypt.hashSync(generated_password, 10);
+
+      const username =
+        `${user.first_name}.${user.school.college_name}.${role}`.toLowerCase();
+
+      await this.adminRepository.createStaff(
+        user,
+        data.role,
+        username,
+        password
+      );
+
+      const loginUrl = `${process.env.FRONTEND_URL}`;
+
+      this.mailService.sendTemplateMail(
+        {
+          to: user.email,
+          subject: 'Your School Has Invited you to Join Audease!',
+        },
+        'invite-staff',
+        {
+          generated_username: username,
+          generated_password,
+          loginUrl,
+        }
+      );
 
       await this.logService.createLog({
         userId,
@@ -283,6 +315,66 @@ export class AdminService {
     return this.adminRepository.getPermissions();
   }
 
+  // async createStaff(userId: string, createStaffDto: CreateStaffDto) {
+  //   try {
+  //     const user = await this.userService.findOne(userId);
+
+  //     if (!user) {
+  //       this.logger.error('User not found');
+  //       throw new NotFoundException('User not found');
+  //     }
+
+  //     const role = await this.userService.getRoleByName(Role.NONE);
+
+  // const generated_password = crypto
+  //   .randomBytes(12)
+  //   .toString('hex')
+  //   .slice(0, 7);
+
+  // const password = bcrypt.hashSync(generated_password, 10);
+
+  //     const username =
+  //       `${createStaffDto.first_name}.${user.school.college_name}`.toLowerCase();
+
+  //     const staff = await this.adminRepository.createStaff(
+  //       user.school.id,
+  //       createStaffDto,
+  //       role,
+  //       username,
+  //       password
+  //     );
+
+  //     const loginUrl = `${process.env.FRONTEND_URL}`;
+
+  //     await this.logService.createLog({
+  //       userId,
+  //       message: `Created staff ${staff.first_name}`,
+  //       type: 'CREATE_STAFF',
+  //       method: 'POST',
+  //       route: '/staffs',
+  //       logType: LogType.REUSABLE,
+  //     });
+
+  // this.mailService.sendTemplateMail(
+  //   {
+  //     to: createStaffDto.email,
+  //     subject: 'Your School Has Invited you to Join Audease!',
+  //   },
+  //   'invite-staff',
+  //   {
+  //     first_name: createStaffDto.first_name,
+  //     generated_username: username,
+  //     generated_password,
+  //     loginUrl,
+  //   }
+  // );
+  //     return { message: 'Staff created successfully' };
+  //   } catch (error) {
+  //     this.logger.error(error.message, error.stack);
+  //     throw new InternalServerErrorException(error.message);
+  //   }
+  // }
+
   async createStaff(userId: string, createStaffDto: CreateStaffDto) {
     try {
       const user = await this.userService.findOne(userId);
@@ -294,47 +386,11 @@ export class AdminService {
 
       const role = await this.userService.getRoleByName(Role.NONE);
 
-      const generated_password = crypto
-        .randomBytes(12)
-        .toString('hex')
-        .slice(0, 7);
-
-      const password = bcrypt.hashSync(generated_password, 10);
-
-      const username =
-        `${createStaffDto.first_name}.${user.school.college_name}`.toLowerCase();
-
-      const staff = await this.adminRepository.createStaff(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const staff = await this.adminRepository.inviteStaff(
         user.school.id,
-        createStaffDto,
-        role,
-        username,
-        password
-      );
-
-      const loginUrl = `${process.env.FRONTEND_URL}`;
-
-      await this.logService.createLog({
-        userId,
-        message: `Created staff ${staff.first_name}`,
-        type: 'CREATE_STAFF',
-        method: 'POST',
-        route: '/staffs',
-        logType: LogType.REUSABLE,
-      });
-
-      this.mailService.sendTemplateMail(
-        {
-          to: createStaffDto.email,
-          subject: 'Your School Has Invited you to Join Audease!',
-        },
-        'invite-staff',
-        {
-          first_name: createStaffDto.first_name,
-          generated_username: username,
-          generated_password,
-          loginUrl,
-        }
+        createStaffDto.email,
+        role
       );
       return { message: 'Staff created successfully' };
     } catch (error) {
@@ -489,6 +545,45 @@ export class AdminService {
       this.adminRepository.editLog(logId, message);
 
       return { message: 'Log edited successfully' };
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async saveSchoolDocument(userId: string, file: Express.Multer.File) {
+    try {
+      const user = await this.userService.findOne(userId);
+
+      if (!user) {
+        this.logger.error('User not found');
+        throw new NotFoundException('User not found');
+      }
+
+      const upload = await this.cloudinaryService.uploadBuffer(file);
+      const document = await this.adminRepository.saveDocumentWithSchoolId(
+        {
+          user,
+          cloudinaryUrl: upload.secure_url,
+          fileName: file.originalname,
+          fileType: file.mimetype,
+        },
+        user.school.id
+      );
+
+      await this.logService.createLog({
+        userId,
+        message: `Uploaded document ${file.originalname}`,
+        type: 'UPLOAD_DOCUMENT',
+        method: 'POST',
+        route: '/documents',
+        logType: LogType.REUSABLE,
+      });
+
+      return {
+        message: 'Document uploaded successfully',
+        document_link: document.cloudinaryUrl,
+      };
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);

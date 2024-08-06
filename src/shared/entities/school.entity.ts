@@ -12,6 +12,7 @@ import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financ
 import { Student } from '../../students/entities/student.entity';
 import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
 import { Roles } from './role.entity';
+import { Document } from './document.entity';
 
 @Entity('school')
 export class School {
@@ -63,6 +64,9 @@ export class School {
 
   @OneToMany(() => Roles, roles => roles.school)
   roles: Roles[];
+
+  @OneToMany(() => Document, documents => documents.school)
+  documents: Document[];
 
   @OneToMany(
     () => FinancialAidOfficer,
