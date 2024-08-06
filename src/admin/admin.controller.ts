@@ -674,4 +674,44 @@ export class AdminController {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  @Post('/documents/school')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'File upload',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiOperation({
+    summary: 'Upload documents to school profile',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Issues uploading this file',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadSchoolDocument(
+    @CurrentUserId() userId: string,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    try {
+      return await this.adminService.saveSchoolDocument(userId, file);
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }
