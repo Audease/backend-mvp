@@ -199,7 +199,7 @@ export class RecruiterService {
       .getManyAndCount();
 
     return {
-      data: results,
+      data: results || [],
       total,
       page,
       lastPage: Math.ceil(total / limit),
