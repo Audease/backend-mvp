@@ -1,4 +1,3 @@
-import { Role } from '../../utils/enum/role';
 import {
   Column,
   CreateDateColumn,
@@ -16,8 +15,8 @@ export class Roles {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('enum', { enum: Role, default: Role.NONE })
-  role: Role;
+  @Column('varchar', { length: 255 })
+  role: string;
 
   @Column('text', { nullable: true })
   description: string;
