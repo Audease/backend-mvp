@@ -415,7 +415,7 @@ export class AdminService {
 
       await this.logService.createLog({
         userId,
-        message: `Created role ${role.role.role}`,
+        message: `Created role ${role.role}`,
         type: 'CREATE_ROLE',
         method: 'POST',
         route: '/roles',

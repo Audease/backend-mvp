@@ -322,21 +322,19 @@ export class AdminRepository {
       role,
       school: school,
     });
-
     const permissions = await this.permissionRepository.findOne({
       where: { id: permission_id },
     });
 
     if (!permissions) return null;
 
-    const rolePermission = this.rolepermissionRepoistory.create({
-      role: roles,
-      permission: permissions,
-    });
+    // const rolePermission = this.rolepermissionRepoistory.create({
+    //   role: roles,
+    //   permission: permissions,
+    // });
 
-    await this.roleRepository.save(roles);
-
-    return await this.rolepermissionRepoistory.save(rolePermission);
+    const result = await this.roleRepository.save(roles);
+    return result;
   }
 
   async moveToTrash(logId: string): Promise<AppLogger> {

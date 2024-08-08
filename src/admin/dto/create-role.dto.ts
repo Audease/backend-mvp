@@ -1,6 +1,5 @@
 import { IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from '../../utils/enum/role';
 
 export class RoleDto {
   @ApiProperty({
@@ -8,7 +7,7 @@ export class RoleDto {
     example: 'Zilly',
   })
   @IsString()
-  role: Role;
+  role: string;
 
   @ApiProperty({
     description: 'The id of the permission',
