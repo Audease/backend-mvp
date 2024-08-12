@@ -18,6 +18,7 @@ import { ProspectiveStudent } from '../recruiter/entities/prospective-student.en
 import { Permissions } from '../shared/entities/permission.entity';
 import { RolePermission } from '../shared/entities/rolepermission.entity';
 import { LogFolder } from '../shared/entities/folder.entity';
+import { Staff } from '../shared/entities/staff.entity';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { LogFolder } from '../shared/entities/folder.entity';
       Permissions,
       RolePermission,
       LogFolder,
+      Staff,
     ]),
   ],
   controllers: [AdminController],

@@ -5,19 +5,18 @@ export class PopulatePermissions1722625077126 implements MigrationInterface {
     await queryRunner.query(`
             INSERT INTO permissions (name, description)
 VALUES 
-('create_user', 'Permission to create new users'),
-('update_user', 'Permission to update user information'),
-('delete_user', 'Permission to delete users'),
-('read_roles', 'Permission to view roles'),
-('assign_role', 'Permission to assign roles to users');
+('Add student', 'Permission to create new students'),
+('Add staff', 'Permission to add new staff'),
+('Send invite', 'Permission to send invite'),
+('Approve/reject application', 'Permission to reject or approve application'),
+('Send Application', 'Permission to send application');
             
             `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            DELETE FROM permissions
-            WHERE name IN ('create_user', 'update_user', 'delete_user', 'read_roles', 'assign_role');
-            `);
+            DELETE FROM permissions;
+    `);
   }
 }

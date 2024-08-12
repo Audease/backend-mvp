@@ -714,4 +714,29 @@ export class AdminController {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  @Get('/new-staff')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'View all new staffs in the school',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Staffs not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getNewStaffs(
+    @CurrentUserId() userId: string,
+    @Query() pagination: PaginationDto
+  ) {
+    try {
+      const { limit, page } = pagination;
+      return await this.adminService.getNewStaffs(userId, page, limit);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }

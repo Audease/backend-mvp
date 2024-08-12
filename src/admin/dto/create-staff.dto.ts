@@ -26,9 +26,9 @@ export class CreateStaffDto {
   // phone: string;
 
   @ApiProperty({
-    description: 'The email of the recruiter(or the account to be created)',
-    example: 'abhulimensuccess@gmail.com',
+    description: 'The email of the staff to be created',
+    example: '["teslimodumuyiwa@gmail.com", "odumuyiwateslim@gmail.com"]',
   })
-  @IsString()
-  email: string;
+  @IsString({ each: true })
+  email: string[];
 }

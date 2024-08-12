@@ -6,13 +6,13 @@ import { Users } from '../users/entities/user.entity';
 import { Document } from '../shared/entities/document.entity';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { Roles } from '../shared/entities/role.entity';
-import { Role } from '../utils/enum/role';
 import { Permissions } from '../shared/entities/permission.entity';
 import { School } from '../shared/entities/school.entity';
 import { RolePermission } from '../shared/entities/rolepermission.entity';
 import { RoleDto } from './dto/create-role.dto';
 import { LogFolder } from '../shared/entities/folder.entity';
 import { AppLogger } from '../shared/entities/logger.entity';
+import { Staff } from '../shared/entities/staff.entity';
 
 @Injectable()
 export class AdminRepository {
@@ -36,7 +36,9 @@ export class AdminRepository {
     @InjectRepository(LogFolder)
     private readonly logFolderRepoistory: Repository<LogFolder>,
     @InjectRepository(AppLogger)
-    private readonly appLoggerRepository: Repository<AppLogger>
+    private readonly appLoggerRepository: Repository<AppLogger>,
+    @InjectRepository(Staff)
+    private readonly staffRepository: Repository<Staff>
   ) {}
   //   Get a paginated list of students based on the school id
   // async getStudentsBySchoolId(schoolId: string, page: number, limit: number) {
@@ -233,6 +235,23 @@ export class AdminRepository {
     };
   }
 
+  // Get staff by school id using query builder
+  async getStaffsBySchoolId(schoolId: string, page: number, limit: number) {
+    return this.staffRepository
+      .createQueryBuilder('staff')
+      .select([
+        'staff.id',
+        'staff.email',
+        'staff.status',
+        'staff.created_at',
+        'staff.updated_at',
+      ])
+      .where('staff.school_id = :schoolId', { schoolId })
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+  }
+
   // Update prospective student
   async updateProspectiveStudent(
     studentId: string,
@@ -245,7 +264,7 @@ export class AdminRepository {
   }
 
   // Update a user's role based on the user id and the role passed into the argument
-  async updateUserRole(userId: string, role: Role) {
+  async updateUserRole(userId: string, role: string) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['role'],
@@ -434,6 +453,38 @@ export class AdminRepository {
 
   async saveDocument(document: Partial<Document>): Promise<Document> {
     return this.documentRepository.save(document);
+  }
+
+  // Save an array of emails to the staff table
+  async saveStaffEmails(emails: string[], schoolId: string) {
+    const school = await this.schoolRepository.findOne({
+      where: { id: schoolId },
+    });
+
+    const staff = emails.map(email => {
+      return this.staffRepository.create({
+        email,
+        school,
+      });
+    });
+
+    return this.staffRepository.save(staff);
+  }
+
+  // Get a paginated list of staff based on the school id
+  async getStaffBySchoolId(schoolId: string, page: number, limit: number) {
+    return this.staffRepository.find({
+      where: { school: { id: schoolId } },
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+  }
+
+  // Get a specific staff based on the staff id
+  async getStaffById(staffId: string) {
+    return this.staffRepository.findOne({
+      where: { id: staffId },
+    });
   }
 
   // Save document with the school id
