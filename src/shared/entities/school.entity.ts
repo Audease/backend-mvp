@@ -13,6 +13,7 @@ import { Student } from '../../students/entities/student.entity';
 import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
 import { Roles } from './role.entity';
 import { Document } from './document.entity';
+import { Staff } from './staff.entity';
 
 @Entity('school')
 export class School {
@@ -76,6 +77,9 @@ export class School {
 
   @OneToMany(() => Student, students => students.school)
   students: Student[];
+
+  @OneToMany(() => Staff, staff => staff.school)
+  staff: Staff[];
 
   @CreateDateColumn({
     nullable: false,
