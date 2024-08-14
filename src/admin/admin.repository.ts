@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Student } from '../students/entities/student.entity';
 import { Users } from '../users/entities/user.entity';
 import { Document } from '../shared/entities/document.entity';
@@ -13,10 +13,12 @@ import { RoleDto } from './dto/create-role.dto';
 import { LogFolder } from '../shared/entities/folder.entity';
 import { AppLogger } from '../shared/entities/logger.entity';
 import { Staff } from '../shared/entities/staff.entity';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AdminRepository {
   constructor(
+    private readonly dataSource: DataSource,
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Users)
@@ -246,7 +248,7 @@ export class AdminRepository {
         'staff.created_at',
         'staff.updated_at',
       ])
-      .where('staff.school_id = :schoolId', { schoolId })
+      .where('staff.school_id = :school_id', { schoolId })
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
@@ -455,22 +457,23 @@ export class AdminRepository {
     return this.documentRepository.save(document);
   }
 
-  // Save an array of emails to the staff table
   async saveStaffEmails(emails: string[], schoolId: string) {
-    const school = await this.schoolRepository.findOne({
-      where: { id: schoolId },
-    });
-
-    const staff = emails.map(email => {
-      return this.staffRepository.create({
-        email,
-        school,
+    return this.dataSource.transaction(async transactionalEntityManager => {
+      const school = await transactionalEntityManager.findOne(School, {
+        where: { id: schoolId },
       });
+
+      if (!school) {
+        throw new NotFoundException('School not found');
+      }
+
+      const staffEntities = emails.map(email =>
+        transactionalEntityManager.create(Staff, { email, school })
+      );
+
+      return transactionalEntityManager.save(Staff, staffEntities);
     });
-
-    return this.staffRepository.save(staff);
   }
-
   // Get a paginated list of staff based on the school id
   async getStaffBySchoolId(schoolId: string, page: number, limit: number) {
     return this.staffRepository.find({

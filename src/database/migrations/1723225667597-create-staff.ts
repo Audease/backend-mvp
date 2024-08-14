@@ -22,6 +22,7 @@ export class CreateStaff1723225667597 implements MigrationInterface {
             name: 'username',
             type: 'varchar',
             length: '255',
+            isNullable: true,
           },
           {
             name: 'email',

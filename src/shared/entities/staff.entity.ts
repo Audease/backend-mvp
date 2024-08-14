@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { School } from './school.entity';
 
@@ -22,6 +23,7 @@ export class Staff {
   status: string;
 
   @ManyToOne(() => School, school => school.staff)
+  @JoinColumn({ name: 'school_id' })
   school: School;
 
   @CreateDateColumn({ name: 'created_at' })
