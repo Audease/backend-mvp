@@ -173,16 +173,6 @@ export class AdminService {
       this.logger.error('School not found');
       throw new NotFoundException('School not found');
     }
-
-    await this.logService.createLog({
-      userId,
-      message: `Retrieved a paginated list of learners for school `,
-      type: 'GET_LEARNERS',
-      method: 'GET',
-      route: '/learners',
-      logType: LogType.ONE_TIME,
-    });
-
     return this.adminRepository.getProspectiveStudentsBySchoolId(
       getSchool.id,
       page,
@@ -193,14 +183,6 @@ export class AdminService {
   async getLearnerById(userId: string, learnerId: string) {
     try {
       const result = this.adminRepository.getProspectiveStudentById(learnerId);
-      await this.logService.createLog({
-        userId: userId,
-        message: `Retrieved the details of learner ${(await result).first_name}`,
-        type: 'GET_LEARNER',
-        method: 'GET',
-        route: `/learners/${learnerId}`,
-        logType: LogType.ONE_TIME,
-      });
       return result;
     } catch (error) {
       this.logger.error(error.message);
@@ -215,15 +197,6 @@ export class AdminService {
       this.logger.error('School not found');
       throw new NotFoundException('School not found');
     }
-
-    await this.logService.createLog({
-      userId,
-      message: `Retrieved a paginated list of staffs for school `,
-      type: 'GET_STAFFS',
-      method: 'GET',
-      route: '/staffs',
-      logType: LogType.ONE_TIME,
-    });
 
     return this.adminRepository.getUsersBySchoolId(getSchool.id, page, limit);
   }
@@ -536,15 +509,6 @@ export class AdminService {
       this.logger.error('School not found');
       throw new NotFoundException('School not found');
     }
-
-    await this.logService.createLog({
-      userId,
-      message: `Retrieved a paginated list of new staffs for school `,
-      type: 'GET_NEW_STAFFS',
-      method: 'GET',
-      route: '/new-staff',
-      logType: LogType.ONE_TIME,
-    });
 
     return this.adminRepository.getStaffBySchoolId(getSchool.id, page, limit);
   }
