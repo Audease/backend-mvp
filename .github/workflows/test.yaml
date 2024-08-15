@@ -1,0 +1,76 @@
+name: Audease Deployment
+
+on:
+  pull_request:
+    branches: ['dev']
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: 3
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  MAILER_SEND_API_KEY: ${{ secrets.MAILER_SEND_API_KEY }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        ports:
+        - 5432:5432
+
+      redis:
+        image: redis
+        ports:
+        - 6379:6379
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: npm
+
+    - name: Install
+      run: yarn install
+
+    - name: Run JS test
+      env:
+        DATABASE_HOST_TEST: localhost
+        DATABASE_USERNAME_TEST: postgres
+        DATABASE_PASSWORD_TEST: postgres
+        DATABASE_NAME_TEST: postgres
+        DATABASE_PORT_TEST: 5432
+        EMAIL_FROM: hello@audease.co.uk
+        JWT_SECRET: ${{ env.JWT_SECRET }}
+        MAILER_SEND_API_KEY: ${{ env.MAILER_SEND_API_KEY }}
+        JWT_ACCESS_EXPIRES_IN: 7
+        JWT_REFRESH_EXPIRES_IN: 15
+      run: |
+        yarn run test
+        yarn run test:integration
+        yarn run test:cov
+
+    # - name: Generate coverage report
+    #   run: |
+    #       yarn add -D @vitest/coverage-v8
+    #       yarn coverage
+          
+    -  name: Upload coverage reports to Codecov
+       uses: codecov/codecov-action@v4.0.1
+       with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: Audease/backend-mvp

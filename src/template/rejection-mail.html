@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
+    xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Account Creation Mail</title>
+    <!--[if mso]>
+    <xml>
+        <o:OfficeDocumentSettings>
+            <o:AllowPNG/>
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+    </xml>
+    <![endif]-->
+    <style>
+        /* Reset styles */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+
+        /* Responsive styles */
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+            }
+
+            .logo {
+                height: 50px !important;
+            }
+
+            .mobile-spacing {
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+    <table width="100%" cellpadding="0" cellspacing="0"
+        style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <tr>
+            <td style="padding: 20px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="text-align: center;">
+                            <a href="#"><img src="https://res.cloudinary.com/dstmstsbe/image/upload/v1716473480/Logo_1_edrcjm.png" alt="Logo"
+                                    style="height: 55px;" class="logo"></a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px; background-color: #f4f4f4;">
+                <table width="100%" cellpadding="0" cellspacing="0" class="mobile-spacing">
+                    <tr>
+                        <td style="padding: 20px; background-color: #ffffff; border-radius: 5px;">
+                            
+                            <p style="color: #666666;">
+                                Hello {{first_name}}, <br><br>
+                                We hope this message finds you well. During our review of your admission form, we noticed some discrepancies in the information provided. To ensure the accuracy of your profile and avoid any delays in the admission process, we kindly request you to verify and correct your details.<br><br>
+                                Please follow these steps to verify your profile:<br><br>
+
+                                <ol>
+                                    <li>Log in to your Audease account: <a href='{{loginUrl}}'> Sign In to Audease</li>
+                                    <li>Navigate to the 'Profile' section.</li>
+                                    <li>Review the information you have provided and make any necessary corrections.</li>
+                                    <li>Save your updated details.</li>
+                                  </ol>
+                                  <br><br>
+
+                                  Accurate information is important for processing your admission efficiently. If you have any questions or need assistance, please do not hesitate to contact our support team at support@audease.co.uk. <br><br>
+
+                                Thank you for your prompt attention to this matter. We look forward to completing your admission process smoothly. <br><br>
+                                
+                                Best regards,<br><br>
+
+                                The Audease Team
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px; text-align: center; color: #666666;">
+                &copy; 2024 Audease. All rights reserved.
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
+
