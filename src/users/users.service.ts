@@ -22,8 +22,8 @@ export class UserService {
     private readonly schoolRepository: Repository<School>
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<Users> {
-    return await this.userRepository.save(createUserDto);
+  async create(data: Partial<Users>): Promise<Users> {
+    return await this.userRepository.save(data);
   }
 
   async createTransaction(
@@ -125,6 +125,13 @@ export class UserService {
 
   // Get a role by the role name using a query builder
   async getRoleByName(role: Role): Promise<Roles> {
+    return await this.roleRepository
+      .createQueryBuilder('roles')
+      .where('roles.role = :role', { role })
+      .getOne();
+  }
+
+  async getRole(role: string): Promise<Roles> {
     return await this.roleRepository
       .createQueryBuilder('roles')
       .where('roles.role = :role', { role })
