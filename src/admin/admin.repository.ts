@@ -266,19 +266,25 @@ export class AdminRepository {
   }
 
   // Update a user's role based on the user id and the role passed into the argument
-  async updateUserRole(userId: string, role: string) {
-    const user = await this.userRepository.findOne({
+  async updateUserRole(userId: string, role: string, school: School) {
+    // const user = await this.userRepository.findOne({
+    //   where: { id: userId },
+    //   relations: ['role'],
+    // });
+
+    const staff = await this.staffRepository.findOne({
       where: { id: userId },
-      relations: ['role'],
     });
 
-    if (!user) return null;
+    const roleData = await this.roleRepository.findOne({
+      where: { id: role },
+    });
 
-    const newRole = await this.roleRepository.findOne({ where: { role } });
-
-    if (!newRole) return null;
-
-    user.role = newRole;
+    const user = await this.userRepository.create({
+      ...staff,
+      role: roleData,
+      school: school,
+    });
 
     return this.userRepository.save(user);
   }
@@ -487,7 +493,13 @@ export class AdminRepository {
   async getStaffById(staffId: string) {
     return this.staffRepository.findOne({
       where: { id: staffId },
+      relations: ['school'],
     });
+  }
+
+  // Update staffs
+  async updateStaff(staffId: string, staff: Partial<Staff>) {
+    return this.staffRepository.update(staffId, staff);
   }
 
   // Save document with the school id

@@ -216,7 +216,16 @@ export class AdminService {
         throw new NotFoundException('Role not found');
       }
 
-      const data = await this.adminRepository.updateUserRole(user.id, role);
+      const data = await this.adminRepository.updateUserRole(
+        user.id,
+        role,
+        user.school
+      );
+
+      if (!data) {
+        this.logger.error('User already exist or invalid role');
+        throw new NotFoundException('User already exist or invalid role');
+      }
 
       const generated_password = crypto
         .randomBytes(12)
@@ -225,14 +234,18 @@ export class AdminService {
 
       const password = bcrypt.hashSync(generated_password, 10);
 
-      // Trim the email and remove all special characters and also the domain name
       const email = user.email
         .split('@')[0]
         .replace(/[^a-zA-Z0-9]/g, '')
         .toLowerCase();
 
+      // Remove spaces and special characters from the college name
+      const collegeName = user.school.college_name
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .toLowerCase();
+
       const username =
-        `${email}.${user.school.college_name}.${role}`.toLowerCase();
+        `${email}.${collegeName}.${data.role.role}`.toLowerCase();
 
       await this.adminRepository.createStaff(
         user,
@@ -255,6 +268,11 @@ export class AdminService {
           loginUrl,
         }
       );
+
+      await this.adminRepository.updateStaff(user.id, {
+        status: 'assigned',
+        username: username,
+      });
 
       await this.logService.createLog({
         userId,
@@ -305,6 +323,9 @@ export class AdminService {
         createStaffDto.email,
         user.school.id
       );
+      return {
+        message: 'Staff created successfully',
+      };
     } catch (error) {
       this.logger.error(error.message, error.stack);
       throw new InternalServerErrorException(error.message);
