@@ -80,4 +80,7 @@ export class Users {
     name: 'updated_at',
   })
   updated_at: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  expirationDate: Date;
 }

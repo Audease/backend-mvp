@@ -8,6 +8,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
@@ -155,6 +156,9 @@ export class AuthService {
       throw new NotFoundException('Invalid username or password');
     }
 
+    if (user.expirationDate && user.expirationDate < new Date()){
+      throw new UnauthorizedException('Account has expired')
+    }
     if (user['2fa_required'] === true) {
       if (!deviceToken) {
         this.logger.error('Two factor authentication required');

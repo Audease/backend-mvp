@@ -5,6 +5,7 @@ import { ProspectiveStudent } from '../recruiter/entities/prospective-student.en
 import { BksdRepository } from '../bksd/bksd.repository';
 import { MailService } from '../shared/services/mail.service';
 import { FilterDto } from '../bksd/dto/bksd-filter.dto';
+import { Student } from '../students/entities/student.entity';
 
 @Injectable()
 export class AccessorService {
@@ -12,6 +13,8 @@ export class AccessorService {
   constructor(
     @InjectRepository(ProspectiveStudent)
     private readonly learnerRepository: Repository<ProspectiveStudent>,
+    @InjectRepository(Student)
+    private readonly studentRepository: Repository<Student>,
     private readonly bksdRepository: BksdRepository,
     private readonly mailService: MailService
   ) {}
@@ -126,7 +129,7 @@ export class AccessorService {
       throw new NotFoundException('Accessor not found for the user');
     }
 
-    const student = await this.learnerRepository.findOne({
+    const learner = await this.learnerRepository.findOne({
       where: {
         id: studentId,
         application_mail: 'Sent',
@@ -135,16 +138,25 @@ export class AccessorService {
       relations: ['school', 'recruiter'],
     });
 
-    if (!student) {
+    if (!learner) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
 
-    await this.learnerRepository.update(student.id, {
+    const student = await this.studentRepository.findOne({
+      where: { email: learner.email, school: { id: learner.school.id } },
+      relations: ['school'],
+    });
+
+    await this.learnerRepository.update(learner.id, {
+      application_status: 'Approved',
+    });
+
+    await this.studentRepository.update(student.id, {
       application_status: 'Approved',
     });
 
     const updatedStudent = await this.learnerRepository.findOne({
-      where: { id: student.id },
+      where: { id: learner.id },
       relations: ['school', 'recruiter'],
     });
 
@@ -168,7 +180,7 @@ export class AccessorService {
       throw new NotFoundException('Accessor not found for the user');
     }
 
-    const student = await this.learnerRepository.findOne({
+    const learner = await this.learnerRepository.findOne({
       where: {
         id: studentId,
         application_mail: 'Sent',
@@ -177,16 +189,25 @@ export class AccessorService {
       relations: ['school', 'recruiter'],
     });
 
-    if (!student) {
+    if (!learner) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
 
-    await this.learnerRepository.update(student.id, {
+    const student = await this.studentRepository.findOne({
+      where: { email: learner.email, school: { id: learner.school.id } },
+      relations: ['school'],
+    });
+
+    await this.learnerRepository.update(learner.id, {
+      application_status: 'Rejected',
+    });
+
+    await this.studentRepository.update(student.id, {
       application_status: 'Rejected',
     });
 
     const updatedStudent = await this.learnerRepository.findOne({
-      where: { id: student.id },
+      where: { id: learner.id },
       relations: ['school', 'recruiter'],
     });
 

@@ -75,4 +75,12 @@ export class Student {
     name: 'updated_at',
   })
   updated_at: Date;
+
+  @Column('varchar', { length: 255, nullable: true, default: 'Not completed' })
+  course_status: string;
+  
+  @Column('varchar', { length: 255, nullable: true, default: 'Pending' })
+  application_status: string;
+
+  
 }
