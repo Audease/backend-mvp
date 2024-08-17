@@ -6,11 +6,11 @@ export class AddNewColumnsToStudents1723757768121
   name = 'AddNewColumnsToStudents1723757768121';
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE students ADD "course_status" varchar(255)  DEFAULT 'Not completed';`
+      `ALTER TABLE students ADD COLUMN "course_status" varchar(255)  DEFAULT 'Not completed';`
     );
 
     await queryRunner.query(
-      `ALTER TABLE students ADD "application_status" varchar(255) DEFAULT 'Pending';`
+      `ALTER TABLE students ADD COLUMN "application_status" varchar(255) DEFAULT 'Pending';`
     );
   }
 
