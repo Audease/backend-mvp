@@ -1,4 +1,14 @@
-import { Controller, Get, HttpCode, HttpException, HttpStatus, Logger, NotFoundException, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Logger,
+  NotFoundException,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiNotFoundResponse,
@@ -10,7 +20,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { AuditorService } from './auditor.service';
-import { FilterDto } from '../bksd/dto/bksd-filter.dto';
+import { FilterParam } from './dto/auditor-filter.dto';
 
 @ApiTags('AUDITOR DASHBOARD')
 @UseGuards(JwtAuthGuard)
@@ -45,6 +55,13 @@ export class AuditorController {
     description: 'Funding query for filtering results',
   })
   @ApiQuery({
+    name: 'course_status',
+    type: String,
+    required: false,
+    description: 'Course status query for filtering results',
+  })
+
+  @ApiQuery({
     name: 'chosen_course',
     type: String,
     required: false,
@@ -61,7 +78,10 @@ export class AuditorController {
     description: 'Account has expired',
   })
   @HttpCode(HttpStatus.OK)
-  async findAll(@CurrentUserId() userId: string, @Query() filters: FilterDto) {
+  async findAll(
+    @CurrentUserId() userId: string,
+    @Query() filters: FilterParam
+  ) {
     try {
       return await this.auditorService.getAllStudents(userId, filters);
     } catch (error) {

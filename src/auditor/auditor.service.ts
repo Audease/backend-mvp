@@ -1,9 +1,9 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { FilterDto } from '../bksd/dto/bksd-filter.dto';
 import { AuditorRepository } from './auditor.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Student } from '../students/entities/student.entity';
 import { Repository } from 'typeorm';
+import { FilterParam } from './dto/auditor-filter.dto';
 
 @Injectable()
 export class AuditorService {
@@ -14,8 +14,9 @@ export class AuditorService {
     private readonly studentRepository: Repository<Student>
   ) {}
 
-  async getAllStudents(userId: string, filters: FilterDto) {
-    const { funding, chosen_course, page, limit, search } = filters;
+  async getAllStudents(userId: string, filters: FilterParam) {
+    const { funding, chosen_course, course_status, page, limit, search } =
+      filters;
 
     const loggedInUser = await this.auditorRepository.findUser(userId);
     if (!loggedInUser) {
@@ -51,6 +52,11 @@ export class AuditorService {
       });
     }
 
+    if (course_status) {
+      queryBuilder.andWhere('student.course_status LIKE :course_status', {
+        course_status: `%${course_status}%`,
+      });
+    }
 
     const [results, total] = await queryBuilder
       .skip((page - 1) * limit)
