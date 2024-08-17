@@ -71,6 +71,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
+  @ApiUnauthorizedResponse({ description: 'Account has expired' })
   async login(@Body() loginDto: LoginDto) {
     try {
       return await this.authService.login(loginDto);
