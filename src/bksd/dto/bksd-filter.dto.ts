@@ -26,12 +26,12 @@ export class FilterDto {
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @ApiPropertyOptional()
-  page?: number = 1;
+  page?: number ;
 
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @ApiPropertyOptional()
-  limit?: number = 10;
+  limit?: number ;
 
   @IsOptional()
   @IsString()

@@ -5,18 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Student } from '../students/entities/student.entity';
 import { BksdModule } from '../bksd/bksd.module';
 import { UsersModule } from '../users/users.module';
-import { Repository } from 'typeorm'
+import { Repository } from 'typeorm';
 import { AuditorRepository } from './auditor.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Student]), BksdModule, UsersModule],
   controllers: [AuditorController],
-  providers: [
-    AuditorService,
-    Repository,
-    Logger,
-    AuditorRepository,
-  ],
+  providers: [AuditorService, Repository, Logger, AuditorRepository],
   exports: [AuditorService],
 })
 export class AuditorModule {}
