@@ -1,11 +1,11 @@
 export enum Role {
   NONE = 'none',
-  SCHOOL_ADMIN = 'Add staff',
+  SCHOOL_ADMIN = 'school_admin',
   STUDENT = 'student',
-  EXTERNAL_AUDITOR = 'Audit',
-  SCHOOL_RECRUITER = 'Approve/reject application',
+  EXTERNAL_AUDITOR = 'external_auditor',
+  SCHOOL_RECRUITER = 'school_recruiter',
   FINANCIAL_OFFICER = 'financial_officer',
   ACCESSOR = 'accessor',
-  BKSD = 'Send Application',
-  INDUCTOR = 'Induction',
+  BKSD = 'bksd',
+  INDUCTOR = 'inductor',
 }
