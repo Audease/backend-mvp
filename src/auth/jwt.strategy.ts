@@ -38,6 +38,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     const userRole = await this.userService.getUserRoleById(user.id);
 
-    return { id: user.id, roles: [userRole.role] };
+    return {
+      id: user.id,
+      roles: [userRole.role],
+    };
   }
 }

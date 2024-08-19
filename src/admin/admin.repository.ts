@@ -355,12 +355,15 @@ export class AdminRepository {
 
     if (!permissions) return null;
 
-    // const rolePermission = this.rolepermissionRepoistory.create({
-    //   role: roles,
-    //   permission: permissions,
-    // });
+    const rolePermission = this.rolepermissionRepoistory.create({
+      role: roles,
+      permission: permissions,
+    });
 
     const result = await this.roleRepository.save(roles);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const rolePermissionResult =
+      await this.rolepermissionRepoistory.save(rolePermission);
     return result;
   }
 

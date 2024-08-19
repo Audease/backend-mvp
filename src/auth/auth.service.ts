@@ -178,7 +178,16 @@ export class AuthService {
     const role = await this.userService.getUserRoleById(user.id);
     const token = await this.jwtService.generateAuthTokens(user.id, role.id);
 
-    return { token };
+    const permission = await this.userService.getRolePermission(role.id);
+
+    const permission_id = permission.rolePermission.map(p => p.permission.id);
+
+    const result = await this.userService.getPermissionsByIds(permission_id);
+
+    return {
+      token,
+      permissions: result.map(p => p.name),
+    };
   }
   async send2faEmail(email: string) {
     const user = await this.userService.getUserByEmail(email);
