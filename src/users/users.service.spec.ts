@@ -8,6 +8,7 @@ import { Roles } from '../shared/entities/role.entity';
 import { School } from '../shared/entities/school.entity';
 import { UserSchema } from '../auth/auth.interface';
 import { RegistrationStatus } from '../utils/enum/registration_status';
+import { Permissions } from '../shared/entities/permission.entity';
 // import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { Role } from '../utils/enum/role';
 
@@ -52,6 +53,12 @@ describe('UserService', () => {
         },
         {
           provide: getRepositoryToken(School),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Permissions),
           useValue: {
             findOne: jest.fn(),
           },
@@ -164,7 +171,7 @@ describe('UserService', () => {
 
       expect(userRepository.findOne).toHaveBeenCalledWith({
         where: { id: userId },
-        relations: ['role'],
+        relations: ['role', 'permission'],
       });
       expect(result).toEqual(role);
     });

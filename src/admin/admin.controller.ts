@@ -16,6 +16,7 @@ import {
 import { Role } from '../utils/enum/role';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+// import { RolesGuard } from '../auth/role.guard';
 import { Roles } from '../shared/decorators/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {

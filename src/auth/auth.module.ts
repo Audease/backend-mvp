@@ -19,10 +19,18 @@ import { Repository } from 'typeorm';
 import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
+import { Permissions } from '../shared/entities/permission.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([School, Token, Users, Roles, Recruiter]),
+    TypeOrmModule.forFeature([
+      School,
+      Token,
+      Users,
+      Roles,
+      Recruiter,
+      Permissions,
+    ]),
     RedisModule,
     UsersModule,
     JwtModule.register({

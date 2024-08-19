@@ -504,15 +504,6 @@ export class AdminService {
         user.school.id
       );
 
-      await this.logService.createLog({
-        userId,
-        message: `Uploaded document ${file.originalname}`,
-        type: 'UPLOAD_DOCUMENT',
-        method: 'POST',
-        route: '/documents',
-        logType: LogType.REUSABLE,
-      });
-
       return {
         message: 'Document uploaded successfully',
         document_link: document.cloudinaryUrl,
