@@ -171,7 +171,7 @@ describe('UserService', () => {
 
       expect(userRepository.findOne).toHaveBeenCalledWith({
         where: { id: userId },
-        relations: ['role', 'permission'],
+        relations: ['role'],
       });
       expect(result).toEqual(role);
     });
