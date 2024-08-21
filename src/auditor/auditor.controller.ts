@@ -12,6 +12,7 @@ import {
 import {
   ApiBearerAuth,
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiTags,
