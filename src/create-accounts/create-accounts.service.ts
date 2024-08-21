@@ -323,8 +323,8 @@ export class CreateAccountsService {
       throw new ConflictException('Email already exists');
     }
 
-    const expiration_date = new Date();
-    expiration_date.setHours(expiration_date.getHours() + 48);
+    const expirationDate = new Date();
+    expirationDate.setHours(expirationDate.getHours() + 48);
     const user = await this.userService.createUserWithCollegeId(
       {
         username: generated_username,
@@ -334,7 +334,7 @@ export class CreateAccountsService {
         first_name: createUserDto.first_name,
         last_name: createUserDto.last_name,
         role,
-        expiration_date,
+        expirationDate,
       },
       college_id
     );

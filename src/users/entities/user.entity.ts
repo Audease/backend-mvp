@@ -82,5 +82,5 @@ export class Users {
   updated_at: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  expiration_date: Date;
+  expirationDate: Date;
 }
