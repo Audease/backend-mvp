@@ -37,5 +37,5 @@ export interface UserSchema {
   email: string;
   password: string;
   role: Roles;
-  expirationDate?: Date;
+  expiration_date?: Date;
 }
