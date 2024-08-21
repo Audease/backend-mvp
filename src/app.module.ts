@@ -51,7 +51,6 @@ import { AuditorModule } from './auditor/auditor.module';
     BksdModule,
     InductorModule,
     AuditorModule,
-   
   ],
   controllers: [AppController],
   providers: [AppService, { provide: 'APP_GUARD', useClass: ThrottlerGuard }],
