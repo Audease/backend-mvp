@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Student } from '../students/entities/student.entity';
 import { Repository } from 'typeorm';
 import { FilterParam } from './dto/auditor-filter.dto';
+import { subDays } from 'date-fns';
 
 @Injectable()
 export class AuditorService {
