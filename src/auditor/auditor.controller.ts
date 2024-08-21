@@ -61,7 +61,6 @@ export class AuditorController {
     required: false,
     description: 'Course status query for filtering results',
   })
-
   @ApiQuery({
     name: 'chosen_course',
     type: String,
