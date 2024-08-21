@@ -96,4 +96,149 @@ export class AuditorController {
       }
     }
   }
+
+  @Get('/analytics/course-status-distribution')
+  @ApiOperation({
+    summary:
+      'Get Statistics of Course Status of all students on the Auditor dashboard',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Account has expired',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getCourseStatusStatistics(@CurrentUserId() userId: string) {
+    try {
+      return await this.auditorService.getCourseStatusDistribution(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+  }
+
+  @Get('/analytics/total-registered-learners')
+  @ApiOperation({
+    summary: 'Get Total Number of Learners on the Auditor dashboard',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Account has expired',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getTotalLearners(@CurrentUserId() userId: string) {
+    try {
+      return await this.auditorService.getTotalNumberOfLearners(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+  }
+
+  @Get('/analytics/total-completed-learners')
+  @ApiOperation({
+    summary: 'Get Total Number of Completed Learners  on the Auditor dashboard',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Account has expired',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getCompletedLearners(@CurrentUserId() userId: string) {
+    try {
+      return await this.auditorService.getCompletedLearners(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+  }
+
+  @Get('/analytics/total-not-completed-learners')
+  @ApiOperation({
+    summary:
+      'Get Total Number of Not Completed Learners  on the Auditor dashboard',
+  })
+  @ApiOkResponse({ description: 'OK' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Account has expired',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getNotCompletedLearners(@CurrentUserId() userId: string) {
+    try {
+      return await this.auditorService.getNotCompletedLearners(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+  }
+
+  @Get('/analytics/new-learners')
+  @ApiOperation({
+    summary:
+      'Get Number of New Learners For Lat 10 Days  on the Auditor dashboard',
+  })
+  @ApiOkResponse({ description: 'OK' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Account has expired',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getLearners(@CurrentUserId() userId: string) {
+    try {
+      return await this.auditorService.getNewStudentsForLast10Days(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+  }
 }

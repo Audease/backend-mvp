@@ -70,4 +70,129 @@ export class AuditorService {
       lastPage: Math.ceil(total / limit),
     };
   }
+
+  async getCourseStatusDistribution(userId: string) {
+    const loggedInUser = await this.auditorRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const totalStudents = await this.studentRepository
+      .createQueryBuilder('student')
+      .where('student.school.id = :schoolId', {
+        schoolId: loggedInUser.school.id,
+      })
+      .andWhere('student.application_status = :application_status', {
+        application_status: 'Approved',
+      })
+      .getCount();
+
+    const rawData = await this.studentRepository
+      .createQueryBuilder('student')
+      .where('student.school = :schoolId', {
+        schoolId: loggedInUser.school.id,
+      })
+      .andWhere('student.application_status = :application_status', {
+        application_status: 'Approved',
+      })
+      .select('student.course_status', 'courseStatus')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('student.course_status')
+      .getRawMany();
+
+    return rawData.map(data => ({
+      courseStatus: data.courseStatus,
+      percentage: (data.count / totalStudents) * 100,
+    }));
+  }
+
+  async getTotalNumberOfLearners(userId: string) {
+    const loggedInUser = await this.auditorRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    return await this.studentRepository
+      .createQueryBuilder('student')
+      .where('student.school = :schoolId', {
+        schoolId: loggedInUser.school.id,
+      })
+      .andWhere('student.application_status = :application_status', {
+        application_status: 'Approved',
+      })
+      .getCount();
+  }
+
+  async getCompletedLearners(userId: string) {
+    const loggedInUser = await this.auditorRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    return await this.studentRepository
+      .createQueryBuilder('student')
+      .where('student.school = :schoolId', {
+        schoolId: loggedInUser.school.id,
+      })
+      .andWhere('student.application_status = :application_status', {
+        application_status: 'Approved',
+      })
+      .andWhere('student.course_status = :courseStatus', {
+        courseStatus: 'Completed',
+      })
+      .getCount();
+  }
+
+  async getNotCompletedLearners(userId: string) {
+    const loggedInUser = await this.auditorRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    return await this.studentRepository
+      .createQueryBuilder('student')
+      .where('student.school = :schoolId', {
+        schoolId: loggedInUser.school.id,
+      })
+      .andWhere('student.application_status = :application_status', {
+        application_status: 'Approved',
+      })
+      .andWhere('student.course_status = :courseStatus', {
+        courseStatus: 'Not completed',
+      })
+      .getCount();
+  }
+
+  async getNewStudentsForLast10Days(userId: string) {
+    const loggedInUser = await this.auditorRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const endDate = new Date();
+    const startDate = subDays(endDate, 10);
+
+    return this.studentRepository
+      .createQueryBuilder('student')
+      .where('student.school = :schoolId', {
+        schoolId: loggedInUser.school.id,
+      })
+      .andWhere('student.application_status = :application_status', {
+        application_status: 'Approved',
+      })
+      .select("DATE_TRUNC('day', student.created_at)", 'date')
+      .addSelect('COUNT(*)', 'count')
+      .where('student.created_at BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .groupBy('date')
+      .orderBy('date', 'ASC')
+      .getRawMany();
+  }
 }
