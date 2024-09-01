@@ -1,6 +1,7 @@
 import { AdminRepository } from './admin.repository';
 import { AuthRepository } from '../auth/auth.repository';
 import {
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -13,8 +14,14 @@ import { LogType } from '../utils/enum/log_type';
 import { MailService } from '../shared/services/mail.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { RoleDto } from './dto/create-role.dto';
+import { DataSource, Repository } from 'typeorm';
+import { QueryRunner } from 'typeorm';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
+import { Roles } from '../shared/entities/role.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RolePermission } from '../shared/entities/rolepermission.entity';
+import { Permissions } from '../shared/entities/permission.entity';
 
 @Injectable()
 export class AdminService {
@@ -25,7 +32,14 @@ export class AdminService {
     private readonly cloudinaryService: CloudinaryService,
     private readonly userService: UserService,
     private readonly logService: LogService,
-    private readonly mailService: MailService
+    private readonly mailService: MailService,
+    private readonly dataSource: DataSource,
+    @InjectRepository(Roles)
+    private readonly roleRepository: Repository<Roles>,
+    @InjectRepository(Permissions)
+    private readonly permissionRepository: Repository<Permissions>,
+    @InjectRepository(RolePermission)
+    private readonly rolepermissionRepoistory: Repository<RolePermission>
   ) {}
 
   async getPaginatedStudents(userId: string, page: number, limit: number) {
@@ -333,18 +347,54 @@ export class AdminService {
   }
 
   async createRole(userId: string, roleDto: RoleDto) {
+    let queryRunner: QueryRunner | null = null;
+
     try {
       const user = await this.userService.findOne(userId);
-
       if (!user) {
         this.logger.error('User not found');
         throw new NotFoundException('User not found');
       }
 
-      const role = await this.adminRepository.createRole(
-        roleDto,
-        user.school.id
+      // Check if the role already exists for the given school
+      const existingRole = await this.roleRepository.findOne({
+        where: {
+          role: roleDto.role,
+          school: {
+            id: user.school.id,
+          },
+        },
+      });
+
+      if (existingRole) {
+        // If the role already exists, return a message or throw an error
+        this.logger.error('Role already exists');
+        throw new ConflictException('Role already exists');
+      }
+
+      queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const role = await queryRunner.manager.save(
+        this.roleRepository.create({
+          role: roleDto.role,
+          school: user.school,
+        })
       );
+
+      const permission = await this.permissionRepository.findOne({
+        where: {
+          id: roleDto.permission_id,
+        },
+      });
+
+      const rolePermission = this.rolepermissionRepoistory.create({
+        role: role,
+        permission: permission,
+      });
+
+      await queryRunner.manager.save(rolePermission);
 
       await this.logService.createLog({
         userId,
@@ -355,10 +405,18 @@ export class AdminService {
         logType: LogType.REUSABLE,
       });
 
+      await queryRunner.commitTransaction();
       return { message: 'Role created successfully' };
     } catch (error) {
+      if (queryRunner) {
+        await queryRunner.rollbackTransaction();
+      }
       this.logger.error(error.message, error.stack);
       throw new InternalServerErrorException(error.message);
+    } finally {
+      if (queryRunner) {
+        await queryRunner.release();
+      }
     }
   }
 
@@ -503,15 +561,6 @@ export class AdminService {
         },
         user.school.id
       );
-
-      await this.logService.createLog({
-        userId,
-        message: `Uploaded document ${file.originalname}`,
-        type: 'UPLOAD_DOCUMENT',
-        method: 'POST',
-        route: '/documents',
-        logType: LogType.REUSABLE,
-      });
 
       return {
         message: 'Document uploaded successfully',

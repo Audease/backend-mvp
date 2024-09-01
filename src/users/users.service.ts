@@ -10,6 +10,7 @@ import { Injectable } from '@nestjs/common';
 import { RegistrationStatus } from '../utils/enum/registration_status';
 import { UserSchema } from '../auth/auth.interface';
 import { Role } from '../utils/enum/role';
+import { Permissions } from '../shared/entities/permission.entity';
 
 @Injectable()
 export class UserService {
@@ -19,7 +20,9 @@ export class UserService {
     @InjectRepository(Roles)
     private readonly roleRepository: Repository<Roles>,
     @InjectRepository(School)
-    private readonly schoolRepository: Repository<School>
+    private readonly schoolRepository: Repository<School>,
+    @InjectRepository(Permissions)
+    private readonly permissionRepository: Repository<Permissions>
   ) {}
 
   async create(data: Partial<Users>): Promise<Users> {
@@ -115,12 +118,27 @@ export class UserService {
     });
   }
 
+  // Get permissions by using the array of permission ids using a query builder
+  async getPermissionsByIds(ids: string[]): Promise<Permissions[]> {
+    return await this.permissionRepository
+      .createQueryBuilder('permissions')
+      .where('permissions.id IN (:...ids)', { ids })
+      .getMany();
+  }
+
   // Get a role by the role id using a query builder
   async getRoleById(id: string): Promise<Roles> {
     return await this.roleRepository
       .createQueryBuilder('roles')
       .where('roles.id = :id', { id })
       .getOne();
+  }
+
+  async getRolePermission(id: string) {
+    return await this.roleRepository.findOne({
+      where: { id },
+      relations: ['rolePermission', 'rolePermission.permission'],
+    });
   }
 
   // Get a role by the role name using a query builder

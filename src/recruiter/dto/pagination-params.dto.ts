@@ -8,12 +8,12 @@ export class PaginationParamsDto {
     description: 'Page number for pagination',
     example: 1,
   })
-  page?: number = 1;
+  page?: number;
 
   @IsOptional()
   @IsPositive()
   @ApiPropertyOptional({ description: 'Number of items per page', example: 10 })
-  limit?: number = 10;
+  limit?: number;
 
   @IsOptional()
   @IsString()

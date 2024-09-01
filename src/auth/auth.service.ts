@@ -8,6 +8,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
@@ -155,6 +156,9 @@ export class AuthService {
       throw new NotFoundException('Invalid username or password');
     }
 
+    if (user.expiration_date && user.expiration_date < new Date()){
+      throw new UnauthorizedException('Account has expired')
+    }
     if (user['2fa_required'] === true) {
       if (!deviceToken) {
         this.logger.error('Two factor authentication required');
@@ -174,7 +178,16 @@ export class AuthService {
     const role = await this.userService.getUserRoleById(user.id);
     const token = await this.jwtService.generateAuthTokens(user.id, role.id);
 
-    return { token };
+    const permission = await this.userService.getRolePermission(role.id);
+
+    const permission_id = permission.rolePermission.map(p => p.permission.id);
+
+    const result = await this.userService.getPermissionsByIds(permission_id);
+
+    return {
+      token,
+      permissions: result.map(p => p.name),
+    };
   }
   async send2faEmail(email: string) {
     const user = await this.userService.getUserByEmail(email);

@@ -340,28 +340,40 @@ export class AdminRepository {
 
   async createRole(roleDto: RoleDto, schoolId: string) {
     const { role, permission_id } = roleDto;
-
     const school = await this.schoolRepository.findOne({
       where: { id: schoolId },
     });
+    const roles = this.roleRepository.create({ role, school });
 
-    const roles = this.roleRepository.create({
-      role,
-      school: school,
-    });
+    // Find the permissions
     const permissions = await this.permissionRepository.findOne({
       where: { id: permission_id },
     });
 
-    if (!permissions) return null;
+    // Create the role-permission associations
+    const rolePermissions = this.rolepermissionRepoistory.create({
+      role: roles,
+      permission: permissions,
+    });
 
-    // const rolePermission = this.rolepermissionRepoistory.create({
-    //   role: roles,
-    //   permission: permissions,
-    // });
-
+    // Save the role
     const result = await this.roleRepository.save(roles);
+
+    // Save the role-permission associations
+    await this.rolepermissionRepoistory.save(rolePermissions);
+
     return result;
+  }
+
+  async findRole(roleName: string, schoolId: string): Promise<Roles | null> {
+    return this.roleRepository.findOne({
+      where: {
+        role: roleName,
+        school: {
+          id: schoolId,
+        },
+      },
+    });
   }
 
   async moveToTrash(logId: string): Promise<AppLogger> {

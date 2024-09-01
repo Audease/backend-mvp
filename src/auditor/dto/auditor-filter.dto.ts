@@ -2,26 +2,20 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';
 
-export class FilterDto {
+export class FilterParam {
   @IsOptional()
-  @IsString()
   @ApiPropertyOptional()
-  funding?: string;
+  @IsString()
+  funding: string;
 
-  @IsString()
   @IsOptional()
   @ApiPropertyOptional()
-  chosen_course?: string;
+  @IsString()
+  chosen_course: string;
 
-  @IsString()
   @IsOptional()
   @ApiPropertyOptional()
-  application_mail?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiPropertyOptional()
-  application_status?: string;
+  course_status: string;
 
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))

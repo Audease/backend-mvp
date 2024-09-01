@@ -9,9 +9,10 @@ import { BksdRepository } from '../bksd/bksd.repository';
 import { UsersModule } from '../users/users.module';
 import { Accessor } from './entities/accessor.entity';
 import { MailService } from '../shared/services/mail.service';
+import { Student } from '../students/entities/student.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProspectiveStudent, Accessor]),
+    TypeOrmModule.forFeature([ProspectiveStudent, Accessor, Student]),
     BksdModule,
     UsersModule,
   ],
