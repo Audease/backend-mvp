@@ -31,6 +31,7 @@ import {
   ApiInternalServerErrorResponse,
   ApiConsumes,
 } from '@nestjs/swagger';
+import { RolesGuard } from '../auth/guards/role.guard';
 import { PaginationDto, EmailDto, AssignRoleDto } from './dto/misc-dto';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateStaffDto } from './dto/create-staff.dto';
@@ -39,7 +40,7 @@ import { RoleDto } from './dto/create-role.dto';
 import { createFolder, moveLogs, editLogs } from './dto/create-folder.dto';
 
 @ApiTags('Admin')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('admin')
 export class AdminController {
   private readonly logger = new Logger(AdminController.name);

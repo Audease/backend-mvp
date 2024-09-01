@@ -21,21 +21,22 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+import { Permission } from '../utils/enum/permission';
+import { Permissions } from '../shared/decorators/permission.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { FilterDto } from '../bksd/dto/bksd-filter.dto';
-import { Role } from '../utils/enum/role';
-import { Roles } from '../shared/decorators/roles.decorator';
 
 @ApiTags('INDUCTOR DASHBOARD')
 @Controller('induction')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class InductorController {
   private readonly logger = new Logger(InductorController.name);
   constructor(private readonly inductorService: InductorService) {}
 
   @Get('/students')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.INDUCTION)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
@@ -101,7 +102,7 @@ export class InductorController {
   }
 
   @Get('/students/:studentId')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.INDUCTION)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',

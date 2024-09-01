@@ -23,7 +23,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/role.guard';
+import { RolesGuard } from '../auth/guards/role.guard';
 import { Roles } from '../shared/decorators/roles.decorator';
 import { Role } from '../utils/enum/role';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';

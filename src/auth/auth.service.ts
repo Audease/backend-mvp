@@ -156,8 +156,8 @@ export class AuthService {
       throw new NotFoundException('Invalid username or password');
     }
 
-    if (user.expiration_date && user.expiration_date < new Date()){
-      throw new UnauthorizedException('Account has expired')
+    if (user.expiration_date && user.expiration_date < new Date()) {
+      throw new UnauthorizedException('Account has expired');
     }
     if (user['2fa_required'] === true) {
       if (!deviceToken) {
