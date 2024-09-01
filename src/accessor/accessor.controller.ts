@@ -27,7 +27,7 @@ import { Role } from '../utils/enum/role';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/role.guard';
+import { RolesGuard } from '../auth/guards/role.guard';
 
 @ApiTags('ACCESSOR DASHBOARD')
 @Controller('accessor')

@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Roles } from '../shared/decorators/roles.decorator';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import {
   ApiTags,
@@ -19,8 +18,9 @@ import {
   ApiBody,
   ApiOperation,
 } from '@nestjs/swagger';
-import { Role } from '../utils/enum/role';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { Permissions } from '../shared/decorators/permission.decorator';
+import { Permission } from '../utils/enum/permission';
 
 @ApiTags('Students')
 @UseGuards(JwtAuthGuard)
@@ -31,7 +31,7 @@ export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Get('/profile')
-  @Roles(Role.SCHOOL_ADMIN)
+  @Permissions(Permission.MANAGE_PROFILE)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get a logged in student profile' })
   async getStudentProfile(@CurrentUserId() userId: string) {
@@ -40,7 +40,7 @@ export class StudentsController {
 
   //  Update a student's profile
   @Post('/profile')
-  @Roles(Role.SCHOOL_ADMIN)
+  @Permissions(Permission.MANAGE_PROFILE)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a student profile' })
   @ApiConsumes('application/json')
@@ -62,7 +62,7 @@ export class StudentsController {
 
   //  Save a student's document
   @Post('/document')
-  @Roles(Role.STUDENT)
+  @Permissions(Permission.MANAGE_PROFILE)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Save a student document' })
   @ApiConsumes('multipart/form-data')

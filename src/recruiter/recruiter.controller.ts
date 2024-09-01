@@ -18,7 +18,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { RecruiterService } from './recruiter.service';
-import { Role } from '../utils/enum/role';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -32,8 +31,10 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { PermissionGuard } from '../auth/guards/permission.guard';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Roles } from '../shared/decorators/roles.decorator';
+import { Permissions } from '../shared/decorators/permission.decorator';
+import { Permission } from '../utils/enum/permission';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateLearnerDto } from './dto/create-learner.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -42,7 +43,7 @@ import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { FilterStudentsDto } from './dto/filter-params.dto';
 
 @ApiTags('Recruiter Dashboard')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 @Controller('recruitment')
 export class RecruiterController {
   private readonly logger = new Logger(RecruiterController.name);
@@ -50,7 +51,7 @@ export class RecruiterController {
   constructor(private readonly recruiterService: RecruiterService) {}
 
   @Post('/create')
-  @Roles(Role.SCHOOL_RECRUITER)
+  @Permissions(Permission.ADD_STUDENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create Learner on the recruiter dashboard' })
   @ApiCreatedResponse({
@@ -87,7 +88,7 @@ export class RecruiterController {
     }
   }
   @Post('/upload')
-  @Roles(Role.SCHOOL_RECRUITER)
+  @Permissions(Permission.ADD_STUDENT)
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -137,7 +138,7 @@ export class RecruiterController {
   }
 
   @Get('/students')
-  @Roles(Role.SCHOOL_RECRUITER)
+  @Permissions(Permission.ADD_STUDENT)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
@@ -182,7 +183,7 @@ export class RecruiterController {
   }
 
   @Get('students/filters')
-  @Roles(Role.SCHOOL_RECRUITER)
+  @Permissions(Permission.ADD_STUDENT)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'funding',
@@ -243,7 +244,7 @@ export class RecruiterController {
   }
 
   @Get('/students/:studentId')
-  @Roles(Role.SCHOOL_RECRUITER)
+  @Permissions(Permission.ADD_STUDENT)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',
@@ -284,7 +285,7 @@ export class RecruiterController {
   }
 
   @Patch('/students/:studentId')
-  @Roles(Role.SCHOOL_RECRUITER)
+  @Permissions(Permission.ADD_STUDENT)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',
@@ -330,7 +331,7 @@ export class RecruiterController {
   }
 
   @Delete('/students/:studentId')
-  @Roles(Role.SCHOOL_RECRUITER)
+  @Permissions(Permission.ADD_STUDENT)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',
