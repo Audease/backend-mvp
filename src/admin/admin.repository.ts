@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Student } from '../students/entities/student.entity';
@@ -51,27 +51,35 @@ export class AdminRepository {
   //   });
   // }
 
-  async getStudentsBySchoolId(
-    schoolId: string,
-    page: number,
-    limit: number
-  ): Promise<Student[]> {
-    return this.studentRepository
+  // Get a paginated list of students based on the school id using query builder and join the user entity to get their username and email
+  async getStudentsBySchoolId(schoolId: string, page: number, limit: number) {
+    const result = await this.studentRepository
       .createQueryBuilder('student')
+      .leftJoinAndSelect('student.user', 'user')
       .select([
         'student.id',
         'student.first_name',
         'student.last_name',
         'student.date_of_birth',
-        'student.address',
+        'student.home_address',
         'student.created_at',
-        'student.updated_at',
-        'student.user_id',
+        'student.funding',
+        'student.chosen_course',
+        'user.email',
+        'user.username',
       ])
       .where('student.school_id = :schoolId', { schoolId })
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
+
+    return {
+      result,
+      total: result.length,
+      page,
+      limit,
+      totalPages: Math.ceil(result.length / limit),
+    };
   }
   //   Get a specific student based on the student id and join the user entity
   async getStudentById(studentId: string) {
@@ -171,8 +179,8 @@ export class AdminRepository {
     schoolId: string,
     page: number,
     limit: number
-  ): Promise<ProspectiveStudent[]> {
-    return this.prospectiveStudentRepository
+  ) {
+    const result = await this.prospectiveStudentRepository
       .createQueryBuilder('prospective_student')
       .select([
         'prospective_student.id',
@@ -189,6 +197,14 @@ export class AdminRepository {
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
+
+    return {
+      result,
+      total: result.length,
+      page,
+      limit,
+      totalPages: Math.ceil(result.length / limit),
+    };
   }
 
   // Get a specific prospective student based on the student id
@@ -239,7 +255,7 @@ export class AdminRepository {
 
   // Get staff by school id using query builder
   async getStaffsBySchoolId(schoolId: string, page: number, limit: number) {
-    return this.staffRepository
+    const result = await this.staffRepository
       .createQueryBuilder('staff')
       .select([
         'staff.id',
@@ -252,6 +268,14 @@ export class AdminRepository {
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
+
+    return {
+      result,
+      total: result.length,
+      page,
+      limit,
+      totalPages: Math.ceil(result.length / limit),
+    };
   }
 
   // Update prospective student
@@ -266,27 +290,33 @@ export class AdminRepository {
   }
 
   // Update a user's role based on the user id and the role passed into the argument
-  async updateUserRole(userId: string, role: string, school: School) {
-    // const user = await this.userRepository.findOne({
-    //   where: { id: userId },
-    //   relations: ['role'],
-    // });
-
-    const staff = await this.staffRepository.findOne({
+  async updateUserRole(
+    transactionalEntityManager: EntityManager,
+    userId: string,
+    role: string,
+    school: School
+  ) {
+    const staff = await transactionalEntityManager.findOne(Staff, {
       where: { id: userId },
     });
+    if (!staff) {
+      return null;
+    }
 
-    const roleData = await this.roleRepository.findOne({
+    const roleData = await transactionalEntityManager.findOne(Roles, {
       where: { id: role },
     });
+    if (!roleData) {
+      return null;
+    }
 
-    const user = await this.userRepository.create({
+    const user = this.userRepository.create({
       ...staff,
       role: roleData,
       school: school,
     });
 
-    return this.userRepository.save(user);
+    return await transactionalEntityManager.save(Users, user);
   }
 
   async getRoles(schoolId: string) {
@@ -305,23 +335,21 @@ export class AdminRepository {
     return this.permissionRepository.find();
   }
 
-  // Create a user with none as the role and relate it to a school
   async createStaff(
+    transactionalEntityManager: EntityManager,
     user: Partial<Users>,
     role: Roles,
     username: string,
     password: string
   ) {
-    // Update the user table to include the username and password
-
-    const newUsers = this.userRepository.create({
+    const newUser = this.userRepository.create({
       ...user,
       username,
       password,
       role,
     });
 
-    return await this.userRepository.save(newUsers);
+    return await transactionalEntityManager.save(Users, newUser);
   }
 
   async inviteStaff(schooldId: string, email: string, role: Roles) {
@@ -336,6 +364,42 @@ export class AdminRepository {
     });
 
     return this.userRepository.save(user);
+  }
+
+  // Write a method that uses a query builder to query the database to get the onboarding status of a staff, prospective student and role based on the school id in which the status that is most common is returned
+  async getOnboardingStatus(schoolId: string) {
+    const staffStatus = await this.staffRepository
+      .createQueryBuilder('staff')
+      .select(['staff.onboarding_status'])
+      .where('staff.school_id = :schoolId', { schoolId })
+      .groupBy('staff.onboarding_status')
+      .orderBy('COUNT(*)', 'DESC')
+      .limit(1)
+      .getRawMany();
+
+    const prospectiveStudentStatus = await this.prospectiveStudentRepository
+      .createQueryBuilder('prospective_student')
+      .select(['prospective_student.onboarding_status'])
+      .where('prospective_student.school_id = :schoolId', { schoolId })
+      .groupBy('prospective_student.onboarding_status')
+      .orderBy('COUNT(*)', 'DESC')
+      .limit(1)
+      .getRawMany();
+
+    const roleStatus = await this.roleRepository
+      .createQueryBuilder('roles')
+      .select(['roles.onboarding_status'])
+      .where('roles.school_id = :schoolId', { schoolId })
+      .groupBy('roles.onboarding_status')
+      .orderBy('COUNT(*)', 'DESC')
+      .limit(1)
+      .getRawMany();
+
+    return {
+      staff: staffStatus,
+      prospective_student: prospectiveStudentStatus,
+      role: roleStatus,
+    };
   }
 
   async createRole(roleDto: RoleDto, schoolId: string) {

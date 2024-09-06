@@ -82,6 +82,7 @@ export class RecruiterService {
       chosen_course: createLearnerDto.chosen_course,
       recruiter: recruiter,
       school: recruiter.school,
+      onboarding_status: 'completed',
     });
 
     const newLearner = await this.learnerRepository.save(learner);

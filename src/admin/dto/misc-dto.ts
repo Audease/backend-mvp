@@ -1,6 +1,13 @@
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsInt, Min } from 'class-validator';
-import { Role } from '../../utils/enum/role';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  Min,
+  ArrayNotEmpty,
+  IsArray,
+} from 'class-validator';
+// import { Role } from '../../utils/enum/role';
 import { Type } from 'class-transformer';
 
 export class param {
@@ -17,14 +24,14 @@ export class PaginationDto {
     description: 'Page number for pagination',
     example: 1,
   })
-  page?: number ;
+  page?: number;
 
   @IsOptional()
   @IsInt()
   @Type(() => Number)
   @Min(1)
   @ApiPropertyOptional({ description: 'Number of items per page', example: 10 })
-  limit?: number ;
+  limit?: number;
 }
 
 export class EmailDto {
@@ -37,17 +44,19 @@ export class EmailDto {
 }
 
 export class AssignRoleDto {
-  @IsString()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
   @ApiProperty({
-    description: 'The user id of the user',
-    example: '1',
+    description: 'List of staff IDs to assign the role',
+    example: ['1', '2', '3'],
   })
-  userId: string;
+  staffIds: string[];
 
   @IsString()
   @ApiProperty({
     description: 'The name of the role to assign',
-    example: '1',
+    example: 'admin',
   })
-  role: Role;
+  role: string;
 }

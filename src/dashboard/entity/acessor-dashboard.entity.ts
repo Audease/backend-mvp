@@ -1,5 +1,4 @@
 import { School } from '../../shared/entities/school.entity';
-
 import {
   Column,
   CreateDateColumn,
@@ -8,10 +7,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Recruiter } from './recruiter.entity';
 
 @Entity('prospective_students')
-export class ProspectiveStudent {
+export class AccessorDashboard {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -56,13 +54,6 @@ export class ProspectiveStudent {
 
   @Column('varchar', { length: 255, nullable: true, default: 'Not sent' })
   application_mail: string;
-
-  @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })
-  onboarding_status?: string;
-
-  @ManyToOne(() => Recruiter, recruiter => recruiter.applicants)
-  @JoinColumn({ name: 'recruiter_id' })
-  recruiter: Recruiter;
 
   @ManyToOne(() => School, school => school.applicants)
   @JoinColumn({ name: 'school_id' })

@@ -28,6 +28,9 @@ export class Roles {
   @JoinColumn({ name: 'school_id' })
   school: School;
 
+  @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })
+  onboarding_status?: string;
+
   @CreateDateColumn({
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',

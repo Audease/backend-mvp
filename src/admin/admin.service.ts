@@ -1,6 +1,7 @@
 import { AdminRepository } from './admin.repository';
 import { AuthRepository } from '../auth/auth.repository';
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -12,16 +13,17 @@ import { UserService } from '../users/users.service';
 import { LogService } from '../shared/services/logger.service';
 import { LogType } from '../utils/enum/log_type';
 import { MailService } from '../shared/services/mail.service';
-import { CreateStaffDto } from './dto/create-staff.dto';
 import { RoleDto } from './dto/create-role.dto';
 import { DataSource, Repository } from 'typeorm';
 import { QueryRunner } from 'typeorm';
+import { Staff } from '../shared/entities/staff.entity';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { Roles } from '../shared/entities/role.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RolePermission } from '../shared/entities/rolepermission.entity';
 import { Permissions } from '../shared/entities/permission.entity';
+import { CreateStaffDto } from './dto/create-staff.dto';
 
 @Injectable()
 export class AdminService {
@@ -49,15 +51,6 @@ export class AdminService {
       this.logger.error('School not found');
       throw new NotFoundException('School not found');
     }
-
-    await this.logService.createLog({
-      userId,
-      message: `Retrieved a paginated list of students for school `,
-      type: 'GET_STUDENTS',
-      method: 'GET',
-      route: '/students',
-      logType: LogType.ONE_TIME,
-    });
 
     return this.adminRepository.getStudentsBySchoolId(
       getSchool.id,
@@ -216,92 +209,98 @@ export class AdminService {
   }
 
   // Assign a role to a user
-  async assignRole(userId: string, role: string, staffIdToAssign: string) {
-    try {
-      const user = await this.adminRepository.getStaffById(staffIdToAssign);
-
-      if (!user) {
-        this.logger.error('Staff not found');
-        throw new NotFoundException('Staff not found');
-      }
-
-      if (!role) {
-        this.logger.error('Role not found');
-        throw new NotFoundException('Role not found');
-      }
-
-      const data = await this.adminRepository.updateUserRole(
-        user.id,
-        role,
-        user.school
-      );
-
-      if (!data) {
-        this.logger.error('User already exist or invalid role');
-        throw new NotFoundException('User already exist or invalid role');
-      }
-
-      const generated_password = crypto
-        .randomBytes(12)
-        .toString('hex')
-        .slice(0, 7);
-
-      const password = bcrypt.hashSync(generated_password, 10);
-
-      const email = user.email
-        .split('@')[0]
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .toLowerCase();
-
-      // Remove spaces and special characters from the college name
-      const collegeName = user.school.college_name
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .toLowerCase();
-
-      const username =
-        `${email}.${collegeName}.${data.role.role}`.toLowerCase();
-
-      await this.adminRepository.createStaff(
-        user,
-        data.role,
-        username,
-        password
-      );
-
-      const loginUrl = `${process.env.FRONTEND_URL}`;
-
-      this.mailService.sendTemplateMail(
-        {
-          to: user.email,
-          subject: 'Your School Has Invited you to Join Audease!',
-        },
-        'invite-staff',
-        {
-          generated_username: username,
-          generated_password,
-          loginUrl,
+  async assignRole(userId: string, role: string, staffIdsToAssign: string[]) {
+    return await this.dataSource.transaction(
+      async transactionalEntityManager => {
+        if (!staffIdsToAssign || staffIdsToAssign.length === 0) {
+          this.logger.error('No staff IDs provided');
+          throw new BadRequestException('No staff IDs provided');
         }
-      );
 
-      await this.adminRepository.updateStaff(user.id, {
-        status: 'assigned',
-        username: username,
-      });
+        if (!role) {
+          this.logger.error('Role not found');
+          throw new NotFoundException('Role not found');
+        }
 
-      await this.logService.createLog({
-        userId,
-        message: `Assigned role ${role} to user ${user.email}`,
-        type: 'ASSIGN_ROLE',
-        method: 'POST',
-        route: '/roles',
-        logType: LogType.REUSABLE,
-      });
+        const roleData = await transactionalEntityManager.findOne(Roles, {
+          where: { id: role },
+        });
+        if (!roleData) {
+          this.logger.error('Role not found');
+          throw new NotFoundException('Role not found');
+        }
 
-      return { message: 'Role assigned successfully' };
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
+        for (const staffIdToAssign of staffIdsToAssign) {
+          const staff = await transactionalEntityManager.findOne(Staff, {
+            where: { id: staffIdToAssign },
+            relations: ['school'],
+          });
+          if (!staff) {
+            this.logger.error(`Staff with ID ${staffIdToAssign} not found`);
+            continue; // Skip this staff ID and proceed with others
+          }
+
+          const data = await this.adminRepository.updateUserRole(
+            transactionalEntityManager,
+            staff.id,
+            role,
+            staff.school
+          );
+
+          if (!data) {
+            this.logger.error(
+              `Error updating role for staff ID ${staffIdToAssign}`
+            );
+            continue; // Skip this staff ID and proceed with others
+          }
+
+          const generated_password = crypto
+            .randomBytes(12)
+            .toString('hex')
+            .slice(0, 7);
+          const password = bcrypt.hashSync(generated_password, 10);
+          const email = staff.email
+            .split('@')[0]
+            .replace(/[^a-zA-Z0-9]/g, '')
+            .toLowerCase();
+          const collegeName = staff.school.college_name
+            .replace(/[^a-zA-Z0-9]/g, '')
+            .toLowerCase();
+          const username =
+            `${email}.${collegeName}.${data.role.role}`.toLowerCase();
+
+          await this.adminRepository.createStaff(
+            transactionalEntityManager,
+            staff,
+            data.role,
+            username,
+            password
+          );
+
+          const loginUrl = `${process.env.FRONTEND_URL}`;
+
+          await this.mailService.sendTemplateMail(
+            {
+              to: staff.email,
+              subject: 'Your School Has Invited you to Join Audease!',
+            },
+            'invite-staff',
+            {
+              generated_username: username,
+              generated_password,
+              loginUrl,
+            }
+          );
+
+          await transactionalEntityManager.update(Staff, staff.id, {
+            status: 'assigned',
+            username: username,
+          });
+        }
+
+        return { message: 'Roles assigned successfully' };
+      }
+    );
   }
 
   async getRoles(userId: string) {
@@ -324,6 +323,7 @@ export class AdminService {
 
     return this.adminRepository.getPermissions();
   }
+
   async createStaff(userId: string, createStaffDto: CreateStaffDto) {
     try {
       const user = await this.userService.findOne(userId);
@@ -418,6 +418,17 @@ export class AdminService {
         await queryRunner.release();
       }
     }
+  }
+
+  async getOnboardingStatus(userId: string) {
+    const user = await this.userService.findOne(userId);
+
+    if (!user) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    return this.adminRepository.getOnboardingStatus(user.school.id);
   }
 
   async moveToTrash(userId: string, logId: string) {

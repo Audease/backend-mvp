@@ -369,8 +369,28 @@ export class AdminController {
     @Body() assignRoleDto: AssignRoleDto
   ) {
     try {
-      const { role, userId } = assignRoleDto;
-      return await this.adminService.assignRole(adminId, role, userId);
+      const { role, staffIds } = assignRoleDto;
+      return await this.adminService.assignRole(adminId, role, staffIds);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Get('/account-setup-status')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'View account setup status',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getAccountSetupStatus(@CurrentUserId() userId: string) {
+    try {
+      return await this.adminService.getOnboardingStatus(userId);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
