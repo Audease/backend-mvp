@@ -550,7 +550,7 @@ export class AdminRepository {
       }
 
       const staffEntities = emails.map(email =>
-        transactionalEntityManager.create(Staff, { email, school })
+        transactionalEntityManager.create(Staff, { email, school, onboarding_status: 'completed' })
       );
 
       return transactionalEntityManager.save(Staff, staffEntities);

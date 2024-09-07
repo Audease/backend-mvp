@@ -36,12 +36,12 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
+    // const recruiter = await this.recruiterRepository.findRecruiter(userId);
 
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
+    // if (!recruiter) {
+    //   this.logger.error('Recruiter not found for the user');
+    //   throw new NotFoundException('Recruiter not found for the user');
+    // }
 
     const learnerExist =
       await this.recruiterRepository.findLearner(createLearnerDto);
@@ -80,8 +80,8 @@ export class RecruiterService {
       level: createLearnerDto.level,
       awarding: createLearnerDto.awarding,
       chosen_course: createLearnerDto.chosen_course,
-      recruiter: recruiter,
-      school: recruiter.school,
+      user: loggedInUser,
+      school: loggedInUser.school,
       onboarding_status: 'completed',
     });
 
@@ -97,11 +97,11 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
+    // const recruiter = await this.recruiterRepository.findRecruiter(userId);
+    // if (!recruiter) {
+    //   this.logger.error('Recruiter not found for the user');
+    //   throw new NotFoundException('Recruiter not found for the user');
+    // }
 
     const learners = [];
     const parser = parse(file.buffer.toString(), {
@@ -153,8 +153,8 @@ export class RecruiterService {
         level: record.level,
         awarding: record.awarding,
         chosen_course: record.chosen_course,
-        recruiter: recruiter,
-        school: recruiter.school,
+        user: loggedInUser,
+        school: loggedInUser.school,
       });
 
       learners.push(learner);
@@ -174,17 +174,17 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
+    // const recruiter = await this.recruiterRepository.findRecruiter(userId);
+    // if (!recruiter) {
+    //   this.logger.error('Recruiter not found for the user');
+    //   throw new NotFoundException('Recruiter not found for the user');
+    // }
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('student')
-      .leftJoinAndSelect('student.recruiter', 'recruiter')
-      .where('recruiter.id = :recruiterId', {
-        recruiterId: recruiter.id,
+      .leftJoinAndSelect('student.users', 'users')
+      .where('users.id = :userId', {
+        recruiterId: loggedInUser.id,
       });
 
     if (search) {
@@ -214,15 +214,10 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
 
     const student = await this.recruiterRepository.findStudent(
       studentId,
-      recruiter
+      loggedInUser.id
     );
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
@@ -242,16 +237,10 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
 
     const student = await this.recruiterRepository.findStudent(
       studentId,
-      recruiter
+      loggedInUser.id
     );
 
     if (!student) {
@@ -277,16 +266,10 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
 
     const student = await this.learnerRepository.findOneBy({
       id: studentId,
-      recruiter: { id: recruiter.id },
+      user: { id: loggedInUser.id },
     });
 
     if (!student) {
@@ -311,18 +294,18 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
+    // const recruiter = await this.recruiterRepository.findRecruiter(userId);
 
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
+    // if (!recruiter) {
+    //   this.logger.error('Recruiter not found for the user');
+    //   throw new NotFoundException('Recruiter not found for the user');
+    // }
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('student')
-      .leftJoinAndSelect('student.recruiter', 'recruiter')
-      .where('recruiter.id = :recruiterId', {
-        recruiterId: recruiter.id,
+      .leftJoinAndSelect('student.users', 'users')
+      .where('users.id = :userId', {
+        recruiterId: loggedInUser.id,
       });
 
     if (funding) {

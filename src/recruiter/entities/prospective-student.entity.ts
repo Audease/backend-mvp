@@ -8,7 +8,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Recruiter } from './recruiter.entity';
+import { Users } from '../../users/entities/user.entity';
 
 @Entity('prospective_students')
 export class ProspectiveStudent {
@@ -60,9 +60,9 @@ export class ProspectiveStudent {
   @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })
   onboarding_status?: string;
 
-  @ManyToOne(() => Recruiter, recruiter => recruiter.applicants)
-  @JoinColumn({ name: 'recruiter_id' })
-  recruiter: Recruiter;
+  @ManyToOne(() => Users, user => user.prospectiveStudents)
+  @JoinColumn({ name: 'user_id' })
+  user?: Users;
 
   @ManyToOne(() => School, school => school.applicants)
   @JoinColumn({ name: 'school_id' })

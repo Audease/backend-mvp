@@ -380,6 +380,7 @@ export class AdminService {
         this.roleRepository.create({
           role: roleDto.role,
           school: user.school,
+          onboarding_status: 'completed',
         })
       );
 
@@ -396,14 +397,14 @@ export class AdminService {
 
       await queryRunner.manager.save(rolePermission);
 
-      await this.logService.createLog({
-        userId,
-        message: `Created role ${role.role}`,
-        type: 'CREATE_ROLE',
-        method: 'POST',
-        route: '/roles',
-        logType: LogType.REUSABLE,
-      });
+      // await this.logService.createLog({
+      //   userId,
+      //   message: `Created role ${role.role}`,
+      //   type: 'CREATE_ROLE',
+      //   method: 'POST',
+      //   route: '/roles',
+      //   logType: LogType.REUSABLE,
+      // });
 
       await queryRunner.commitTransaction();
       return { message: 'Role created successfully' };

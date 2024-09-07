@@ -1,5 +1,4 @@
 import { School } from '../../shared/entities/school.entity';
-import { Users } from '../../users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -10,7 +9,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ProspectiveStudent } from './prospective-student.entity';
+import { Users } from '../../users/entities/user.entity';
 
 @Entity('recruiters')
 export class Recruiter {
@@ -23,16 +22,14 @@ export class Recruiter {
   @Column('varchar', { length: 255, nullable: false })
   last_name: string;
 
-  @OneToOne(() => Users, user => user.recruiter)
-  @JoinColumn({ name: 'user_id' })
-  user: Users;
-
   @ManyToOne(() => School, school => school.recruiters)
   @JoinColumn({ name: 'school_id' })
   school: School;
 
-  @OneToMany(() => ProspectiveStudent, applicants => applicants.recruiter)
-  applicants: ProspectiveStudent[];
+  @OneToOne(() => Users, user => user.recruiter)
+  @JoinColumn({ name: 'user_id' })
+  user: Users;
+
 
   @CreateDateColumn({
     nullable: false,

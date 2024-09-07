@@ -10,10 +10,11 @@ import {
 } from 'typeorm';
 import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
-import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 import { Student } from '../../students/entities/student.entity';
 import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
 import { Document } from '../../shared/entities/document.entity';
+import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
+import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 
 @Entity('users')
 export class Users {
@@ -54,6 +55,9 @@ export class Users {
 
   @OneToOne(() => Recruiter, recruiter => recruiter.user)
   recruiter: Recruiter;
+
+  @OneToMany(() => ProspectiveStudent, prospectiveStudent => prospectiveStudent.user)
+  prospectiveStudents?: ProspectiveStudent[];
 
   @OneToOne(() => Student, student => student.user)
   student: Student;

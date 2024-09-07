@@ -13,7 +13,7 @@ import { RecruiterModule } from './recruiter/recruiter.module';
 import { roles } from './app.roles';
 import { AccessControlModule } from 'nest-access-control';
 import { CollegeVerificationModule } from './college-verification/college-verification.module';
-import { CreateAccountsModule } from './create-accounts/create-accounts.module';
+// import { CreateAccountsModule } from './create-accounts/create-accounts.module';
 import { FinancialAidOfficerModule } from './financial-aid-officer/financial-aid-officer.module';
 import { StudentsModule } from './students/students.module';
 import { AccessorModule } from './accessor/accessor.module';
@@ -42,7 +42,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     UsersModule,
     AuthModule,
     RecruiterModule,
-    CreateAccountsModule,
+    // CreateAccountsModule,
     CollegeVerificationModule,
     FinancialAidOfficerModule,
     StudentsModule,
