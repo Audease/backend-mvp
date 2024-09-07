@@ -21,6 +21,7 @@ import { BksdModule } from './bksd/bksd.module';
 import { AdminModule } from './admin/admin.module';
 import { InductorModule } from './inductor/inductor.module';
 import { AuditorModule } from './auditor/auditor.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { AuditorModule } from './auditor/auditor.module';
     BksdModule,
     InductorModule,
     AuditorModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: 'APP_GUARD', useClass: ThrottlerGuard }],

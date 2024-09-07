@@ -5,7 +5,12 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint/eslint-plugin', '@typescript-eslint', 'prettier', 'import'],
+  plugins: [
+    '@typescript-eslint/eslint-plugin',
+    '@typescript-eslint',
+    'prettier',
+    'import',
+  ],
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
@@ -25,6 +30,12 @@ module.exports = {
     'import/no-unresolved': 'error',
     'import/no-absolute-path': 'error',
     'import/no-useless-path-segments': 'error',
+    'prettier/prettier': [
+      'error',
+      {
+        endOfLine: 'auto',
+      },
+    ],
   },
   settings: {
     'import/resolver': {
@@ -34,5 +45,4 @@ module.exports = {
       },
     },
   },
-
 };
