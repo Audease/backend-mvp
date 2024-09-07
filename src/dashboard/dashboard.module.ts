@@ -3,11 +3,12 @@ import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from '../users/entities/user.entity';
-import { UsersModule } from '../users/users.module';
+import { UserService } from '../users/users.service';
 import { InductorDashboard } from './entity/inductor-dashboard.entity';
 import { AccessorDashboard } from './entity/acessor-dashboard.entity';
 import { BKSDDashboard } from './entity/bksd-dashboard.entity';
 import { RecruiterDashboard } from './entity/recruiter-dashboard.entity';
+import { DashboardRepository } from './dashboard.repository';
 
 @Module({
   imports: [
@@ -18,9 +19,8 @@ import { RecruiterDashboard } from './entity/recruiter-dashboard.entity';
       BKSDDashboard,
       RecruiterDashboard,
     ]),
-    UsersModule,
   ],
   controllers: [DashboardController],
-  providers: [DashboardService],
+  providers: [DashboardService, DashboardRepository, UserService],
 })
 export class DashboardModule {}
