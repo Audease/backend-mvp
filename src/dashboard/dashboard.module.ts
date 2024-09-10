@@ -11,6 +11,7 @@ import { RecruiterDashboard } from './entity/recruiter-dashboard.entity';
 import { DashboardRepository } from './dashboard.repository';
 import { School } from '../shared/entities/school.entity';
 import { UsersModule } from '../users/users.module';
+import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 
 @Module({
   imports: [
@@ -20,9 +21,10 @@ import { UsersModule } from '../users/users.module';
       AccessorDashboard,
       BKSDDashboard,
       RecruiterDashboard,
-      School
+      School,
+      ProspectiveStudent,
     ]),
-    UsersModule
+    UsersModule,
   ],
   controllers: [DashboardController],
   providers: [DashboardService, DashboardRepository, UserService],

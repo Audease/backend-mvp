@@ -18,6 +18,7 @@ import { AppLogger } from '../entities/logger.entity';
 import { Staff } from '../entities/staff.entity';
 import { Inductor } from '../../inductor/entities/inductor.entity';
 import { LogFolder } from '../entities/folder.entity';
+import { Workflow } from '../entities/workflow.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -47,6 +48,7 @@ export class ApiConfigService {
         LogFolder,
         Inductor,
         Staff,
+        Workflow,
       ],
       migrationsRun: true,
       username,

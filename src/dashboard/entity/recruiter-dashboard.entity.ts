@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('prospective_students')
+@Entity('recruiter_dashboard')
 export class RecruiterDashboard {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -19,6 +19,7 @@ import { Permissions } from '../shared/entities/permission.entity';
 import { RolePermission } from '../shared/entities/rolepermission.entity';
 import { LogFolder } from '../shared/entities/folder.entity';
 import { Staff } from '../shared/entities/staff.entity';
+import { Workflow } from '../shared/entities/workflow.entity';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { Staff } from '../shared/entities/staff.entity';
       RolePermission,
       LogFolder,
       Staff,
+      Workflow,
     ]),
   ],
   controllers: [AdminController],

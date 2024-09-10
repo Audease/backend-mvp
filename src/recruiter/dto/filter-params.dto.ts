@@ -16,10 +16,10 @@ export class FilterStudentsDto {
   @IsOptional()
   @ApiPropertyOptional()
   @Transform(({ value }) => parseInt(value, 10))
-  page?: number;
+  page?: number = 1;
 
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @ApiPropertyOptional()
-  limit?: number ;
+  limit?: number = 10;
 }

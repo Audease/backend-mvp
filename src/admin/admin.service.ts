@@ -10,11 +10,9 @@ import {
 import { CloudinaryService } from '../shared/services/cloudinary.service';
 import { Logger } from '@nestjs/common';
 import { UserService } from '../users/users.service';
-import { LogService } from '../shared/services/logger.service';
-import { LogType } from '../utils/enum/log_type';
 import { MailService } from '../shared/services/mail.service';
 import { RoleDto } from './dto/create-role.dto';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { QueryRunner } from 'typeorm';
 import { Staff } from '../shared/entities/staff.entity';
 import * as crypto from 'crypto';
@@ -24,6 +22,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RolePermission } from '../shared/entities/rolepermission.entity';
 import { Permissions } from '../shared/entities/permission.entity';
 import { CreateStaffDto } from './dto/create-staff.dto';
+import { CreateWorflowDto } from './dto/workflow.dto';
 
 @Injectable()
 export class AdminService {
@@ -33,7 +32,6 @@ export class AdminService {
     private readonly authRepository: AuthRepository,
     private readonly cloudinaryService: CloudinaryService,
     private readonly userService: UserService,
-    private readonly logService: LogService,
     private readonly mailService: MailService,
     private readonly dataSource: DataSource,
     @InjectRepository(Roles)
@@ -59,24 +57,6 @@ export class AdminService {
     );
   }
 
-  async getStudentById(userId: string, studentId: string) {
-    try {
-      const result = this.adminRepository.getStudentById(studentId);
-      await this.logService.createLog({
-        userId: userId, // Assuming student has a userId
-        message: `Retrieved the details of student ${(await result).first_name}`,
-        type: 'GET_STUDENT',
-        method: 'GET',
-        route: `/students/${studentId}`,
-        logType: LogType.ONE_TIME,
-      });
-      return result;
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
   async uploadDocument(userId: string, file: Express.Multer.File) {
     try {
       const user = await this.userService.findOne(userId);
@@ -92,17 +72,8 @@ export class AdminService {
         cloudinaryUrl: upload.secure_url,
         fileName: file.originalname,
         fileType: file.mimetype,
+        onboarding_status: 'completed',
       });
-
-      await this.logService.createLog({
-        userId,
-        message: `Uploaded document ${file.originalname}`,
-        type: 'UPLOAD_DOCUMENT',
-        method: 'POST',
-        route: '/documents',
-        logType: LogType.REUSABLE,
-      });
-
       return {
         message: 'Document uploaded successfully',
         document_link: document.cloudinaryUrl,
@@ -127,10 +98,6 @@ export class AdminService {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
     }
-  }
-
-  async getLogs(userId: string, page: number, limit: number) {
-    return this.logService.getPaginatedLogs(userId, page, limit);
   }
 
   async getAdminDetails(userId: string) {
@@ -367,7 +334,6 @@ export class AdminService {
       });
 
       if (existingRole) {
-        // If the role already exists, return a message or throw an error
         this.logger.error('Role already exists');
         throw new ConflictException('Role already exists');
       }
@@ -384,19 +350,22 @@ export class AdminService {
         })
       );
 
-      const permission = await this.permissionRepository.findOne({
-        where: {
-          id: roleDto.permission_id,
-        },
-      });
+      // Fetch all permissions based on the provided permission_ids
+      const permissions = await this.permissionRepository.findByIds(
+        roleDto.permission_ids
+      );
 
-      const rolePermission = this.rolepermissionRepoistory.create({
-        role: role,
-        permission: permission,
-      });
+      // Create and save role permissions
+      const rolePermissions = permissions.map(permission =>
+        this.rolepermissionRepoistory.create({
+          role: role,
+          permission: permission,
+        })
+      );
 
-      await queryRunner.manager.save(rolePermission);
+      await queryRunner.manager.save(rolePermissions);
 
+      // Log creation (commented out in the original code)
       // await this.logService.createLog({
       //   userId,
       //   message: `Created role ${role.role}`,
@@ -436,15 +405,6 @@ export class AdminService {
     try {
       this.adminRepository.moveToTrash(logId);
 
-      await this.logService.createLog({
-        userId: userId,
-        message: `Moved log to trash`,
-        type: 'MOVE_TO_TRASH',
-        method: 'POST',
-        route: '/logs',
-        logType: LogType.REUSABLE,
-      });
-
       return { message: 'Log moved to trash successfully' };
     } catch (error) {
       this.logger.error(error.message);
@@ -462,15 +422,6 @@ export class AdminService {
       }
 
       await this.adminRepository.createFolder(name, userId);
-
-      await this.logService.createLog({
-        userId,
-        message: `Created folder ${name}`,
-        type: 'CREATE_FOLDER',
-        method: 'POST',
-        route: '/folders',
-        logType: LogType.REUSABLE,
-      });
 
       return { message: 'Folder created successfully' };
     } catch (error) {
@@ -504,50 +455,6 @@ export class AdminService {
         throw new NotFoundException('User not found');
       }
       return this.adminRepository.getLogsByFolder(folderId, page, limit);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  async moveFolder(userId: string, folderId: string, logId: string[]) {
-    try {
-      this.adminRepository.moveToFolder(logId, folderId);
-
-      await this.logService.createLog({
-        userId,
-        message: `Moved log to folder`,
-        type: 'MOVE_FOLDER',
-        method: 'POST',
-        route: '/folders',
-        logType: LogType.REUSABLE,
-      });
-
-      return { message: 'Log moved to folder successfully' };
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  // Duplicate log
-  async duplicateLog(logId: string) {
-    try {
-      const log = await this.adminRepository.duplicateLog(logId);
-
-      return { message: 'Log duplicated successfully', log };
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  // Edit log
-  async editLog(logId: string, message: string) {
-    try {
-      this.adminRepository.editLog(logId, message);
-
-      return { message: 'Log edited successfully' };
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
@@ -593,5 +500,87 @@ export class AdminService {
     }
 
     return this.adminRepository.getStaffBySchoolId(getSchool.id, page, limit);
+  }
+
+  async createWorkflow(userId: string, data: CreateWorflowDto) {
+    const user = await this.userService.findOne(userId);
+
+    if (!user) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const { name, role } = data;
+    try {
+      const foundRoles = await this.roleRepository.findBy({
+        role: In(role),
+      });
+
+      if (foundRoles.length !== role.length) {
+        this.logger.error('One or more roles not found');
+        throw new NotFoundException('One or more roles not found');
+      }
+
+      await this.adminRepository.createWorkflow(name, foundRoles, user.school);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async getWorkflows(userId: string) {
+    const user = await this.userService.findOne(userId);
+
+    if (!user) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    return this.adminRepository.getWorkflowsBySchoolId(user.school.id);
+  }
+
+  async deleteUser(userId: string, staffId: string) {
+    const user = await this.userService.findOne(userId);
+
+    if (!user) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    try {
+      await this.adminRepository.deleteUser(staffId, user.school.id);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // Get all staffs
+  async getStaffsByPermission(
+    userId: string,
+    permission: string,
+    page: number,
+    limit: number
+  ) {
+    const user = await this.userService.findOne(userId);
+
+    if (!user) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const permission_name =
+      this.adminRepository.getPermissionsByRoleId(permission);
+
+    if (!permission_name) {
+      this.logger.error('Permission not found');
+      throw new NotFoundException('Permission not found');
+    }
+
+    return this.adminRepository.getUsersByPermissionId(
+      (await permission_name).name,
+      page,
+      limit
+    );
   }
 }

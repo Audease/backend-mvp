@@ -9,11 +9,11 @@ import { Roles } from '../shared/entities/role.entity';
 import { Permissions } from '../shared/entities/permission.entity';
 import { School } from '../shared/entities/school.entity';
 import { RolePermission } from '../shared/entities/rolepermission.entity';
-import { RoleDto } from './dto/create-role.dto';
 import { LogFolder } from '../shared/entities/folder.entity';
 import { AppLogger } from '../shared/entities/logger.entity';
 import { Staff } from '../shared/entities/staff.entity';
 import { DataSource } from 'typeorm';
+import { Workflow } from '../shared/entities/workflow.entity';
 
 @Injectable()
 export class AdminRepository {
@@ -40,7 +40,9 @@ export class AdminRepository {
     @InjectRepository(AppLogger)
     private readonly appLoggerRepository: Repository<AppLogger>,
     @InjectRepository(Staff)
-    private readonly staffRepository: Repository<Staff>
+    private readonly staffRepository: Repository<Staff>,
+    @InjectRepository(Workflow)
+    private readonly workflowRepository: Repository<Workflow>
   ) {}
   //   Get a paginated list of students based on the school id
   // async getStudentsBySchoolId(schoolId: string, page: number, limit: number) {
@@ -375,7 +377,7 @@ export class AdminRepository {
       .groupBy('staff.onboarding_status')
       .orderBy('COUNT(*)', 'DESC')
       .limit(1)
-      .getRawMany();
+      .getRawOne();
 
     const prospectiveStudentStatus = await this.prospectiveStudentRepository
       .createQueryBuilder('prospective_student')
@@ -384,7 +386,7 @@ export class AdminRepository {
       .groupBy('prospective_student.onboarding_status')
       .orderBy('COUNT(*)', 'DESC')
       .limit(1)
-      .getRawMany();
+      .getRawOne();
 
     const roleStatus = await this.roleRepository
       .createQueryBuilder('roles')
@@ -393,41 +395,52 @@ export class AdminRepository {
       .groupBy('roles.onboarding_status')
       .orderBy('COUNT(*)', 'DESC')
       .limit(1)
-      .getRawMany();
+      .getRawOne();
+
+    const workflowStatus = await this.workflowRepository // Changed from roleRepository to workflowRepository
+      .createQueryBuilder('workflow')
+      .select(['workflow.onboarding_status'])
+      .where('workflow.school_id = :schoolId', { schoolId })
+      .groupBy('workflow.onboarding_status')
+      .orderBy('COUNT(*)', 'DESC')
+      .limit(1)
+      .getRawOne();
 
     return {
-      staff: staffStatus,
-      prospective_student: prospectiveStudentStatus,
-      role: roleStatus,
+      staff: staffStatus?.staff_onboarding_status || null,
+      prospective_student:
+        prospectiveStudentStatus?.prospective_student_onboarding_status || null,
+      role: roleStatus?.roles_onboarding_status || null,
+      workflow: workflowStatus?.workflow_onboarding_status || null,
     };
   }
 
-  async createRole(roleDto: RoleDto, schoolId: string) {
-    const { role, permission_id } = roleDto;
-    const school = await this.schoolRepository.findOne({
-      where: { id: schoolId },
-    });
-    const roles = this.roleRepository.create({ role, school });
+  // async createRole(roleDto: RoleDto, schoolId: string) {
+  //   const { role, permission_id } = roleDto;
+  //   const school = await this.schoolRepository.findOne({
+  //     where: { id: schoolId },
+  //   });
+  //   const roles = this.roleRepository.create({ role, school });
 
-    // Find the permissions
-    const permissions = await this.permissionRepository.findOne({
-      where: { id: permission_id },
-    });
+  //   // Find the permissions
+  //   const permissions = await this.permissionRepository.findOne({
+  //     where: { id: permission_id },
+  //   });
 
-    // Create the role-permission associations
-    const rolePermissions = this.rolepermissionRepoistory.create({
-      role: roles,
-      permission: permissions,
-    });
+  //   // Create the role-permission associations
+  //   const rolePermissions = this.rolepermissionRepoistory.create({
+  //     role: roles,
+  //     permission: permissions,
+  //   });
 
-    // Save the role
-    const result = await this.roleRepository.save(roles);
+  //   // Save the role
+  //   const result = await this.roleRepository.save(roles);
 
-    // Save the role-permission associations
-    await this.rolepermissionRepoistory.save(rolePermissions);
+  //   // Save the role-permission associations
+  //   await this.rolepermissionRepoistory.save(rolePermissions);
 
-    return result;
-  }
+  //   return result;
+  // }
 
   async findRole(roleName: string, schoolId: string): Promise<Roles | null> {
     return this.roleRepository.findOne({
@@ -550,7 +563,11 @@ export class AdminRepository {
       }
 
       const staffEntities = emails.map(email =>
-        transactionalEntityManager.create(Staff, { email, school, onboarding_status: 'completed' })
+        transactionalEntityManager.create(Staff, {
+          email,
+          school,
+          onboarding_status: 'completed',
+        })
       );
 
       return transactionalEntityManager.save(Staff, staffEntities);
@@ -558,11 +575,19 @@ export class AdminRepository {
   }
   // Get a paginated list of staff based on the school id
   async getStaffBySchoolId(schoolId: string, page: number, limit: number) {
-    return this.staffRepository.find({
+    const result = await this.staffRepository.find({
       where: { school: { id: schoolId } },
       take: limit,
       skip: (page - 1) * limit,
     });
+
+    return {
+      result,
+      total: result.length,
+      page,
+      limit,
+      totalPages: Math.ceil(result.length / limit),
+    };
   }
 
   // Get a specific staff based on the staff id
@@ -593,5 +618,87 @@ export class AdminRepository {
     });
 
     return this.documentRepository.save(newDocument);
+  }
+
+  // Create a workflow
+  async createWorkflow(name: string, roles: Roles[], school: School) {
+    const workflow = this.dataSource.manager.create(Workflow, {
+      name,
+      roles,
+      school,
+      onboarding_status: 'completed',
+    });
+
+    return this.dataSource.manager.save(workflow);
+  }
+
+  // Get a list of workflows based on the school id using query builder in order of creation
+  async getWorkflowsBySchoolId(schoolId: string) {
+    return this.dataSource.manager
+      .createQueryBuilder(Workflow, 'workflow')
+      .select(['workflow.id', 'workflow.name', 'workflow.description'])
+      .where('workflow.school_id = :schoolId', { schoolId })
+      .orderBy('workflow.created_at', 'ASC')
+      .getMany();
+  }
+
+  async deleteUser(userId: string, schoolId: string) {
+    return this.dataSource.manager.transaction(
+      async transactionalEntityManager => {
+        const user = await transactionalEntityManager.findOne(Users, {
+          where: { id: userId },
+        });
+
+        if (!user) {
+          throw new NotFoundException('User not found');
+        }
+
+        if (user.school.id !== schoolId) {
+          throw new NotFoundException('User not found');
+        }
+
+        return transactionalEntityManager.remove(user);
+      }
+    );
+  }
+
+  // Get users based on the permission id from the role-permission table which have have a relationship with the role and permission table and the role table has a relationship with the user table
+
+  async getUsersByPermissionId(
+    permission_name: string,
+    page: number,
+    pageSize: number
+  ) {
+    const skip = (page - 1) * pageSize;
+
+    const [users, total] = await this.dataSource.manager
+      .createQueryBuilder(Users, 'user')
+      .innerJoinAndSelect('user.role', 'role')
+      .innerJoinAndSelect('role.rolePermission', 'rolePermission')
+      .innerJoinAndSelect('rolePermission.permission', 'permission')
+      .where('permission.name = :permissionId', { permission_name })
+      .skip(skip)
+      .take(pageSize)
+      .getManyAndCount();
+
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
+  }
+
+  // Get permissions based on the role id from the role-permission table which have a relationship with the role and permission table
+  async getPermissionsByRoleId(role: string) {
+    return this.dataSource.manager
+      .createQueryBuilder(Permissions, 'permission')
+      .innerJoinAndSelect('permission.rolePermission', 'rolePermission')
+      .innerJoinAndSelect('rolePermission.role', 'role')
+      .where('role.id = :roleId', { role })
+      .getOne();
   }
 }

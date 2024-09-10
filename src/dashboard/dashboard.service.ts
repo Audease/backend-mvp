@@ -10,10 +10,10 @@ export class DashboardService {
     private readonly userService: UserService
   ) {}
 
-  async findRecruiters(userId: string, page: number, limit: number) {
-    const user = await this.userService.findOne(userId);
-    return this.dashboardRepository.findRecruiters(user.school.id, page, limit);
-  }
+  // async findRecruiters(userId: string, page: number, limit: number) {
+  //   const user = await this.userService.findOne(userId);
+  //   return this.dashboardRepository.findRecruiters(user.school.id, page, limit);
+  // }
 
   async findBKSDDs(userId: string, page: number, limit: number) {
     const user = await this.userService.findOne(userId);

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   //   BadRequestException,
   ConflictException,
   //   ForbiddenException,
@@ -35,13 +36,6 @@ export class RecruiterService {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
-
-    // const recruiter = await this.recruiterRepository.findRecruiter(userId);
-
-    // if (!recruiter) {
-    //   this.logger.error('Recruiter not found for the user');
-    //   throw new NotFoundException('Recruiter not found for the user');
-    // }
 
     const learnerExist =
       await this.recruiterRepository.findLearner(createLearnerDto);
@@ -85,9 +79,9 @@ export class RecruiterService {
       onboarding_status: 'completed',
     });
 
-    const newLearner = await this.learnerRepository.save(learner);
+    await this.learnerRepository.save(learner);
     this.logger.log('Learner created successfully');
-    return { message: 'You just created a learner', newLearner };
+    return { message: 'You just created a learner' };
   }
 
   async importLearners(userId: string, file: Express.Multer.File) {
@@ -166,7 +160,11 @@ export class RecruiterService {
   }
 
   async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
-    const { page, limit, search } = paginationParams;
+    const { page = 1, limit = 10, search } = paginationParams;
+
+    if (page < 1 || limit < 1) {
+      throw new BadRequestException('Page and limit must be positive numbers.');
+    }
 
     const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
@@ -174,22 +172,32 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    // const recruiter = await this.recruiterRepository.findRecruiter(userId);
-    // if (!recruiter) {
-    //   this.logger.error('Recruiter not found for the user');
-    //   throw new NotFoundException('Recruiter not found for the user');
-    // }
-
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .leftJoinAndSelect('student.users', 'users')
-      .where('users.id = :userId', {
-        recruiterId: loggedInUser.id,
-      });
+      .createQueryBuilder('prospective_student')
+      .innerJoin('prospective_student.user', 'user', 'user.id = :userId', {
+        userId: loggedInUser.id,
+      })
+      .select([
+        'prospective_student.id',
+        'prospective_student.first_name',
+        'prospective_student.last_name',
+        'prospective_student.middle_name',
+        'prospective_student.email',
+        'prospective_student.date_of_birth',
+        'prospective_student.mobile_number',
+        'prospective_student.NI_number',
+        'prospective_student.passport_number',
+        'prospective_student.home_address',
+        'prospective_student.funding',
+        'prospective_student.level',
+        'prospective_student.awarding',
+        'prospective_student.chosen_course',
+      ]);
 
+    // Search condition (if needed):
     if (search) {
       queryBuilder.andWhere(
-        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
+        'prospective_student.first_name LIKE :search OR prospective_student.last_name LIKE :search OR prospective_student.middle_name LIKE :search OR prospective_student.email LIKE :search',
         { search: `%${search}%` }
       );
     }
@@ -214,7 +222,6 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-
     const student = await this.recruiterRepository.findStudent(
       studentId,
       loggedInUser.id
@@ -236,7 +243,6 @@ export class RecruiterService {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
-
 
     const student = await this.recruiterRepository.findStudent(
       studentId,
@@ -265,7 +271,6 @@ export class RecruiterService {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
-
 
     const student = await this.learnerRepository.findOneBy({
       id: studentId,
@@ -302,26 +307,44 @@ export class RecruiterService {
     // }
 
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .leftJoinAndSelect('student.users', 'users')
-      .where('users.id = :userId', {
-        recruiterId: loggedInUser.id,
-      });
+      .createQueryBuilder('prospective_student')
+      .innerJoin('prospective_student.user', 'user', 'user.id = :userId')
+      .where('user.id = :userId', { userId: loggedInUser.id })
+      .select([
+        'prospective_student.id',
+        'prospective_student.first_name',
+        'prospective_student.last_name',
+        'prospective_student.middle_name',
+        'prospective_student.email',
+        'prospective_student.date_of_birth',
+        'prospective_student.mobile_number',
+        'prospective_student.NI_number',
+        'prospective_student.passport_number',
+        'prospective_student.home_address',
+        'prospective_student.funding',
+        'prospective_student.level',
+        'prospective_student.awarding',
+        'prospective_student.chosen_course',
+      ]);
 
+    // Apply filters
     if (funding) {
-      queryBuilder.andWhere('student.funding LIKE :funding', {
+      queryBuilder.andWhere('prospective_student.funding LIKE :funding', {
         funding: `%${funding}%`,
       });
     }
 
     if (chosen_course) {
-      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
-        chosen_course: `%${chosen_course}%`,
-      });
+      queryBuilder.andWhere(
+        'prospective_student.chosen_course LIKE :chosen_course',
+        {
+          chosen_course: `%${chosen_course}%`,
+        }
+      );
     }
 
+    // Pagination
     const total = await queryBuilder.getCount();
-
     const data = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)

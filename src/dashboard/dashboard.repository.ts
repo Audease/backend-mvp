@@ -7,6 +7,7 @@ import { AccessorDashboard } from './entity/acessor-dashboard.entity';
 import { InductorDashboard } from './entity/inductor-dashboard.entity';
 import { School } from '../shared/entities/school.entity';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
+import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 
 @Injectable()
 export class DashboardRepository {
@@ -20,71 +21,74 @@ export class DashboardRepository {
     @InjectRepository(InductorDashboard)
     private readonly inductorRepository: Repository<InductorDashboard>,
     @InjectRepository(School)
-    private readonly schoolRepository: Repository<School>
+    private readonly schoolRepository: Repository<School>,
+    @InjectRepository(ProspectiveStudent)
+    private readonly prospectiveStudentRepository: Repository<ProspectiveStudent>
   ) {}
 
-  //   Using a query builder find a paginated list of each type of dashboard using the school id and return the list and the count of the list,
+  // async findRecruiters(
+  //   schoolId: string,
+  //   page: number,
+  //   limit: number
+  // ): Promise<{ list: RecruiterDashboard[]; count: number }> {
+  //   const [list, count] = await this.recruiterRepository.findAndCount({
+  //     where: { school: { id: schoolId } },
+  //     take: limit,
+  //     skip: (page - 1) * limit,
+  //   });
 
-  async findRecruiters(
-    schoolId: string,
-    page: number,
-    limit: number
-  ): Promise<{ list: RecruiterDashboard[]; count: number }> {
-    const [list, count] = await this.recruiterRepository.findAndCount({
-      where: { school: { id: schoolId } },
-      take: limit,
-      skip: (page - 1) * limit,
-    });
+  //   return { list, count };
+  // }
 
-    return { list, count };
-  }
-
-  async findBKSDDs(
-    schoolId: string,
-    page: number,
-    limit: number
-  ): Promise<{ list: BKSDDashboard[]; count: number }> {
+  async findBKSDDs(schoolId: string, page: number, limit: number) {
     const [list, count] = await this.bksdRepository.findAndCount({
       where: { school: { id: schoolId } },
       take: limit,
       skip: (page - 1) * limit,
     });
 
-    return { list, count };
+    return {
+      list,
+      totalPage: Math.ceil(count / limit),
+      page,
+      limit,
+    };
   }
 
-  async findAccessors(
-    schoolId: string,
-    page: number,
-    limit: number
-  ): Promise<{ list: AccessorDashboard[]; count: number }> {
+  async findAccessors(schoolId: string, page: number, limit: number) {
     const [list, count] = await this.accessorRepository.findAndCount({
       where: { school: { id: schoolId } },
       take: limit,
       skip: (page - 1) * limit,
     });
 
-    return { list, count };
+    return {
+      list,
+      totalPage: Math.ceil(count / limit),
+      page,
+      limit,
+    };
   }
 
-  async findInductors(
-    schoolId: string,
-    page: number,
-    limit: number
-  ): Promise<{ list: InductorDashboard[]; count: number }> {
+  async findInductors(schoolId: string, page: number, limit: number) {
     const [list, count] = await this.inductorRepository.findAndCount({
       where: { school: { id: schoolId } },
       take: limit,
       skip: (page - 1) * limit,
     });
 
-    return { list, count };
+    return {
+      list,
+      totalPage: Math.ceil(count / limit),
+      page,
+      limit,
+    };
   }
 
   //   Write a method to that takes the id of a prospective student and then moves them to another entity type, for example, from a recruiter to an accessor.
 
   async moveStudent(id: string, from: string, to: string): Promise<boolean> {
-    const student = await this.recruiterRepository.findOne({
+    const student = await this.prospectiveStudentRepository.findOne({
       where: { id },
     });
 
@@ -108,6 +112,8 @@ export class DashboardRepository {
     if (!student) {
       return false;
     }
+
+    // Change application_status
 
     await this.accessorRepository.save(student);
     await this.bksdRepository.delete({ id });

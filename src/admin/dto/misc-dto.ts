@@ -55,8 +55,8 @@ export class AssignRoleDto {
 
   @IsString()
   @ApiProperty({
-    description: 'The name of the role to assign',
-    example: 'admin',
+    description: 'The id of the role to assign',
+    example: '1',
   })
   role: string;
 }

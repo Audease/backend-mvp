@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('prospective_students')
+@Entity('bksd_dashboard')
 export class BKSDDashboard {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -52,7 +52,7 @@ export class BKSDDashboard {
   @Column('varchar', { length: 255, nullable: true })
   chosen_course: string;
 
-  @Column('varchar', { length: 255, nullable: true, default: 'Not sent' })
+  @Column('varchar', { length: 255, nullable: true, default: 'Sent' })
   application_mail: string;
 
   @ManyToOne(() => School, school => school.applicants)

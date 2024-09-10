@@ -24,17 +24,17 @@ import { UseGuards } from '@nestjs/common';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @Get('recruiters')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, PermissionGuard)
-  @Permissions(Permission.ADD_STUDENT)
-  async findRecruiters(
-    @CurrentUserId() userId: string,
-    @Query('page') page: number,
-    @Query('limit') limit: number
-  ) {
-    return this.dashboardService.findRecruiters(userId, page, limit);
-  }
+  // @Get('recruiters')
+  // @HttpCode(HttpStatus.OK)
+  // @UseGuards(JwtAuthGuard, PermissionGuard)
+  // @Permissions(Permission.ADD_STUDENT)
+  // async findRecruiters(
+  //   @CurrentUserId() userId: string,
+  //   @Query('page') page: number,
+  //   @Query('limit') limit: number
+  // ) {
+  //   return this.dashboardService.findRecruiters(userId, page, limit);
+  // }
 
   @Get('bksds')
   @HttpCode(HttpStatus.OK)

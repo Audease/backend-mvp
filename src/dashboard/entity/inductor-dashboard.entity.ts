@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('prospective_students')
+@Entity('inductor_dashboard')
 export class InductorDashboard {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -52,7 +52,7 @@ export class InductorDashboard {
   @Column('varchar', { length: 255, nullable: true })
   chosen_course: string;
 
-  @Column('varchar', { length: 255, nullable: true, default: 'Not sent' })
+  @Column('varchar', { length: 255, nullable: true, default: 'Sent' })
   application_mail: string;
 
   @ManyToOne(() => School, school => school.applicants)
@@ -73,6 +73,6 @@ export class InductorDashboard {
   })
   updated_at: Date;
 
-  @Column('varchar', { length: 255, nullable: true, default: 'Pending' })
+  @Column('varchar', { length: 255, nullable: true, default: 'Completed' })
   application_status: string;
 }

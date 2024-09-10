@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { RolePermission } from './rolepermission.entity';
 import { School } from './school.entity';
+import { Workflow } from './workflow.entity';
 
 @Entity('roles')
 export class Roles {
@@ -27,6 +28,10 @@ export class Roles {
   @ManyToOne(() => School, school => school.roles)
   @JoinColumn({ name: 'school_id' })
   school: School;
+
+  @ManyToOne(() => Workflow, workflow => workflow.id)
+  @JoinColumn({ name: 'workflow_id' })
+  workflow: Workflow;
 
   @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })
   onboarding_status?: string;
