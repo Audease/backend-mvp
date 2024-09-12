@@ -23,6 +23,7 @@ import { RolePermission } from '../shared/entities/rolepermission.entity';
 import { Permissions } from '../shared/entities/permission.entity';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { CreateWorflowDto } from './dto/workflow.dto';
+import { AssignRoleStaffDto } from './dto/misc-dto';
 
 @Injectable()
 export class AdminService {
@@ -176,49 +177,44 @@ export class AdminService {
   }
 
   // Assign a role to a user
-  async assignRole(userId: string, role: string, staffIdsToAssign: string[]) {
+  async assignRoles(userId: string, assignments: AssignRoleStaffDto[]) {
     return await this.dataSource.transaction(
       async transactionalEntityManager => {
-        if (!staffIdsToAssign || staffIdsToAssign.length === 0) {
-          this.logger.error('No staff IDs provided');
-          throw new BadRequestException('No staff IDs provided');
+        if (!assignments || assignments.length === 0) {
+          this.logger.error('No assignments provided');
+          throw new BadRequestException('No assignments provided');
         }
 
-        if (!role) {
-          this.logger.error('Role not found');
-          throw new NotFoundException('Role not found');
-        }
+        for (const assignment of assignments) {
+          const { staffId, roleId } = assignment;
 
-        const roleData = await transactionalEntityManager.findOne(Roles, {
-          where: { id: role },
-        });
-        if (!roleData) {
-          this.logger.error('Role not found');
-          throw new NotFoundException('Role not found');
-        }
+          const roleData = await transactionalEntityManager.findOne(Roles, {
+            where: { id: roleId },
+          });
+          if (!roleData) {
+            this.logger.error(`Role with ID ${roleId} not found`);
+            continue; // Skip this assignment and proceed with others
+          }
 
-        for (const staffIdToAssign of staffIdsToAssign) {
           const staff = await transactionalEntityManager.findOne(Staff, {
-            where: { id: staffIdToAssign },
+            where: { id: staffId },
             relations: ['school'],
           });
           if (!staff) {
-            this.logger.error(`Staff with ID ${staffIdToAssign} not found`);
-            continue; // Skip this staff ID and proceed with others
+            this.logger.error(`Staff with ID ${staffId} not found`);
+            continue; // Skip this assignment and proceed with others
           }
 
           const data = await this.adminRepository.updateUserRole(
             transactionalEntityManager,
             staff.id,
-            role,
+            roleId,
             staff.school
           );
 
           if (!data) {
-            this.logger.error(
-              `Error updating role for staff ID ${staffIdToAssign}`
-            );
-            continue; // Skip this staff ID and proceed with others
+            this.logger.error(`Error updating role for staff ID ${staffId}`);
+            continue; // Skip this assignment and proceed with others
           }
 
           const generated_password = crypto

@@ -61,9 +61,7 @@ export class RecruiterService {
     const formattedDate = formatDate(createLearnerDto.date_of_birth);
 
     const learner = this.learnerRepository.create({
-      first_name: createLearnerDto.first_name,
-      last_name: createLearnerDto.last_name,
-      middle_name: createLearnerDto.middle_name,
+      name: createLearnerDto.name,
       date_of_birth: formattedDate,
       mobile_number: createLearnerDto.mobile_number,
       email: createLearnerDto.email,
@@ -134,9 +132,7 @@ export class RecruiterService {
       }
 
       const learner = this.learnerRepository.create({
-        first_name: record.first_name,
-        last_name: record.last_name,
-        middle_name: record.middle_name,
+        name: record.name,
         date_of_birth: formattedDate,
         mobile_number: record.mobile_number,
         email: record.email,

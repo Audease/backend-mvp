@@ -16,13 +16,7 @@ export class ProspectiveStudent {
   id: string;
 
   @Column('varchar', { length: 255, nullable: false })
-  first_name: string;
-
-  @Column('varchar', { length: 255, nullable: false })
-  last_name: string;
-
-  @Column('varchar', { length: 255, nullable: true })
-  middle_name: string;
+  name: string;
 
   @Column('date', { nullable: false })
   date_of_birth: string;

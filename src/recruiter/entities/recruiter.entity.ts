@@ -5,7 +5,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -29,7 +28,6 @@ export class Recruiter {
   @OneToOne(() => Users, user => user.recruiter)
   @JoinColumn({ name: 'user_id' })
   user: Users;
-
 
   @CreateDateColumn({
     nullable: false,

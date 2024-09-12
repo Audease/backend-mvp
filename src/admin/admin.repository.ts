@@ -176,49 +176,70 @@ export class AdminRepository {
     };
   }
 
-  // Get a paginated list of prospective students based on the school id
-  async getProspectiveStudentsBySchoolId(
-    schoolId: string,
-    page: number,
-    limit: number
-  ) {
-    const result = await this.prospectiveStudentRepository
-      .createQueryBuilder('prospective_student')
-      .select([
-        'prospective_student.id',
-        'prospective_student.first_name',
-        'prospective_student.last_name',
-        'prospective_student.middle_name',
-        'prospective_student.mobile_number',
-        'prospective_student.email',
-        'prospective_student.level',
-        'prospective_student.date_of_birth',
-        'prospective_student.created_at',
-      ])
-      .where('prospective_student.school_id = :schoolId', { schoolId })
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
+  // New
+  async getStaffBySchoolId(schoolId: string, page: number, limit: number) {
+    const [result, totalCount] = await Promise.all([
+      this.staffRepository.find({
+        where: { school: { id: schoolId } },
+        take: limit,
+        skip: (page - 1) * limit,
+      }),
+      this.staffRepository.count({
+        where: { school: { id: schoolId } },
+      }),
+    ]);
 
     return {
       result,
-      total: result.length,
+      total: totalCount,
       page,
       limit,
-      totalPages: Math.ceil(result.length / limit),
+      totalPages: Math.ceil(totalCount / limit),
     };
   }
 
-  // Get a specific prospective student based on the student id
+  // New 2
+  async getStaffsBySchoolId(schoolId: string, page: number, limit: number) {
+    const queryBuilder = this.staffRepository
+      .createQueryBuilder('staff')
+      .select([
+        'staff.id',
+        'staff.email',
+        'staff.status',
+        'staff.created_at',
+        'staff.updated_at',
+      ])
+      .where('staff.school_id = :school_id', { schoolId });
+
+    const [result, total] = await Promise.all([
+      queryBuilder
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany(),
+      queryBuilder.getCount(),
+    ]);
+
+    return {
+      result,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
   async getProspectiveStudentById(studentId: string) {
     return this.prospectiveStudentRepository.findOne({
       where: { id: studentId },
     });
   }
+
+  // Get a specific prospective student based on the student id
+
   async getUsersBySchoolId(schoolId: string, page: number, limit: number) {
     const excludedRoles = ['student', 'school_admin'];
 
-    const [users, total] = await this.userRepository
+    const queryBuilder = this.userRepository
       .createQueryBuilder('user')
       .leftJoin('user.role', 'role')
       .select([
@@ -230,10 +251,15 @@ export class AdminRepository {
         'role.role',
       ])
       .where('user.school_id = :schoolId', { schoolId })
-      .andWhere('role.role NOT IN (:...excludedRoles)', { excludedRoles })
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
+      .andWhere('role.role NOT IN (:...excludedRoles)', { excludedRoles });
+
+    const [users, total] = await Promise.all([
+      queryBuilder
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany(),
+      queryBuilder.getCount(),
+    ]);
 
     const flattenedUsers = users.map(user => ({
       id: user.id,
@@ -255,31 +281,6 @@ export class AdminRepository {
     };
   }
 
-  // Get staff by school id using query builder
-  async getStaffsBySchoolId(schoolId: string, page: number, limit: number) {
-    const result = await this.staffRepository
-      .createQueryBuilder('staff')
-      .select([
-        'staff.id',
-        'staff.email',
-        'staff.status',
-        'staff.created_at',
-        'staff.updated_at',
-      ])
-      .where('staff.school_id = :school_id', { schoolId })
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
-
-    return {
-      result,
-      total: result.length,
-      page,
-      limit,
-      totalPages: Math.ceil(result.length / limit),
-    };
-  }
-
   // Update prospective student
   async updateProspectiveStudent(
     studentId: string,
@@ -289,6 +290,47 @@ export class AdminRepository {
       studentId,
       prospectiveStudent
     );
+  }
+
+  async getProspectiveStudentsBySchoolId(
+    schoolId: string,
+    page: number,
+    limit: number
+  ) {
+    const queryBuilder = this.prospectiveStudentRepository
+      .createQueryBuilder('prospective_student')
+      .select([
+        'prospective_student.id',
+        'prospective_student.name',
+        'prospective_student.mobile_number',
+        'prospective_student.email',
+        'prospective_student.level',
+        'prospective_student.date_of_birth',
+        'prospective_student.home_address',
+        'prospective_student.funding',
+        'prospective_student.chosen_course',
+        'prospective_student.passport_number',
+        'prospective_student.NI_number',
+        'prospective_student.awarding',
+        'prospective_student.created_at',
+      ])
+      .where('prospective_student.school_id = :schoolId', { schoolId });
+
+    const [result, total] = await Promise.all([
+      queryBuilder
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany(),
+      queryBuilder.getCount(),
+    ]);
+
+    return {
+      result,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   // Update a user's role based on the user id and the role passed into the argument
@@ -573,23 +615,6 @@ export class AdminRepository {
       return transactionalEntityManager.save(Staff, staffEntities);
     });
   }
-  // Get a paginated list of staff based on the school id
-  async getStaffBySchoolId(schoolId: string, page: number, limit: number) {
-    const result = await this.staffRepository.find({
-      where: { school: { id: schoolId } },
-      take: limit,
-      skip: (page - 1) * limit,
-    });
-
-    return {
-      result,
-      total: result.length,
-      page,
-      limit,
-      totalPages: Math.ceil(result.length / limit),
-    };
-  }
-
   // Get a specific staff based on the staff id
   async getStaffById(staffId: string) {
     return this.staffRepository.findOne({

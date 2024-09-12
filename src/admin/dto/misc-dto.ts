@@ -9,6 +9,7 @@ import {
 } from 'class-validator';
 // import { Role } from '../../utils/enum/role';
 import { Type } from 'class-transformer';
+import { ValidateNested } from 'class-validator';
 
 export class param {
   @IsString()
@@ -43,20 +44,30 @@ export class EmailDto {
   email: string;
 }
 
-export class AssignRoleDto {
-  @IsArray()
-  @ArrayNotEmpty()
-  @IsString({ each: true })
+export class AssignRoleStaffDto {
+  @IsString()
   @ApiProperty({
-    description: 'List of staff IDs to assign the role',
-    example: ['1', '2', '3'],
+    description: 'The ID of the staff member',
+    example: '1',
   })
-  staffIds: string[];
+  staffId: string;
 
   @IsString()
   @ApiProperty({
-    description: 'The id of the role to assign',
+    description: 'The ID of the role to assign',
     example: '1',
   })
-  role: string;
+  roleId: string;
+}
+
+export class AssignRolesDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => AssignRoleStaffDto)
+  @ApiProperty({
+    description: 'Array of staff and role assignments',
+    type: [AssignRoleStaffDto],
+  })
+  assignments: AssignRoleStaffDto[];
 }

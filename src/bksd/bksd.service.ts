@@ -55,7 +55,7 @@ export class BksdService {
       const sanitizedCollegeName = accessorUsername.split('.')[1];
       const college_id = loggedInUser.school.id;
       let generated_username =
-        `${learner.first_name}.${sanitizedCollegeName}.student`.toLowerCase();
+        `${learner.name}.${sanitizedCollegeName}.student`.toLowerCase();
       const generated_password = crypto
         .randomBytes(12)
         .toString('hex')
@@ -69,7 +69,7 @@ export class BksdService {
       if (userExists) {
         const randomNumber = Math.floor(Math.random() * 1000);
         generated_username =
-          `${learner.first_name}${randomNumber}.${sanitizedCollegeName}.learner`.toLowerCase();
+          `${learner.name}${randomNumber}.${sanitizedCollegeName}.learner`.toLowerCase();
       }
 
       const emailExists = await this.userService.getUserByEmail(learner.email);
@@ -83,8 +83,8 @@ export class BksdService {
           password: await bcrypt.hashSync(generated_password, 10),
           email: learner.email,
           phone: learner.mobile_number,
-          first_name: learner.first_name,
-          last_name: learner.last_name,
+          first_name: learner.name.split(' ')[0],
+          last_name: learner.name.split(' ')[1],
           role,
         },
         college_id
@@ -99,7 +99,7 @@ export class BksdService {
       await this.studentRepository.save(student);
 
       const loginUrl = `${process.env.FRONTEND_URL}`;
-      const first_name = learner.first_name;
+      const first_name = learner.name.split(' ')[0];
 
       await this.mailService.sendTemplateMail(
         {

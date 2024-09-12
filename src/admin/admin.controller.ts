@@ -33,7 +33,7 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { RolesGuard } from '../auth/guards/role.guard';
-import { PaginationDto, EmailDto, AssignRoleDto } from './dto/misc-dto';
+import { PaginationDto, EmailDto, AssignRolesDto } from './dto/misc-dto';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { RoleDto } from './dto/create-role.dto';
@@ -285,11 +285,11 @@ export class AdminController {
     }
   }
 
-  @Post('/staffs/assign-role')
+  @Post('/staffs/assign-roles')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Assign a role to a staff',
+    summary: 'Assign roles to staff members',
   })
   @ApiNotFoundResponse({ description: 'Admin not found' })
   @ApiNotFoundResponse({ description: 'Staff not found' })
@@ -297,13 +297,15 @@ export class AdminController {
     description: 'Unauthorized',
   })
   @HttpCode(HttpStatus.OK)
-  async assignRole(
+  async assignRoles(
     @CurrentUserId() adminId: string,
-    @Body() assignRoleDto: AssignRoleDto
+    @Body() assignRolesDto: AssignRolesDto
   ) {
     try {
-      const { role, staffIds } = assignRoleDto;
-      return await this.adminService.assignRole(adminId, role, staffIds);
+      return await this.adminService.assignRoles(
+        adminId,
+        assignRolesDto.assignments
+      );
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
@@ -664,7 +666,7 @@ export class AdminController {
     }
   }
 
-  @Delete('/delete')
+  @Delete('/delete/:staffId')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
@@ -674,12 +676,18 @@ export class AdminController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
+  @ApiParam({
+    name: 'staffId',
+    type: String,
+    description: 'ID of the staff to be deleted',
+  })
   @HttpCode(HttpStatus.OK)
   async deleteStaff(
     @CurrentUserId() userId: string,
     @Param('staffId') staffId: string
   ) {
     try {
+      console.log(staffId);
       return await this.adminService.deleteUser(userId, staffId);
     } catch (error) {
       this.logger.error(error.message);

@@ -212,7 +212,7 @@ export class AccessorService {
     });
 
     const loginUrl = `${process.env.FRONTEND_URL}`;
-    const first_name = updatedStudent.first_name;
+    const first_name = updatedStudent.name.split(' ')[0];
 
     await this.mailService.sendTemplateMail(
       {
