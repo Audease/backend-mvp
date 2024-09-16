@@ -291,7 +291,6 @@ export class AdminController {
   @ApiOperation({
     summary: 'Assign roles to staff members',
   })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
   @ApiNotFoundResponse({ description: 'Staff not found' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
