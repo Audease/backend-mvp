@@ -1,6 +1,10 @@
 import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Student } from '../students/entities/student.entity';
 import { Users } from '../users/entities/user.entity';
 import { Document } from '../shared/entities/document.entity';
@@ -406,6 +410,10 @@ export class AdminRepository {
       school,
       role,
     });
+
+    if (!user) {
+      throw new ConflictException('User credentials already exist');
+    }
 
     return this.userRepository.save(user);
   }
