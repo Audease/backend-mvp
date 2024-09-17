@@ -367,15 +367,31 @@ export class AdminRepository {
     return await transactionalEntityManager.save(Users, user);
   }
 
+  // Create a method getRoles that uses a query builder to return the role and the permission name assigned to the role based on the school id from the role-permission table which has a relationship with the role and permission table
+
   async getRoles(schoolId: string) {
-    return this.roleRepository
-      .createQueryBuilder('roles')
-      .leftJoin('roles.school', 'school')
-      .select(['roles.id', 'roles.role', 'roles.description'])
-      .where('roles.school_id = :schoolId', {
-        schoolId,
-      })
-      .getMany();
+    const roles = await this.roleRepository.find({
+      where: { school: { id: schoolId } },
+      relations: ['rolePermission', 'rolePermission.permission'],
+    });
+
+    // Utility function to extract the date from a timestamp string
+    function extractDate(timestamp: string): string {
+      const date = new Date(timestamp);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // Get permissions for each role
+    return roles.map(role => ({
+      role: role.role,
+      permissions: role.rolePermission.map(rp => rp.permission.name),
+      createdDate: role.created_at
+        ? extractDate(role.created_at.toISOString())
+        : null,
+    }));
   }
 
   // Get a list of permissions
