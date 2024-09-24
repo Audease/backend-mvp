@@ -22,14 +22,18 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { AuditorService } from './auditor.service';
 import { FilterParam } from './dto/auditor-filter.dto';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+import { Permissions } from '../shared/decorators/permission.decorator';
+import { Permission } from '../utils/enum/permission';
 
 @ApiTags('AUDITOR DASHBOARD')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 @Controller('audit')
 export class AuditorController {
   private readonly logger = new Logger(AuditorController.name);
   constructor(private readonly auditorService: AuditorService) {}
   @Get('/students')
+  @Permissions(Permission.AUDIT)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
@@ -98,6 +102,7 @@ export class AuditorController {
   }
 
   @Get('/analytics/course-status-distribution')
+  @Permissions(Permission.AUDIT)
   @ApiOperation({
     summary:
       'Get Statistics of Course Status of all students on the Auditor dashboard',
@@ -127,6 +132,7 @@ export class AuditorController {
   }
 
   @Get('/analytics/total-registered-learners')
+  @Permissions(Permission.AUDIT)
   @ApiOperation({
     summary: 'Get Total Number of Learners on the Auditor dashboard',
   })
@@ -155,6 +161,7 @@ export class AuditorController {
   }
 
   @Get('/analytics/total-completed-learners')
+  @Permissions(Permission.AUDIT)
   @ApiOperation({
     summary: 'Get Total Number of Completed Learners  on the Auditor dashboard',
   })
@@ -183,6 +190,7 @@ export class AuditorController {
   }
 
   @Get('/analytics/total-not-completed-learners')
+  @Permissions(Permission.AUDIT)
   @ApiOperation({
     summary:
       'Get Total Number of Not Completed Learners  on the Auditor dashboard',
@@ -213,6 +221,7 @@ export class AuditorController {
   }
 
   @Get('/analytics/new-learners')
+  @Permissions(Permission.AUDIT)
   @ApiOperation({
     summary:
       'Get Number of New Learners For Lat 10 Days  on the Auditor dashboard',

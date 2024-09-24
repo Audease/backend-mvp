@@ -13,7 +13,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AccessorService } from './accessor.service';
-import { Roles } from '../shared/decorators/roles.decorator';
 import {
   ApiBearerAuth,
   ApiNotFoundResponse,
@@ -23,20 +22,21 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role } from '../utils/enum/role';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/role.guard';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+import { Permissions } from '../shared/decorators/permission.decorator';
+import { Permission } from '../utils/enum/permission';
 
 @ApiTags('ACCESSOR DASHBOARD')
 @Controller('accessor')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class AccessorController {
   private readonly logger = new Logger(AccessorController.name);
   constructor(private readonly accessorService: AccessorService) {}
   @Get('/students')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
@@ -90,7 +90,7 @@ export class AccessorController {
   }
 
   @Get('/students/:studentId')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',
@@ -131,7 +131,7 @@ export class AccessorController {
   }
 
   @Patch('approve-application/:studentId')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',
@@ -172,7 +172,7 @@ export class AccessorController {
   }
 
   @Patch('reject-application/:studentId')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',

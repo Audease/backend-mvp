@@ -23,22 +23,22 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/role.guard';
-import { Roles } from '../shared/decorators/roles.decorator';
-import { Role } from '../utils/enum/role';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 import { FilterDto } from './dto/bksd-filter.dto';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+import { Permissions } from '../shared/decorators/permission.decorator';
+import { Permission } from '../utils/enum/permission';
 
 @ApiTags('BKSD DASHBOARD')
 @Controller('bksd')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class BksdController {
   private readonly logger = new Logger(BksdController.name);
   constructor(private readonly bksdService: BksdService) {}
 
   @Post('/send-mail/:learnerId')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiParam({
     name: 'learnerId',
@@ -77,7 +77,7 @@ export class BksdController {
   }
 
   @Get('/students')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
@@ -128,7 +128,7 @@ export class BksdController {
   }
 
   @Get('students/filters')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'funding',
@@ -192,7 +192,7 @@ export class BksdController {
   }
 
   @Get('/students/:studentId')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',
