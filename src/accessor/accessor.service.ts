@@ -28,12 +28,7 @@ export class AccessorService {
       throw new NotFoundException('User not found');
     }
 
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
-    }
+    const accessor = await this.bksdRepository.findUser(userId);
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('student')
@@ -86,18 +81,7 @@ export class AccessorService {
   }
 
   async getStudent(userId: string, studentId: string) {
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
-    }
+    const accessor = await this.bksdRepository.findUser(userId);
 
     const student = await this.learnerRepository.findOne({
       where: {
@@ -116,18 +100,7 @@ export class AccessorService {
   }
 
   async approveApplication(userId: string, studentId: string) {
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
-    }
+    const accessor = await this.bksdRepository.findUser(userId);
 
     const learner = await this.learnerRepository.findOne({
       where: {
@@ -167,13 +140,7 @@ export class AccessorService {
   }
 
   async rejectApplication(userId: string, studentId: string) {
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const accessor = await this.bksdRepository.findAccessor(userId);
+    const accessor = await this.bksdRepository.findUser(userId);
 
     if (!accessor) {
       this.logger.error('Accessor not found for the user');

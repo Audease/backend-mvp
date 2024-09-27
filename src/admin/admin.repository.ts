@@ -386,6 +386,7 @@ export class AdminRepository {
 
     // Get permissions for each role
     return roles.map(role => ({
+      id: role.id,
       role: role.role,
       permissions: role.rolePermission.map(rp => rp.permission.name),
       createdDate: role.created_at
