@@ -13,6 +13,8 @@ import {
   UseInterceptors,
   Body,
   Delete,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Role } from '../utils/enum/role';
 import { AdminService } from './admin.service';
@@ -31,6 +33,7 @@ import {
   ApiOperation,
   ApiInternalServerErrorResponse,
   ApiConsumes,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { RolesGuard } from '../auth/guards/role.guard';
 import { PaginationDto, EmailDto, AssignRolesDto } from './dto/misc-dto';
@@ -662,6 +665,61 @@ export class AdminController {
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Post('/persona-staff')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'View all persona staffs in the school',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        permission: { type: 'string' },
+        page: { type: 'number', default: 1 },
+        limit: { type: 'number', default: 10 },
+      },
+      required: ['permission'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved staff list',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Admin or staffs not found' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  @HttpCode(HttpStatus.OK)
+  async getPersonaStaffs(
+    @CurrentUserId() userId: string,
+    @Body() body: { permission: string; page?: number; limit?: number }
+  ) {
+    try {
+      const { permission, page = 1, limit = 10 } = body;
+
+      if (!permission) {
+        throw new BadRequestException('Permission is required');
+      }
+
+      return await this.adminService.getStaffsByPermission(
+        userId,
+        permission,
+        page,
+        limit
+      );
+    } catch (error) {
+      this.logger.error(`Error in getPersonaStaffs: ${error.message}`);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException('An unexpected error occurred');
     }
   }
 

@@ -8,8 +8,7 @@ import { Repository } from 'typeorm';
 export class AuditorRepository {
   constructor(
     @InjectRepository(Users)
-    private readonly userRepository: Repository<Users>,
-   
+    private readonly userRepository: Repository<Users>
   ) {}
 
   async findUser(userId: string) {
@@ -18,6 +17,4 @@ export class AuditorRepository {
       relations: ['school'],
     });
   }
-
-
 }

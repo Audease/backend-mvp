@@ -110,8 +110,7 @@ export class AdminRepository {
     // Flatten the structure
     return {
       id: result.id,
-      first_name: result.first_name,
-      last_name: result.last_name,
+      name: result.name,
       date_of_birth: result.date_of_birth,
       address: result.home_address,
       email: result.user?.email,
@@ -150,8 +149,7 @@ export class AdminRepository {
     // Flatten the structure
     return result.map(student => ({
       id: student.id,
-      first_name: student.first_name,
-      last_name: student.last_name,
+      name: student.name,
       date_of_birth: student.date_of_birth,
       address: student.home_address,
       email: student.user?.email,
@@ -726,13 +724,27 @@ export class AdminRepository {
       .innerJoinAndSelect('user.role', 'role')
       .innerJoinAndSelect('role.rolePermission', 'rolePermission')
       .innerJoinAndSelect('rolePermission.permission', 'permission')
-      .where('permission.name = :permissionId', { permission_name })
+      .where('permission.name = :permission_name', { permission_name })
+      .select([
+        'user.id',
+        'user.first_name',
+        'user.last_name',
+        'user.email',
+        'user.username',
+      ])
       .skip(skip)
       .take(pageSize)
       .getManyAndCount();
 
+    const flattenedUsers = users.map(user => ({
+      id: user.id,
+      name: `${user.first_name} ${user.last_name}`,
+      email: user.email,
+      username: user.username,
+    }));
+
     return {
-      data: users,
+      data: flattenedUsers,
       meta: {
         total,
         page,
@@ -743,12 +755,12 @@ export class AdminRepository {
   }
 
   // Get permissions based on the role id from the role-permission table which have a relationship with the role and permission table
-  async getPermissionsByRoleId(role: string) {
+  async getPermissionsByRoleId(roleId: string) {
     return this.dataSource.manager
       .createQueryBuilder(Permissions, 'permission')
       .innerJoinAndSelect('permission.rolePermission', 'rolePermission')
       .innerJoinAndSelect('rolePermission.role', 'role')
-      .where('role.id = :roleId', { role })
+      .where('role.id = :roleId', { roleId })
       .getOne();
   }
 }

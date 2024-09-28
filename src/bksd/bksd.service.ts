@@ -39,16 +39,9 @@ export class BksdService {
       throw new NotFoundException('User not found');
     }
 
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
-    }
-
     const learner = await this.bksdRepository.findLearner(
       applicantId,
-      accessor
+      loggedInUser
     );
     if (learner) {
       const accessorUsername = loggedInUser.username;
@@ -91,10 +84,12 @@ export class BksdService {
       );
 
       const student = this.studentRepository.create({
-        ...learner,
         user,
+        ...learner,
         school: loggedInUser.school,
       });
+
+      console.log('student', student);
 
       await this.studentRepository.save(student);
 
@@ -132,13 +127,7 @@ export class BksdService {
   async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
     const { page, limit, search } = paginationParams;
 
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const accessor = await this.bksdRepository.findAccessor(userId);
+    const accessor = await this.bksdRepository.findUser(userId);
 
     if (!accessor) {
       this.logger.error('Accessor not found for the user');

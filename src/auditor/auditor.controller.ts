@@ -102,6 +102,7 @@ export class AuditorController {
   }
 
   @Get('/analytics/course-status-distribution')
+  @ApiBearerAuth()
   @Permissions(Permission.AUDIT)
   @ApiOperation({
     summary:
@@ -132,6 +133,7 @@ export class AuditorController {
   }
 
   @Get('/analytics/total-registered-learners')
+  @ApiBearerAuth()
   @Permissions(Permission.AUDIT)
   @ApiOperation({
     summary: 'Get Total Number of Learners on the Auditor dashboard',
@@ -161,6 +163,7 @@ export class AuditorController {
   }
 
   @Get('/analytics/total-completed-learners')
+  @ApiBearerAuth()
   @Permissions(Permission.AUDIT)
   @ApiOperation({
     summary: 'Get Total Number of Completed Learners  on the Auditor dashboard',
@@ -190,6 +193,7 @@ export class AuditorController {
   }
 
   @Get('/analytics/total-not-completed-learners')
+  @ApiBearerAuth()
   @Permissions(Permission.AUDIT)
   @ApiOperation({
     summary:
@@ -221,6 +225,7 @@ export class AuditorController {
   }
 
   @Get('/analytics/new-learners')
+  @ApiBearerAuth()
   @Permissions(Permission.AUDIT)
   @ApiOperation({
     summary:

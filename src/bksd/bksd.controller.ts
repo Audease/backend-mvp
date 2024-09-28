@@ -38,7 +38,7 @@ export class BksdController {
   constructor(private readonly bksdService: BksdService) {}
 
   @Post('/send-mail/:learnerId')
-  @Permissions(Permission.APPROVAL)
+  @Permissions(Permission.APPLICATION)
   @ApiBearerAuth()
   @ApiParam({
     name: 'learnerId',
@@ -77,7 +77,7 @@ export class BksdController {
   }
 
   @Get('/students')
-  @Permissions(Permission.APPROVAL)
+  @Permissions(Permission.APPLICATION)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
@@ -128,7 +128,7 @@ export class BksdController {
   }
 
   @Get('students/filters')
-  @Permissions(Permission.APPROVAL)
+  @Permissions(Permission.APPLICATION)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'funding',
@@ -192,7 +192,7 @@ export class BksdController {
   }
 
   @Get('/students/:studentId')
-  @Permissions(Permission.APPROVAL)
+  @Permissions(Permission.APPLICATION)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',

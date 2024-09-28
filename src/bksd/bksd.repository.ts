@@ -34,7 +34,7 @@ export class BksdRepository {
   async findLearner(applicantId: string, accessor) {
     return await this.learnerRepository.findOne({
       where: { id: applicantId, school: { id: accessor.school.id } },
-      relations: ['school', 'recruiter'],
+      relations: ['school'],
     });
   }
 }

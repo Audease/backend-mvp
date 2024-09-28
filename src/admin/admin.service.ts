@@ -565,18 +565,7 @@ export class AdminService {
       throw new NotFoundException('User not found');
     }
 
-    const permission_name =
-      this.adminRepository.getPermissionsByRoleId(permission);
-
-    if (!permission_name) {
-      this.logger.error('Permission not found');
-      throw new NotFoundException('Permission not found');
-    }
-
-    return this.adminRepository.getUsersByPermissionId(
-      (await permission_name).name,
-      page,
-      limit
-    );
+    // This method should now directly use the permission string
+    return this.adminRepository.getUsersByPermissionId(permission, page, limit);
   }
 }
