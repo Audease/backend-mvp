@@ -161,18 +161,7 @@ export class BksdService {
   }
 
   async getStudent(userId: string, studentId: string) {
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
-    }
+    const accessor = await this.bksdRepository.findUser(userId);
 
     const student = await this.bksdRepository.findLearner(studentId, accessor);
 
@@ -186,18 +175,7 @@ export class BksdService {
   async getFilteredStudents(userId: string, filterDto: FilterDto) {
     const { funding, chosen_course, application_mail, page, limit } = filterDto;
 
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
-    }
+    const accessor = await this.bksdRepository.findUser(userId);
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('student')

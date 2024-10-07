@@ -17,18 +17,7 @@ export class InductorService {
     const { funding, chosen_course, application_status, page, limit, search } =
       filters;
 
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
-    }
+    const accessor = await this.bksdRepository.findUser(userId);
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('student')
@@ -86,12 +75,7 @@ export class InductorService {
       throw new NotFoundException('User not found');
     }
 
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
-    }
+    const accessor = await this.bksdRepository.findUser(userId);
 
     const student = await this.learnerRepository.findOne({
       where: {
@@ -99,7 +83,7 @@ export class InductorService {
         application_status: 'Approved',
         school: { id: accessor.school.id },
       },
-      relations: ['school', 'recruiter'],
+      relations: ['school'],
     });
 
     if (!student) {

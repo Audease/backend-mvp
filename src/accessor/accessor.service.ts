@@ -89,7 +89,7 @@ export class AccessorService {
         application_mail: 'Sent',
         school: { id: accessor.school.id },
       },
-      relations: ['school', 'recruiter'],
+      relations: ['school'],
     });
 
     if (!student) {
@@ -108,7 +108,7 @@ export class AccessorService {
         application_mail: 'Sent',
         school: { id: accessor.school.id },
       },
-      relations: ['school', 'recruiter'],
+      relations: ['school'],
     });
 
     if (!learner) {
@@ -130,7 +130,7 @@ export class AccessorService {
 
     const updatedStudent = await this.learnerRepository.findOne({
       where: { id: learner.id },
-      relations: ['school', 'recruiter'],
+      relations: ['school'],
     });
 
     return {
@@ -153,7 +153,7 @@ export class AccessorService {
         application_mail: 'Sent',
         school: { id: accessor.school.id },
       },
-      relations: ['school', 'recruiter'],
+      relations: ['school'],
     });
 
     if (!learner) {
@@ -175,7 +175,7 @@ export class AccessorService {
 
     const updatedStudent = await this.learnerRepository.findOne({
       where: { id: learner.id },
-      relations: ['school', 'recruiter'],
+      relations: ['school'],
     });
 
     const loginUrl = `${process.env.FRONTEND_URL}`;
