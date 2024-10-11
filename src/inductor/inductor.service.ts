@@ -13,12 +13,33 @@ export class InductorService {
     private readonly learnerRepository: Repository<ProspectiveStudent>,
     private readonly bksdRepository: BksdRepository
   ) {}
-  async getAllStudents(userId: string, filters: FilterDto) {
-    const { funding, chosen_course, application_status, page, limit, search } =
-      filters;
-
+  async getAllStudents(userId: string, page: number, limit: number) {
     const accessor = await this.bksdRepository.findUser(userId);
+    const queryBuilder = this.learnerRepository
+      .createQueryBuilder('student')
+      .where('student.school = :schoolId', {
+        schoolId: accessor.school.id,
+      })
+      .andWhere('student.application_status = :application_status', {
+        application_status: 'Approved',
+      });
 
+    const [results, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: results || [],
+      total,
+      page,
+      lastPage: Math.ceil(total / limit),
+    };
+  }
+
+  async getFilteredStudents(userId: string, filters: FilterDto) {
+    const { funding, chosen_course, application_status, search } = filters;
+    const accessor = await this.bksdRepository.findUser(userId);
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('student')
       .where('student.school = :schoolId', {
@@ -51,21 +72,16 @@ export class InductorService {
       queryBuilder.andWhere(
         'student.application_status LIKE :application_status',
         {
-          application_mail: `%${application_status}%`,
+          application_status: `%${application_status}%`,
         }
       );
     }
 
-    const [results, total] = await queryBuilder
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
+    const results = await queryBuilder.getMany();
 
     return {
       data: results || [],
-      total,
-      page,
-      lastPage: Math.ceil(total / limit),
+      total: results.length,
     };
   }
   async getStudent(userId: string, studentId: string) {

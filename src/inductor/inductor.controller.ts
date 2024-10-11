@@ -41,15 +41,50 @@ export class InductorController {
   @ApiQuery({
     name: 'page',
     type: Number,
-    required: false,
+    required: true,
     description: 'Page number for pagination',
   })
   @ApiQuery({
     name: 'limit',
     type: Number,
-    required: false,
+    required: true,
     description: 'Number of items per page',
   })
+  @ApiOperation({
+    summary:
+      'View paginated information of all students on the Inductor dashboard',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async findAllPaginated(
+    @CurrentUserId() userId: string,
+    @Query('page') page: number,
+    @Query('limit') limit: number
+  ) {
+    try {
+      return await this.inductorService.getAllStudents(userId, page, limit);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+  }
+
+  @Get('/students/filter')
+  @Permissions(Permission.INDUCTION)
+  @ApiBearerAuth()
   @ApiQuery({
     name: 'search',
     type: String,
@@ -75,7 +110,7 @@ export class InductorController {
     description: 'Application status query for filtering results',
   })
   @ApiOperation({
-    summary: 'View information of all students on the Inductor dashboard',
+    summary: 'View filtered information of students on the Inductor dashboard',
   })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
@@ -83,9 +118,12 @@ export class InductorController {
     description: 'Unauthorized',
   })
   @HttpCode(HttpStatus.OK)
-  async findAll(@CurrentUserId() userId: string, @Query() filters: FilterDto) {
+  async findAllFiltered(
+    @CurrentUserId() userId: string,
+    @Query() filters: FilterDto
+  ) {
     try {
-      return await this.inductorService.getAllStudents(userId, filters);
+      return await this.inductorService.getFilteredStudents(userId, filters);
     } catch (error) {
       this.logger.error(error.message);
       if (error instanceof NotFoundException) {
@@ -100,7 +138,6 @@ export class InductorController {
       }
     }
   }
-
   @Get('/students/:studentId')
   @Permissions(Permission.INDUCTION)
   @ApiBearerAuth()
