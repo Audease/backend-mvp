@@ -690,7 +690,7 @@ export class AdminRepository {
       .getMany();
   }
 
-  async deleteUser(userId: string, schoolId: string) {
+  async deleteUser(userId: string) {
     return this.dataSource.manager.transaction(
       async transactionalEntityManager => {
         const user = await transactionalEntityManager.findOne(Users, {
@@ -701,8 +701,14 @@ export class AdminRepository {
           throw new NotFoundException('User not found');
         }
 
-        if (user.school.id !== schoolId) {
-          throw new NotFoundException('User not found');
+        const staff = await transactionalEntityManager.findOne(Staff, {
+          where: { email: user.email },
+        });
+
+        // Change status to unassigned
+        if (staff) {
+          staff.status = 'unassigned';
+          await transactionalEntityManager.save(Staff, staff);
         }
 
         return transactionalEntityManager.remove(user);

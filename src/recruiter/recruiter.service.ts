@@ -175,9 +175,7 @@ export class RecruiterService {
       })
       .select([
         'prospective_student.id',
-        'prospective_student.first_name',
-        'prospective_student.last_name',
-        'prospective_student.middle_name',
+        'prospective_student.name',
         'prospective_student.email',
         'prospective_student.date_of_birth',
         'prospective_student.mobile_number',
@@ -193,7 +191,7 @@ export class RecruiterService {
     // Search condition (if needed):
     if (search) {
       queryBuilder.andWhere(
-        'prospective_student.first_name LIKE :search OR prospective_student.last_name LIKE :search OR prospective_student.middle_name LIKE :search OR prospective_student.email LIKE :search',
+        'prospective_student.name LIKE :search OR LIKE :search OR prospective_student.email LIKE :search',
         { search: `%${search}%` }
       );
     }

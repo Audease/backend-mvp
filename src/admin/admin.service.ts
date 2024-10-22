@@ -544,7 +544,10 @@ export class AdminService {
     }
 
     try {
-      await this.adminRepository.deleteUser(staffId, user.school.id);
+      await this.adminRepository.deleteUser(staffId);
+      return {
+        message: 'User deleted successfully',
+      };
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
