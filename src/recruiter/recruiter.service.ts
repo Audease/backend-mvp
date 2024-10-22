@@ -156,13 +156,14 @@ export class RecruiterService {
   }
 
   async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
-    const { page = 1, limit = 10, search } = paginationParams;
+    const { page = 1, limit = 10 } = paginationParams;
 
     if (page < 1 || limit < 1) {
       throw new BadRequestException('Page and limit must be positive numbers.');
     }
 
     const loggedInUser = await this.recruiterRepository.findUser(userId);
+    const schoolId = loggedInUser.school.id;
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
@@ -170,42 +171,37 @@ export class RecruiterService {
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .innerJoin('prospective_student.user', 'user', 'user.id = :userId', {
-        userId: loggedInUser.id,
-      })
       .select([
         'prospective_student.id',
         'prospective_student.name',
-        'prospective_student.email',
-        'prospective_student.date_of_birth',
         'prospective_student.mobile_number',
-        'prospective_student.NI_number',
-        'prospective_student.passport_number',
+        'prospective_student.email',
+        'prospective_student.level',
+        'prospective_student.date_of_birth',
         'prospective_student.home_address',
         'prospective_student.funding',
-        'prospective_student.level',
-        'prospective_student.awarding',
         'prospective_student.chosen_course',
-      ]);
+        'prospective_student.passport_number',
+        'prospective_student.NI_number',
+        'prospective_student.awarding',
+        'prospective_student.created_at',
+      ])
+      .where('prospective_student.school_id = :schoolId', { schoolId });
 
-    // Search condition (if needed):
-    if (search) {
-      queryBuilder.andWhere(
-        'prospective_student.name LIKE :search OR LIKE :search OR prospective_student.email LIKE :search',
-        { search: `%${search}%` }
-      );
-    }
-
-    const [results, total] = await queryBuilder
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
+    const [result, total] = await Promise.all([
+      queryBuilder
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany(),
+      queryBuilder.getCount(),
+    ]);
 
     return {
-      data: results || [],
+      result,
       total,
       page,
-      lastPage: Math.ceil(total / limit),
+      limit,
+      totalPages: Math.ceil(total / limit),
     };
   }
 
