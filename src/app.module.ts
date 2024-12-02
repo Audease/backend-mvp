@@ -22,6 +22,7 @@ import { AdminModule } from './admin/admin.module';
 import { InductorModule } from './inductor/inductor.module';
 import { AuditorModule } from './auditor/auditor.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { FormModule } from './form/form.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     InductorModule,
     AuditorModule,
     DashboardModule,
+    FormModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: 'APP_GUARD', useClass: ThrottlerGuard }],

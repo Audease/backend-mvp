@@ -19,6 +19,8 @@ import { Staff } from '../entities/staff.entity';
 import { Inductor } from '../../inductor/entities/inductor.entity';
 import { LogFolder } from '../entities/folder.entity';
 import { Workflow } from '../entities/workflow.entity';
+import { Form } from '../../form/entity/form.entity';
+import { FormSubmission } from '../../form/entity/form-submission.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -49,6 +51,8 @@ export class ApiConfigService {
         Inductor,
         Staff,
         Workflow,
+        Form,
+        FormSubmission,
       ],
       migrationsRun: true,
       username,

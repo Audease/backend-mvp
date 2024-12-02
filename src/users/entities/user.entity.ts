@@ -15,6 +15,7 @@ import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financ
 import { Document } from '../../shared/entities/document.entity';
 import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
 import { Recruiter } from '../../recruiter/entities/recruiter.entity';
+import { FormSubmission } from '../../form/entity/form-submission.entity';
 
 @Entity('users')
 export class Users {
@@ -45,6 +46,12 @@ export class Users {
   @Column('varchar', { length: 255, nullable: false })
   phone: string;
 
+  @OneToMany(() => FormSubmission, submission => submission.student)
+  submissions: FormSubmission[];
+
+  @OneToMany(() => FormSubmission, submission => submission.reviewer)
+  reviewedSubmissions: FormSubmission[];
+
   @ManyToOne(() => Roles, role => role.id)
   @JoinColumn({ name: 'role_id' })
   role: Roles;
@@ -56,7 +63,10 @@ export class Users {
   @OneToOne(() => Recruiter, recruiter => recruiter.user)
   recruiter: Recruiter;
 
-  @OneToMany(() => ProspectiveStudent, prospectiveStudent => prospectiveStudent.user)
+  @OneToMany(
+    () => ProspectiveStudent,
+    prospectiveStudent => prospectiveStudent.user
+  )
   prospectiveStudents?: ProspectiveStudent[];
 
   @OneToOne(() => Student, student => student.user)

@@ -187,6 +187,7 @@ export class AuthService {
     return {
       token,
       permissions: result.map(p => p.name),
+      user_id: user.id,
     };
   }
   async send2faEmail(email: string) {
