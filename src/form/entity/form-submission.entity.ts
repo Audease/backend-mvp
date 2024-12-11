@@ -6,10 +6,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { SubmissionStatus } from '../../utils/enum/submission-status';
 import { Users } from '../../users/entities/user.entity';
 import { Form } from './form.entity';
+import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
 
 @Entity('form_submissions')
 export class FormSubmission {
@@ -30,9 +32,15 @@ export class FormSubmission {
   @Column('jsonb')
   data: any;
 
-  @ManyToOne(() => Users, user => user.submissions)
+  @ManyToOne(
+    () => ProspectiveStudent,
+    prospectiveStudent => prospectiveStudent.submissions
+  )
   @JoinColumn({ name: 'student_id' })
-  student: Users;
+  student: ProspectiveStudent;
+
+  @OneToMany(() => FormSubmission, submission => submission.student)
+  submissions: FormSubmission[];
 
   @ManyToOne(() => Users, user => user.reviewedSubmissions, { nullable: true })
   @JoinColumn({ name: 'reviewer_id' })

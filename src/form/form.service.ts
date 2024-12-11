@@ -19,7 +19,8 @@ export class FormService {
     private userService: UserService
   ) {}
 
-  async createDraft(dto: CreateSubmissionDto, userId: string) {
+  async createSubmission(dto: CreateSubmissionDto) {
+    // Check if form template exists and is active
     const form = await this.formRepo.findOne({
       where: { type: dto.formType, is_active: true },
     });
@@ -28,11 +29,16 @@ export class FormService {
       throw new NotFoundException('Form template not found');
     }
 
-    const user = await this.userService.findOne(userId);
+    // Check if student exists
+    const student = await this.userService.findOne(dto.studentId);
+
+    if (!student) {
+      throw new NotFoundException('Student not found');
+    }
 
     const submission = this.submissionRepo.create({
       form,
-      student: user,
+      student,
       data: dto.data,
       status: SubmissionStatus.DRAFT,
     });
@@ -40,21 +46,67 @@ export class FormService {
     await this.submissionRepo.save(submission);
 
     return {
+      id: submission.id,
+      studentId: submission.student.id,
       message: 'Form Draft Created',
     };
   }
 
-  async updateDraft(id: string, dto: UpdateSubmissionDto, userId: string) {
+  async getAllStudentForms(studentId: string): Promise<Record<string, any>> {
+    const submissions = await this.submissionRepo.find({
+      where: {
+        student: { id: studentId },
+      },
+      relations: ['form'],
+    });
+
+    // Transform into object with form types as keys
+    const formData = {};
+    submissions.forEach(submission => {
+      formData[submission.form.type] = {
+        id: submission.id,
+        studentId: submission.student.id,
+        formType: submission.form.type,
+        status: submission.status,
+        data: submission.data,
+        createdAt: submission.created_at,
+        updatedAt: submission.updated_at,
+        reviewerId: submission.reviewer?.id,
+        reviewComment: submission.reviewComment,
+      };
+    });
+
+    return formData;
+  }
+
+  async updateDraft(dto: UpdateSubmissionDto, studentId: string) {
+    // Find submission by id and studentId
     const submission = await this.submissionRepo.findOne({
-      where: { id, student: { id: userId }, status: SubmissionStatus.DRAFT },
+      where: {
+        student: { id: studentId },
+        status: SubmissionStatus.DRAFT,
+      },
+      relations: ['users', 'form'],
     });
 
     if (!submission) {
       throw new NotFoundException('Draft submission not found');
     }
 
+    // Update the submission data
     submission.data = { ...submission.data, ...dto.data };
-    return this.submissionRepo.save(submission);
+    await this.submissionRepo.save(submission);
+
+    // Return formatted response
+    return {
+      id: submission.id,
+      formType: submission.form.type,
+      studentId: submission.student.id,
+      status: submission.status,
+      data: submission.data,
+      updatedAt: submission.updated_at,
+      message: 'Form Draft Updated',
+    };
   }
 
   async submitForm(id: string, userId: string) {
@@ -74,10 +126,7 @@ export class FormService {
 
   async getSubmission(id: string, userId: string): Promise<FormSubmission> {
     const submission = await this.submissionRepo.findOne({
-      where: [
-        { id, student: { id: userId } },
-        { id, reviewer: { id: userId } },
-      ],
+      where: [{ id, student: { id: userId } }],
     });
 
     if (!submission) {

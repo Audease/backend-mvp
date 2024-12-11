@@ -47,16 +47,13 @@ export class FormController {
     type: FormSubmission,
   })
   @ApiUnauthorizedResponse({ description: 'User is not authenticated' })
-  createSubmission(
-    @Body() dto: CreateSubmissionDto,
-    @CurrentUserId() user: string
-  ) {
-    return this.formSubmissionService.createDraft(dto, user);
+  createSubmission(@Body() dto: CreateSubmissionDto) {
+    return this.formSubmissionService.createSubmission(dto);
   }
 
   @Patch('submissions/:id')
   @ApiOperation({ summary: 'Update a draft submission' })
-  @ApiParam({ name: 'id', description: 'Submission ID' })
+  @ApiParam({ name: 'id', description: 'Student ID' })
   @ApiBody({ type: UpdateSubmissionDto })
   @ApiResponse({
     status: 200,
@@ -65,12 +62,8 @@ export class FormController {
   })
   @ApiNotFoundResponse({ description: 'Submission not found' })
   @ApiUnauthorizedResponse({ description: 'User is not authenticated' })
-  updateSubmission(
-    @Param('id') id: string,
-    @Body() dto: UpdateSubmissionDto,
-    @CurrentUserId() user: string
-  ) {
-    return this.formSubmissionService.updateDraft(id, dto, user);
+  updateSubmission(@Param('id') id: string, @Body() dto: UpdateSubmissionDto) {
+    return this.formSubmissionService.updateDraft(dto, id);
   }
 
   @Post('submissions/:id/submit')
@@ -110,7 +103,7 @@ export class FormController {
 
   @Get('submissions/:id')
   @ApiOperation({ summary: 'Get a specific submission' })
-  @ApiParam({ name: 'id', description: 'Submission ID' })
+  @ApiParam({ name: 'id', description: 'Student ID' })
   @ApiResponse({
     status: 200,
     description: 'Returns the requested submission.',
@@ -118,8 +111,8 @@ export class FormController {
   })
   @ApiNotFoundResponse({ description: 'Submission not found' })
   @ApiUnauthorizedResponse({ description: 'User is not authenticated' })
-  getSubmission(@Param('id') id: string, @CurrentUserId() user: string) {
-    return this.formSubmissionService.getSubmission(id, user);
+  getSubmission(@Param('id') id: string) {
+    return this.formSubmissionService.getAllStudentForms(id);
   }
 
   @Get('submissions')

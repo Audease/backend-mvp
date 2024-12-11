@@ -46,9 +46,6 @@ export class Users {
   @Column('varchar', { length: 255, nullable: false })
   phone: string;
 
-  @OneToMany(() => FormSubmission, submission => submission.student)
-  submissions: FormSubmission[];
-
   @OneToMany(() => FormSubmission, submission => submission.reviewer)
   reviewedSubmissions: FormSubmission[];
 

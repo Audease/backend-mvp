@@ -7,8 +7,10 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  OneToMany,
 } from 'typeorm';
 import { Users } from '../../users/entities/user.entity';
+import { FormSubmission } from '../../form/entity/form-submission.entity';
 
 @Entity('prospective_students')
 export class ProspectiveStudent {
@@ -47,6 +49,9 @@ export class ProspectiveStudent {
 
   @Column('varchar', { length: 255, nullable: true })
   chosen_course: string;
+
+  @OneToMany(() => FormSubmission, submission => submission.student)
+  submissions: FormSubmission[];
 
   @Column('varchar', { length: 255, nullable: true, default: 'Not sent' })
   application_mail: string;
