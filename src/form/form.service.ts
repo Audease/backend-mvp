@@ -8,6 +8,7 @@ import { ReviewSubmissionDto } from './dto/review-submission.entity';
 import { SubmissionStatus } from '../utils/enum/submission-status';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from '../users/users.service';
+import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 
 @Injectable()
 export class FormService {
@@ -16,7 +17,9 @@ export class FormService {
     private submissionRepo: Repository<FormSubmission>,
     @InjectRepository(Form)
     private formRepo: Repository<Form>,
-    private userService: UserService
+    private userService: UserService,
+    @InjectRepository(ProspectiveStudent)
+    private student: Repository<ProspectiveStudent>
   ) {}
 
   async createSubmission(dto: CreateSubmissionDto) {
@@ -30,7 +33,9 @@ export class FormService {
     }
 
     // Check if student exists
-    const student = await this.userService.findOne(dto.studentId);
+    const student = await this.student.findOne({
+      where: { id: dto.studentId },
+    });
 
     if (!student) {
       throw new NotFoundException('Student not found');
@@ -53,19 +58,25 @@ export class FormService {
   }
 
   async getAllStudentForms(studentId: string): Promise<Record<string, any>> {
+    // Include both form and student relations
     const submissions = await this.submissionRepo.find({
       where: {
         student: { id: studentId },
       },
-      relations: ['form'],
+      relations: ['form'], // We don't need student relation since we have the ID
     });
+
+    // Check for empty submissions array
+    if (submissions.length === 0) {
+      throw new NotFoundException('No submissions found for this student');
+    }
 
     // Transform into object with form types as keys
     const formData = {};
     submissions.forEach(submission => {
       formData[submission.form.type] = {
         id: submission.id,
-        studentId: submission.student.id,
+        studentId: studentId, // Use the passed studentId instead of trying to access it from relation
         formType: submission.form.type,
         status: submission.status,
         data: submission.data,
@@ -86,7 +97,7 @@ export class FormService {
         student: { id: studentId },
         status: SubmissionStatus.DRAFT,
       },
-      relations: ['users', 'form'],
+      relations: ['form'],
     });
 
     if (!submission) {
@@ -101,7 +112,7 @@ export class FormService {
     return {
       id: submission.id,
       formType: submission.form.type,
-      studentId: submission.student.id,
+      studentId: studentId,
       status: submission.status,
       data: submission.data,
       updatedAt: submission.updated_at,

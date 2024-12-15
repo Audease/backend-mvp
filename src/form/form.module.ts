@@ -6,9 +6,13 @@ import { Form } from './entity/form.entity';
 import { FormSubmission } from './entity/form-submission.entity';
 import { UserService } from '../users/users.service';
 import { UsersModule } from '../users/users.module';
+import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Form, FormSubmission]), UsersModule],
+  imports: [
+    TypeOrmModule.forFeature([Form, FormSubmission, ProspectiveStudent]),
+    UsersModule,
+  ],
   controllers: [FormController],
   providers: [UserService, FormService],
   exports: [FormService],
