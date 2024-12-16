@@ -7,4 +7,12 @@ export enum FormType {
   DATA_PROTECTION = 'data_protection',
   EMPLOYER_AGREEMENT = 'employer_agreement',
   APPEAL_PROCEDURE = 'appeal_procedure',
+  EQUAL_OPPORTUNITIES = 'equal_opportunities',
+  EXTREMISM_POLICY = 'extremism_policy',
+  GUIDANCE_POLICY = 'guidance_policy',
+  HEALTH_AND_SAFETY = 'health_and_safety',
+  PRIVACY_NOTICE = 'privacy_notice',
+  PARTICIPANT_AGREEMENT = 'participant_agreement',
+  SKILLS_ASSESSMENT = 'skills_assessment',
+  COMPLAINT = 'complaint',
 }
