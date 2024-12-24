@@ -9,4 +9,5 @@ export enum Permission {
   APPROVAL = 'Approve/reject application',
   TEMPORARY_ACCESS = 'Assume Any Role',
   MANAGE_PROFILE = 'Manage Personal Profile',
+  LEARNER = 'Learner/Student',
 }

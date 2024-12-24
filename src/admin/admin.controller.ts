@@ -43,9 +43,12 @@ import { RoleDto } from './dto/create-role.dto';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { createFolder, moveLogs, editLogs } from './dto/create-folder.dto';
 import { CreateWorflowDto } from './dto/workflow.dto';
+import { Permissions } from '../shared/decorators/permission.decorator';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+import { Permission } from '../utils/enum/permission';
 
 @ApiTags('Admin')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Controller('admin')
 export class AdminController {
   private readonly logger = new Logger(AdminController.name);
@@ -123,6 +126,7 @@ export class AdminController {
 
   @Post('/students/:studentId/documents')
   @Roles(Role.SCHOOL_ADMIN)
+  @Permissions(Permission.LEARNER)
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -669,7 +673,6 @@ export class AdminController {
   }
 
   @Post('/persona-staff')
-  @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View all persona staffs in the school',

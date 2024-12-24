@@ -23,6 +23,8 @@ import { InductorModule } from './inductor/inductor.module';
 import { AuditorModule } from './auditor/auditor.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { FormModule } from './form/form.module';
+import { LazerModule } from './lazer/lazer.module';
+import { CertificateModule } from './certificate/certificate.module';
 
 @Module({
   imports: [
@@ -55,6 +57,8 @@ import { FormModule } from './form/form.module';
     AuditorModule,
     DashboardModule,
     FormModule,
+    LazerModule,
+    CertificateModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: 'APP_GUARD', useClass: ThrottlerGuard }],

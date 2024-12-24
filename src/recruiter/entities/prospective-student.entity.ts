@@ -83,4 +83,10 @@ export class ProspectiveStudent {
 
   @Column('varchar', { length: 255, nullable: true, default: 'Pending' })
   application_status: string;
+
+  @Column('varchar', { length: 255, nullable: true, default: 'Pending' })
+  lazer_status: string;
+
+  @Column('varchar', { length: 255, nullable: true, default: 'Pending' })
+  certificate_status: string;
 }

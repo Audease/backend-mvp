@@ -34,7 +34,7 @@ import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorato
 @ApiBearerAuth()
 @Controller('forms')
 @UseGuards(JwtAuthGuard, PermissionGuard)
-@Permissions(Permission.LEARNING)
+@Permissions(Permission.LEARNER)
 export class FormController {
   constructor(private readonly formSubmissionService: FormService) {}
 

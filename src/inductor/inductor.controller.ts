@@ -178,4 +178,46 @@ export class InductorController {
       }
     }
   }
+
+  // Send meeting link to student
+  @Get('/students/:studentId/meeting')
+  @Permissions(Permission.INDUCTION)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'studentId',
+    type: String,
+    description: 'ID of the student',
+  })
+  @ApiOperation({
+    summary: 'Send a meeting link to a student on the Inductor dashboard',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
+  @ApiNotFoundResponse({
+    description: 'Student with studentId not found for the user',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async sendMeetingLink(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string
+  ) {
+    try {
+      return await this.inductorService.approveStudent(userId, studentId);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+  }
 }

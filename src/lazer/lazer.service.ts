@@ -1,20 +1,19 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { BksdRepository } from '../bksd/bksd.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FilterDto } from '../bksd/dto/bksd-filter.dto';
-import { GoogleMeetService } from '../shared/services/google-meet.service';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 @Injectable()
-export class InductorService {
-  private readonly logger = new Logger(InductorService.name);
+export class LazerService {
+  private readonly logger = new Logger(LazerService.name);
   constructor(
     @InjectRepository(ProspectiveStudent)
     private readonly learnerRepository: Repository<ProspectiveStudent>,
-    private readonly bksdRepository: BksdRepository,
-    private readonly googleMeetService: GoogleMeetService
+    private readonly bksdRepository: BksdRepository
   ) {}
+
   async getAllStudents(userId: string, page: number, limit: number) {
     const accessor = await this.bksdRepository.findUser(userId);
     const queryBuilder = this.learnerRepository
@@ -40,7 +39,7 @@ export class InductorService {
   }
 
   async getFilteredStudents(userId: string, filters: FilterDto) {
-    const { funding, chosen_course, application_status, search } = filters;
+    const { funding, chosen_course, search } = filters;
     const accessor = await this.bksdRepository.findUser(userId);
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('student')
@@ -59,75 +58,38 @@ export class InductorService {
     }
 
     if (funding) {
-      queryBuilder.andWhere('student.funding LIKE :funding', {
-        funding: `%${funding}%`,
-      });
+      queryBuilder.andWhere('student.funding = :funding', { funding });
     }
 
     if (chosen_course) {
-      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
-        chosen_course: `%${chosen_course}%`,
+      queryBuilder.andWhere('student.chosen_course = :chosen_course', {
+        chosen_course,
       });
     }
 
-    if (application_status) {
-      queryBuilder.andWhere(
-        'student.application_status LIKE :application_status',
-        {
-          application_status: `%${application_status}%`,
-        }
-      );
-    }
-
-    const results = await queryBuilder.getMany();
+    const [results, total] = await queryBuilder.getManyAndCount();
 
     return {
       data: results || [],
-      total: results.length,
+      total,
+      page: 1,
+      lastPage: 1,
     };
   }
-  async getStudent(userId: string, studentId: string) {
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
 
+  async approveStudent(userId: string, studentId: string) {
     const accessor = await this.bksdRepository.findUser(userId);
-
     const student = await this.learnerRepository.findOne({
-      where: {
-        id: studentId,
-        application_status: 'Approved',
-        school: { id: accessor.school.id },
-      },
-      relations: ['school'],
+      where: { id: studentId, school: accessor.school },
     });
 
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
 
-    return student;
-  }
-
-  async sendStudentMeetingLink(userId: string, studentId: string) {
-    const student = await this.getStudent(userId, studentId);
-    const meeting = await this.googleMeetService.createMeeting(
-      `Inductor Meeting with ${student.name}`,
-      new Date(),
-      30
-    );
-
-    return meeting;
-  }
-
-  // Approve a student's application and send them a meeting link
-  async approveStudent(userId: string, studentId: string) {
-    const student = await this.getStudent(userId, studentId);
-    student.application_status = 'Approved';
+    student.certificate_status = 'Approved';
     await this.learnerRepository.save(student);
 
-    return this.sendStudentMeetingLink(userId, studentId);
+    return student;
   }
 }
