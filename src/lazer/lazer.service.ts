@@ -78,9 +78,8 @@ export class LazerService {
   }
 
   async approveStudent(userId: string, studentId: string) {
-    const accessor = await this.bksdRepository.findUser(userId);
     const student = await this.learnerRepository.findOne({
-      where: { id: studentId, school: accessor.school },
+      where: { id: studentId },
     });
 
     if (!student) {

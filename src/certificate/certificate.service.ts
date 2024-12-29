@@ -77,9 +77,9 @@ export class CertificateService {
 
   //   Approve a student on the Certificate dashboard
   async approveStudent(userId: string, studentId: string) {
-    const accessor = await this.bksdRepository.findUser(userId);
-
-    const student = await this.bksdRepository.findLearner(studentId, accessor);
+    const student = await this.learnerRepository.findOne({
+      where: { id: studentId },
+    });
 
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
