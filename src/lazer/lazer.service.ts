@@ -86,7 +86,7 @@ export class LazerService {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
 
-    student.certificate_status = 'Approved';
+    student.lazer_status = 'Approved';
     await this.learnerRepository.save(student);
 
     return student;
