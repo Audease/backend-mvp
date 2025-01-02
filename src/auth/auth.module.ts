@@ -20,6 +20,7 @@ import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { Permissions } from '../shared/entities/permission.entity';
+import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { Permissions } from '../shared/entities/permission.entity';
       Roles,
       Recruiter,
       Permissions,
+      ProspectiveStudent,
     ]),
     RedisModule,
     UsersModule,

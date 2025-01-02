@@ -184,11 +184,23 @@ export class AuthService {
 
     const result = await this.userService.getPermissionsByIds(permission_id);
 
-    return {
-      token,
-      permissions: result.map(p => p.name),
-      user_id: user.id,
-    };
+    const student = await this.authRepository.findStudentByEmail(user.email);
+
+    // Write a condition to return the learner id if the user is a learner
+    if (permission.role === Role.STUDENT) {
+      return {
+        token,
+        permissions: result.map(p => p.name),
+        user_id: user.id,
+        learner_id: student.id,
+      };
+    } else {
+      return {
+        token,
+        permissions: result.map(p => p.name),
+        user_id: user.id,
+      };
+    }
   }
   async send2faEmail(email: string) {
     const user = await this.userService.getUserByEmail(email);
