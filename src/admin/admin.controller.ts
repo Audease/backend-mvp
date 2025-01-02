@@ -238,8 +238,6 @@ export class AdminController {
   }
 
   @Get('/learners/:learnerId')
-  @Roles(Role.SCHOOL_ADMIN)
-  @Permissions(Permission.LEARNER)
   @ApiBearerAuth()
   @ApiParam({
     name: 'learnerId',
