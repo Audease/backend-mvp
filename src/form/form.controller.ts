@@ -24,17 +24,16 @@ import { UpdateSubmissionDto } from './dto/update-submission.entity';
 import { ReviewSubmissionDto } from './dto/review-submission.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/role.guard';
-import { Permission } from '../utils/enum/permission';
-import { PermissionGuard } from '../auth/guards/permission.guard';
-import { Permissions } from '../shared/decorators/permission.decorator';
+// import { Permission } from '../utils/enum/permission';
+// import { PermissionGuard } from '../auth/guards/permission.guard';
+// import { Permissions } from '../shared/decorators/permission.decorator';
 import { FormSubmission } from './entity/form-submission.entity';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 
 @ApiTags('Form Submissions')
 @ApiBearerAuth()
 @Controller('forms')
-@UseGuards(JwtAuthGuard, PermissionGuard)
-@Permissions(Permission.LEARNER)
+@UseGuards(JwtAuthGuard)
 export class FormController {
   constructor(private readonly formSubmissionService: FormService) {}
 
