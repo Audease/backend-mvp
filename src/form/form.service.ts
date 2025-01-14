@@ -120,7 +120,7 @@ export class FormService {
     };
   }
 
-  async submitForm(id: string, userId: string) {
+  async submitForm(userId: string) {
     const submission = await this.submissionRepo.findOne({
       where: { student: { id: userId }, status: SubmissionStatus.SUBMITTED },
     });
@@ -130,6 +130,7 @@ export class FormService {
     }
 
     submission.status = SubmissionStatus.SUBMITTED;
+    submission.is_submitted = true;
     await this.submissionRepo.save(submission);
 
     return submission;

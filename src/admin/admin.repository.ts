@@ -180,17 +180,26 @@ export class AdminRepository {
 
   // New
   async getStaffBySchoolId(schoolId: string, page: number, limit: number) {
-    const [result, totalCount] = await Promise.all([
-      this.staffRepository.find({
-        where: { school: { id: schoolId } },
-        take: limit,
-        skip: (page - 1) * limit,
-      }),
-      this.staffRepository.count({
-        where: { school: { id: schoolId } },
-      }),
-    ]);
+    const queryBuilder = this.staffRepository
+      .createQueryBuilder('staff')
+      .select([
+        'staff.id',
+        'staff.username',
+        'staff.email',
+        'staff.status',
+        'staff.onboarding_status',
+        'staff.created_at',
+        'staff.updated_at',
+      ])
+      .where('staff.school_id = :schoolId', { schoolId });
 
+    const [result, totalCount] = await Promise.all([
+      queryBuilder
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany(),
+      queryBuilder.getCount(),
+    ]);
     return {
       result,
       total: totalCount,

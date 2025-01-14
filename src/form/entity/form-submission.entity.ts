@@ -32,6 +32,9 @@ export class FormSubmission {
   @Column('jsonb')
   data: any;
 
+  @Column({ default: false })
+  is_submitted: boolean;
+
   @ManyToOne(
     () => ProspectiveStudent,
     prospectiveStudent => prospectiveStudent.submissions
