@@ -37,9 +37,9 @@ export class RecruiterRepository {
     });
   }
 
-  async findStudent(learnerId, userId) {
+  async findStudent(learnerId: string) {
     return await this.learnerRepository.findOne({
-      where: { id: learnerId, user: { id: userId } },
+      where: { id: learnerId },
     });
   }
 }

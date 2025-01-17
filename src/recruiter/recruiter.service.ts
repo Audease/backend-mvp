@@ -212,10 +212,7 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const student = await this.recruiterRepository.findStudent(
-      studentId,
-      loggedInUser.id
-    );
+    const student = await this.recruiterRepository.findStudent(studentId);
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
@@ -234,10 +231,7 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const student = await this.recruiterRepository.findStudent(
-      studentId,
-      loggedInUser.id
-    );
+    const student = await this.recruiterRepository.findStudent(studentId);
 
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);

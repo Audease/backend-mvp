@@ -71,12 +71,20 @@ export class FormService {
       throw new NotFoundException('No submissions found for this student');
     }
 
+    const isSubmitted = await this.submissionRepo.findOne({
+      where: {
+        student: { id: studentId },
+      },
+    });
+
     // Transform into object with form types as keys
-    const formData = {};
+    const formData = {
+      is_submitted: isSubmitted ? true : false,
+    };
     submissions.forEach(submission => {
       formData[submission.form.type] = {
         id: submission.id,
-        studentId: studentId, // Use the passed studentId instead of trying to access it from relation
+        studentId: studentId,
         formType: submission.form.type,
         status: submission.status,
         data: submission.data,
