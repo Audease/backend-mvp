@@ -71,15 +71,11 @@ export class FormService {
       throw new NotFoundException('No submissions found for this student');
     }
 
-    const isSubmitted = await this.submissionRepo.findOne({
-      where: {
-        student: { id: studentId },
-      },
-    });
+    const isSubmitted = submissions.some(submission => submission.is_submitted);
 
     // Transform into object with form types as keys
     const formData = {
-      is_submitted: isSubmitted ? true : false,
+      is_submitted: isSubmitted,
     };
     submissions.forEach(submission => {
       formData[submission.form.type] = {

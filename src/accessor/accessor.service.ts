@@ -6,6 +6,7 @@ import { BksdRepository } from '../bksd/bksd.repository';
 import { MailService } from '../shared/services/mail.service';
 import { FilterDto } from '../bksd/dto/bksd-filter.dto';
 import { Student } from '../students/entities/student.entity';
+import { FormSubmission } from '../form/entity/form-submission.entity';
 
 @Injectable()
 export class AccessorService {
@@ -13,6 +14,8 @@ export class AccessorService {
   constructor(
     @InjectRepository(ProspectiveStudent)
     private readonly learnerRepository: Repository<ProspectiveStudent>,
+    @InjectRepository(FormSubmission)
+    private readonly formSubmissionRepository: Repository<FormSubmission>,
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
     private readonly bksdRepository: BksdRepository,
@@ -128,6 +131,9 @@ export class AccessorService {
       application_status: 'Approved',
     });
 
+    await this.formSubmissionRepository.update(learner.id, {
+      is_submitted: true,
+    });
     const updatedStudent = await this.learnerRepository.findOne({
       where: { id: learner.id },
       relations: ['school'],
@@ -167,6 +173,10 @@ export class AccessorService {
 
     await this.learnerRepository.update(learner.id, {
       application_status: 'Rejected',
+    });
+
+    await this.formSubmissionRepository.update(learner.id, {
+      is_submitted: true,
     });
 
     await this.studentRepository.update(student.id, {
