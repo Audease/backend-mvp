@@ -124,9 +124,9 @@ export class FormService {
     };
   }
 
-  async submitForm(userId: string) {
+  async submitForm(submissionId: string) {
     const submission = await this.submissionRepo.findOne({
-      where: { student: { id: userId }, status: SubmissionStatus.SUBMITTED },
+      where: { id: submissionId, status: SubmissionStatus.DRAFT },
     });
 
     if (!submission) {

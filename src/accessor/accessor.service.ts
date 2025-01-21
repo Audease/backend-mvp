@@ -176,7 +176,7 @@ export class AccessorService {
     });
 
     await this.formSubmissionRepository.update(learner.id, {
-      is_submitted: true,
+      is_submitted: false,
     });
 
     await this.studentRepository.update(student.id, {

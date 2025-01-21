@@ -65,8 +65,9 @@ export class FormController {
     return this.formSubmissionService.updateDraft(dto, id);
   }
 
-  @Post('submissions/submit')
+  @Post('submissions/submit/:id')
   @ApiOperation({ summary: 'Submit a form for review' })
+  @ApiParam({ name: 'id', description: 'Submission ID' })
   @ApiResponse({
     status: 200,
     description: 'The form has been successfully submitted.',
@@ -74,8 +75,8 @@ export class FormController {
   })
   @ApiNotFoundResponse({ description: 'Submission not found' })
   @ApiUnauthorizedResponse({ description: 'User is not authenticated' })
-  submitForm(@CurrentUserId() user: string) {
-    return this.formSubmissionService.submitForm(user);
+  submitForm(@Param('id') id: string) {
+    return this.formSubmissionService.submitForm(id);
   }
 
   @Post('submissions/:id/review')
