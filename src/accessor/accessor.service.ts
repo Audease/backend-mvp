@@ -131,9 +131,14 @@ export class AccessorService {
       application_status: 'Approved',
     });
 
-    await this.formSubmissionRepository.update(learner.id, {
+    const submission = await this.formSubmissionRepository.findOne({
+      where: { student: { id: learner.id } },
+    });
+
+    await this.formSubmissionRepository.update(submission.id, {
       is_submitted: true,
     });
+
     const updatedStudent = await this.learnerRepository.findOne({
       where: { id: learner.id },
       relations: ['school'],
@@ -175,7 +180,12 @@ export class AccessorService {
       application_status: 'Rejected',
     });
 
-    await this.formSubmissionRepository.update(learner.id, {
+    const submission = await this.formSubmissionRepository.findOne({
+      where: { student: { id: learner.id } },
+    });
+
+    // Update the submission status to rejected
+    await this.formSubmissionRepository.update(submission.id, {
       is_submitted: false,
     });
 
