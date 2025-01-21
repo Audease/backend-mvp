@@ -7,6 +7,7 @@ import { MailService } from '../shared/services/mail.service';
 import { FilterDto } from '../bksd/dto/bksd-filter.dto';
 import { Student } from '../students/entities/student.entity';
 import { FormSubmission } from '../form/entity/form-submission.entity';
+import { SubmissionStatus } from '../utils/enum/submission-status';
 
 @Injectable()
 export class AccessorService {
@@ -132,7 +133,10 @@ export class AccessorService {
     });
 
     const submission = await this.formSubmissionRepository.findOne({
-      where: { student: { id: learner.id } },
+      where: {
+        student: { id: learner.id },
+        status: SubmissionStatus.SUBMITTED,
+      },
     });
 
     await this.formSubmissionRepository.update(submission.id, {
@@ -181,7 +185,10 @@ export class AccessorService {
     });
 
     const submission = await this.formSubmissionRepository.findOne({
-      where: { student: { id: learner.id } },
+      where: {
+        student: { id: learner.id },
+        status: SubmissionStatus.SUBMITTED,
+      },
     });
 
     // Update the submission status to rejected
