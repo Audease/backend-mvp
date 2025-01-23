@@ -132,7 +132,7 @@ export class AccessorService {
       application_status: 'Approved',
     });
 
-    const submission = await this.formSubmissionRepository.findOne({
+    const submission = await this.formSubmissionRepository.find({
       where: {
         student: { id: learner.id },
         status: SubmissionStatus.SUBMITTED,
@@ -143,9 +143,12 @@ export class AccessorService {
       throw new NotFoundException('Student is yet to submit their form');
     }
 
-    await this.formSubmissionRepository.update(submission.id, {
-      is_submitted: true,
-    });
+    await Promise.all(
+      submission.map(async submission => {
+        submission.is_submitted = true;
+        return this.formSubmissionRepository.save(submission);
+      })
+    );
 
     const updatedStudent = await this.learnerRepository.findOne({
       where: { id: learner.id },
@@ -188,7 +191,7 @@ export class AccessorService {
       application_status: 'Rejected',
     });
 
-    const submission = await this.formSubmissionRepository.findOne({
+    const submission = await this.formSubmissionRepository.find({
       where: {
         student: { id: learner.id },
         status: SubmissionStatus.SUBMITTED,
@@ -200,9 +203,12 @@ export class AccessorService {
     }
 
     // Update the submission status to rejected
-    await this.formSubmissionRepository.update(submission.id, {
-      is_submitted: false,
-    });
+    await Promise.all(
+      submission.map(async submission => {
+        submission.is_submitted = false;
+        return this.formSubmissionRepository.save(submission);
+      })
+    );
 
     await this.studentRepository.update(student.id, {
       application_status: 'Rejected',
