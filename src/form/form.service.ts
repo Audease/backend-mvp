@@ -124,32 +124,42 @@ export class FormService {
     };
   }
 
-  async submitForm(submissionId: string) {
-    const submission = await this.submissionRepo.findOne({
-      where: { id: submissionId, status: SubmissionStatus.DRAFT },
+  async submitForm(studentId: string) {
+    const submissions = await this.submissionRepo.find({
+      where: {
+        student: { id: studentId },
+        status: SubmissionStatus.DRAFT,
+      },
+      relations: ['form'],
     });
 
-    if (!submission) {
-      throw new NotFoundException('Draft submission not found');
+    if (submissions.length === 0) {
+      throw new NotFoundException(
+        'No draft submissions found for this student'
+      );
     }
 
-    submission.status = SubmissionStatus.SUBMITTED;
-    submission.is_submitted = true;
-    await this.submissionRepo.save(submission);
+    // Update all draft submissions to submitted
+    const updatedSubmissions = await Promise.all(
+      submissions.map(async submission => {
+        submission.status = SubmissionStatus.SUBMITTED;
+        submission.is_submitted = true;
+        return this.submissionRepo.save(submission);
+      })
+    );
 
-    return submission;
-  }
-
-  async getSubmission(id: string, userId: string): Promise<FormSubmission> {
-    const submission = await this.submissionRepo.findOne({
-      where: [{ id, student: { id: userId } }],
-    });
-
-    if (!submission) {
-      throw new NotFoundException('Submission not found');
-    }
-
-    return submission;
+    return {
+      message: 'All draft forms successfully submitted',
+      learnerId: studentId,
+      submissions: updatedSubmissions.map(submission => ({
+        id: submission.id,
+        formType: submission.form.type,
+        status: submission.status,
+        data: submission.data,
+        createdAt: submission.created_at,
+        updatedAt: submission.updated_at,
+      })),
+    };
   }
 
   async reviewSubmission(

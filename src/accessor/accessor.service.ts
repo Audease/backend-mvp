@@ -139,6 +139,10 @@ export class AccessorService {
       },
     });
 
+    if (!submission) {
+      throw new NotFoundException('Student is yet to submit their form');
+    }
+
     await this.formSubmissionRepository.update(submission.id, {
       is_submitted: true,
     });
@@ -190,6 +194,10 @@ export class AccessorService {
         status: SubmissionStatus.SUBMITTED,
       },
     });
+
+    if (!submission) {
+      throw new NotFoundException('Student is yet to submit their form');
+    }
 
     // Update the submission status to rejected
     await this.formSubmissionRepository.update(submission.id, {

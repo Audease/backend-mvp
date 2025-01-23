@@ -67,7 +67,7 @@ export class FormController {
 
   @Post('submissions/submit/:id')
   @ApiOperation({ summary: 'Submit a form for review' })
-  @ApiParam({ name: 'id', description: 'Submission ID' })
+  @ApiParam({ name: 'id', description: 'Student ID' })
   @ApiResponse({
     status: 200,
     description: 'The form has been successfully submitted.',
