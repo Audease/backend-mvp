@@ -161,7 +161,7 @@ export class AccessorService {
     };
   }
 
-  async rejectApplication(userId: string, studentId: string) {
+  async rejectApplication(userId: string, studentId: string, reason: string) {
     const accessor = await this.bksdRepository.findUser(userId);
 
     if (!accessor) {
@@ -231,6 +231,7 @@ export class AccessorService {
       {
         first_name,
         loginUrl,
+        reason,
       }
     );
 

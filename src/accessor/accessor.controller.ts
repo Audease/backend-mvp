@@ -1,4 +1,5 @@
 import {
+  Body,
   ConflictException,
   Controller,
   Get,
@@ -22,6 +23,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { RejectDto } from './dto/body-accessor.dto';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -193,10 +195,15 @@ export class AccessorController {
   @HttpCode(HttpStatus.OK)
   async reject(
     @CurrentUserId() userId: string,
-    @Param('studentId') studentId: string
+    @Param('studentId') studentId: string,
+    @Body() rejectDto: RejectDto
   ) {
     try {
-      return await this.accessorService.rejectApplication(userId, studentId);
+      return await this.accessorService.rejectApplication(
+        userId,
+        studentId,
+        rejectDto.reason
+      );
     } catch (error) {
       this.logger.error(error.message);
       if (error instanceof NotFoundException) {
