@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsObject } from 'class-validator';
+import { IsObject, IsString } from 'class-validator';
 
 export class UpdateSubmissionDto {
   @ApiProperty({
@@ -11,4 +11,13 @@ export class UpdateSubmissionDto {
   })
   @IsObject()
   data: any;
+
+  @ApiProperty({
+    description: 'The form type to update',
+    example: {
+      formType: 'award_assessment',
+    },
+  })
+  @IsString()
+  formType: string;
 }

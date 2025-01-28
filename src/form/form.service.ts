@@ -9,6 +9,7 @@ import { SubmissionStatus } from '../utils/enum/submission-status';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from '../users/users.service';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
+import { FormType } from '../utils/enum/form-type';
 
 @Injectable()
 export class FormService {
@@ -99,6 +100,7 @@ export class FormService {
     const submission = await this.submissionRepo.findOne({
       where: {
         student: { id: studentId },
+        form: { type: dto.formType as FormType },
         status: SubmissionStatus.DRAFT,
       },
       relations: ['form'],
