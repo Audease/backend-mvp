@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsObject, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsObject } from 'class-validator';
+import { FormType } from '../../utils/enum/form-type';
 
 export class UpdateSubmissionDto {
   @ApiProperty({
@@ -13,11 +14,10 @@ export class UpdateSubmissionDto {
   data: any;
 
   @ApiProperty({
-    description: 'The form type to update',
-    example: {
-      formType: 'award_assessment',
-    },
+    enum: FormType,
+    description: 'The type of form being submitted',
   })
-  @IsString()
-  formType: string;
+  @IsNotEmpty()
+  @IsEnum(FormType)
+  formType: FormType;
 }
