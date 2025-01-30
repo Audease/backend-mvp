@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Account Creation Mail</title>
+    <title>Scheduled Meeting Link</title>
     <!--[if mso]>
     <xml>
         <o:OfficeDocumentSettings>
@@ -67,21 +67,21 @@
                         <td style="padding: 20px; background-color: #ffffff; border-radius: 5px;">
                             
                             <p style="color: #666666;">
-                                Hello {{first_name}}, <br><br>
-                                We hope this message finds you well. During our review of your admission form, we noticed some discrepancies in the information provided for the following reason <b>{{reason}}</b>. To ensure the accuracy of your profile and avoid any delays in the admission process, we kindly request you to verify and correct your details.<br><br>
-                                Please follow these steps to verify your profile:<br><br>
+                                Hello {{firstName}}, 
+                                I hope this email finds you well, Your school inductor have scheduled a meeting with you and the details and time of the meeting is highlited below. <br><br>
 
                                 <ol>
-                                    <li>Log in to your Audease account: <a href='{{loginUrl}}'> Sign In to Audease</li>
-                                    <li>Navigate to the 'Profile' section.</li>
-                                    <li>Review the information you have provided and make any necessary corrections.</li>
-                                    <li>Save your updated details.</li>
+                                    <li>Meeting ID: {{meetingId}}</li>
+                                    <li>Meeting Link: {{meetingUrl}}</li>
+                                    <li>Meeting Password: {{password}}</li>
+                                    <li>Start Date: {{startTime}}</li>
+                                    <li>End Date: {{endTime}}</li>
                                   </ol>
                                   <br><br>
 
-                                  Accurate information is important for processing your admission efficiently. If you have any questions or need assistance, please do not hesitate to contact our support team at support@audease.co.uk. <br><br>
+                                  Please do ensure you join the meeting on time.<br><br>
 
-                                Thank you for your prompt attention to this matter. We look forward to completing your admission process smoothly. <br><br>
+                                Thank you very much for your time <br><br>
                                 
                                 Best regards,<br><br>
 

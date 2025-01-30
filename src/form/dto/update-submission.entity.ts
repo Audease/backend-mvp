@@ -11,7 +11,7 @@ export class UpdateSubmissionDto {
     },
   })
   @IsObject()
-  data: any;
+  data: Record<string, any>;
 
   @ApiProperty({
     enum: FormType,

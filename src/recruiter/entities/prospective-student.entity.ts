@@ -56,6 +56,9 @@ export class ProspectiveStudent {
   @Column('varchar', { length: 255, nullable: true, default: 'Not sent' })
   application_mail: string;
 
+  @Column('varchar', { length: 255, nullable: true, default: 'Not sent' })
+  inductor_status: string;
+
   @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })
   onboarding_status?: string;
 

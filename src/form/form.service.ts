@@ -96,7 +96,6 @@ export class FormService {
   }
 
   async updateDraft(dto: UpdateSubmissionDto, studentId: string) {
-    // Find submission by id and studentId
     const submission = await this.submissionRepo.findOne({
       where: {
         student: { id: studentId },
@@ -110,22 +109,41 @@ export class FormService {
       throw new NotFoundException('Draft submission not found');
     }
 
-    // Update the submission data
-    submission.data = { ...submission.data, ...dto.data };
+    // Create a new data object
+    const newData = {};
+
+    // Copy existing data if it exists
+    if (submission.data) {
+      Object.assign(newData, submission.data);
+    }
+
+    // Copy new data
+    if (dto.data) {
+      Object.assign(newData, dto.data);
+    }
+
+    // Update submission with new data
+    submission.data = newData;
+
+    // Save and get fresh copy
     await this.submissionRepo.save(submission);
 
-    // Return formatted response
+    // Fetch the updated record to ensure we have the latest data
+    const updatedSubmission = await this.submissionRepo.findOne({
+      where: { id: submission.id },
+      relations: ['form'],
+    });
+
     return {
-      id: submission.id,
-      formType: submission.form.type,
-      studentId: studentId,
-      status: submission.status,
-      data: submission.data,
-      updatedAt: submission.updated_at,
+      id: updatedSubmission.id,
+      formType: updatedSubmission.form.type,
+      studentId,
+      status: updatedSubmission.status,
+      data: updatedSubmission.data,
+      updatedAt: updatedSubmission.updated_at,
       message: 'Form Draft Updated',
     };
   }
-
   async submitForm(studentId: string) {
     const submissions = await this.submissionRepo.find({
       where: {

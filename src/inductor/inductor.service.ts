@@ -4,7 +4,8 @@ import { ProspectiveStudent } from '../recruiter/entities/prospective-student.en
 import { BksdRepository } from '../bksd/bksd.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FilterDto } from '../bksd/dto/bksd-filter.dto';
-import { GoogleMeetService } from '../shared/services/google-meet.service';
+import { SendMeetingDto } from './dto/send-meeting.dto';
+import { MailService } from '../shared/services/mail.service';
 
 @Injectable()
 export class InductorService {
@@ -13,7 +14,7 @@ export class InductorService {
     @InjectRepository(ProspectiveStudent)
     private readonly learnerRepository: Repository<ProspectiveStudent>,
     private readonly bksdRepository: BksdRepository,
-    private readonly googleMeetService: GoogleMeetService
+    private readonly mailService: MailService
   ) {}
   async getAllStudents(userId: string, page: number, limit: number) {
     const accessor = await this.bksdRepository.findUser(userId);
@@ -111,23 +112,35 @@ export class InductorService {
     return student;
   }
 
-  async sendStudentMeetingLink(userId: string, studentId: string) {
+  async sendMeetingLink(
+    userId: string,
+    studentId: string,
+    dto: SendMeetingDto
+  ) {
     const student = await this.getStudent(userId, studentId);
-    const meeting = await this.googleMeetService.createMeeting(
-      `Inductor Meeting with ${student.name}`,
-      new Date(),
-      30
+
+    this.mailService.sendTemplateMail(
+      {
+        to: student.email,
+        subject: 'Scheduled Meeting with Inductor',
+      },
+      'meeting-link',
+      {
+        meetingId: dto.meetingId || null,
+        meetingUrl: dto.meetingUrl,
+        password: dto.password || null,
+        startTime: dto.startTime,
+        endTime: dto.endTime,
+        firstName: student.name,
+      }
     );
 
-    return meeting;
-  }
-
-  // Approve a student's application and send them a meeting link
-  async approveStudent(userId: string, studentId: string) {
-    const student = await this.getStudent(userId, studentId);
-    student.application_status = 'Approved';
+    student.inductor_status = 'Sent';
     await this.learnerRepository.save(student);
 
-    return this.sendStudentMeetingLink(userId, studentId);
+    return {
+      message: 'Meeting link sent successfully',
+      studentId,
+    };
   }
 }
