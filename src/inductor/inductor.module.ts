@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { BksdRepository } from '../bksd/bksd.repository';
 import { Accessor } from '../accessor/entities/accessor.entity';
 import { GoogleMeetService } from '../shared/services/google-meet.service';
+import { MailService } from '../shared/services/mail.service';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { GoogleMeetService } from '../shared/services/google-meet.service';
     Logger,
     BksdRepository,
     GoogleMeetService,
+    MailService,
   ],
   exports: [InductorService],
 })
