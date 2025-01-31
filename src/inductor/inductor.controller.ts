@@ -1,4 +1,5 @@
 import {
+  Body,
   ConflictException,
   Controller,
   Get,
@@ -8,6 +9,7 @@ import {
   Logger,
   NotFoundException,
   Param,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -27,6 +29,7 @@ import { Permissions } from '../shared/decorators/permission.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { FilterDto } from '../bksd/dto/bksd-filter.dto';
+import { SendMeetingDto } from './dto/send-meeting.dto';
 
 @ApiTags('INDUCTOR DASHBOARD')
 @Controller('induction')
@@ -180,7 +183,7 @@ export class InductorController {
   }
 
   // Send meeting link to student
-  @Get('/students/:studentId/meeting')
+  @Post('/students/:studentId/inductor')
   @Permissions(Permission.INDUCTION)
   @ApiBearerAuth()
   @ApiParam({
@@ -202,10 +205,15 @@ export class InductorController {
   @HttpCode(HttpStatus.OK)
   async sendMeetingLink(
     @CurrentUserId() userId: string,
-    @Param('studentId') studentId: string
+    @Param('studentId') studentId: string,
+    @Body() sendMeetingDto: SendMeetingDto
   ) {
     try {
-      return await this.inductorService.approveStudent(userId, studentId);
+      return await this.inductorService.sendMeetingLink(
+        userId,
+        studentId,
+        sendMeetingDto
+      );
     } catch (error) {
       this.logger.error(error.message);
       if (error instanceof NotFoundException) {
