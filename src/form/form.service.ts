@@ -152,6 +152,44 @@ export class FormService {
     };
   }
 
+  async submitForm(studentId: string) {
+    const submissions = await this.submissionRepo.find({
+      where: {
+        student: { id: studentId },
+        status: SubmissionStatus.DRAFT,
+      },
+      relations: ['form'],
+    });
+
+    if (submissions.length === 0) {
+      throw new NotFoundException(
+        'No draft submissions found for this student'
+      );
+    }
+
+    // Update all draft submissions to submitted
+    const updatedSubmissions = await Promise.all(
+      submissions.map(async submission => {
+        submission.status = SubmissionStatus.SUBMITTED;
+        submission.is_submitted = true;
+        return this.submissionRepo.save(submission);
+      })
+    );
+
+    return {
+      message: 'All draft forms successfully submitted',
+      learnerId: studentId,
+      submissions: updatedSubmissions.map(submission => ({
+        id: submission.id,
+        formType: submission.form.type,
+        status: submission.status,
+        data: submission.data,
+        createdAt: submission.created_at,
+        updatedAt: submission.updated_at,
+      })),
+    };
+  }
+
   async reviewSubmission(
     id: string,
     dto: ReviewSubmissionDto,
