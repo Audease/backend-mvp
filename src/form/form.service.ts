@@ -96,6 +96,7 @@ export class FormService {
   }
 
   async updateDraft(dto: UpdateSubmissionDto, studentId: string) {
+    // Find submission
     const submission = await this.submissionRepo.findOne({
       where: {
         student: { id: studentId },
@@ -109,76 +110,45 @@ export class FormService {
       throw new NotFoundException('Draft submission not found');
     }
 
-    // Create a new data object
-    const newData = {};
+    // Check if current data has nested data structure
+    const hasNestedData = submission.data && 'data' in submission.data;
 
-    // Copy existing data if it exists
-    if (submission.data) {
-      Object.assign(newData, submission.data);
+    // Prepare new data based on structure
+    let updatedData;
+    if (hasNestedData) {
+      updatedData = {
+        data: {
+          ...submission.data.data,
+          ...dto.data,
+        },
+      };
+    } else {
+      updatedData = {
+        ...submission.data,
+        ...dto.data,
+      };
     }
 
-    // Copy new data
-    if (dto.data) {
-      Object.assign(newData, dto.data);
-    }
+    // Update submission
+    submission.data = updatedData;
 
-    // Update submission with new data
-    submission.data = newData;
+    // Save changes
+    const updatedSubmission = await this.submissionRepo.save(submission);
 
-    // Save and get fresh copy
-    await this.submissionRepo.save(submission);
-
-    // Fetch the updated record to ensure we have the latest data
-    const updatedSubmission = await this.submissionRepo.findOne({
+    // Verify update by fetching fresh copy
+    const verifiedSubmission = await this.submissionRepo.findOne({
       where: { id: submission.id },
       relations: ['form'],
     });
 
     return {
-      id: updatedSubmission.id,
-      formType: updatedSubmission.form.type,
+      id: verifiedSubmission.id,
+      formType: verifiedSubmission.form.type,
       studentId,
-      status: updatedSubmission.status,
-      data: updatedSubmission.data,
-      updatedAt: updatedSubmission.updated_at,
+      status: verifiedSubmission.status,
+      data: verifiedSubmission.data,
+      updatedAt: verifiedSubmission.updated_at,
       message: 'Form Draft Updated',
-    };
-  }
-  async submitForm(studentId: string) {
-    const submissions = await this.submissionRepo.find({
-      where: {
-        student: { id: studentId },
-        status: SubmissionStatus.DRAFT,
-      },
-      relations: ['form'],
-    });
-
-    if (submissions.length === 0) {
-      throw new NotFoundException(
-        'No draft submissions found for this student'
-      );
-    }
-
-    // Update all draft submissions to submitted
-    const updatedSubmissions = await Promise.all(
-      submissions.map(async submission => {
-        submission.status = SubmissionStatus.SUBMITTED;
-        submission.is_submitted = true;
-        return this.submissionRepo.save(submission);
-      })
-    );
-
-    return {
-      message: 'All draft forms successfully submitted',
-      learnerId: studentId,
-      submissions: updatedSubmissions.map(submission => ({
-        id: submission.id,
-        formType: submission.form.type,
-        status: submission.status,
-        data: submission.data,
-        createdAt: submission.created_at,
-        updatedAt: submission.updated_at,
-      })),
     };
   }
 
