@@ -9,7 +9,6 @@ import { SubmissionStatus } from '../utils/enum/submission-status';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from '../users/users.service';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
-import { FormType } from '../utils/enum/form-type';
 
 @Injectable()
 export class FormService {
@@ -95,12 +94,11 @@ export class FormService {
     return formData;
   }
 
-  async updateDraft(dto: UpdateSubmissionDto, studentId: string) {
-    // Find submission
+  async updateDraft(id: string, dto: UpdateSubmissionDto) {
+    // Find submission by id
     const submission = await this.submissionRepo.findOne({
       where: {
-        student: { id: studentId },
-        form: { type: dto.formType as FormType },
+        id,
         status: SubmissionStatus.DRAFT,
       },
       relations: ['form'],
@@ -135,19 +133,13 @@ export class FormService {
     // Save changes
     const updatedSubmission = await this.submissionRepo.save(submission);
 
-    // Verify update by fetching fresh copy
-    const verifiedSubmission = await this.submissionRepo.findOne({
-      where: { id: submission.id },
-      relations: ['form'],
-    });
-
     return {
-      id: verifiedSubmission.id,
-      formType: verifiedSubmission.form.type,
-      studentId,
-      status: verifiedSubmission.status,
-      data: verifiedSubmission.data,
-      updatedAt: verifiedSubmission.updated_at,
+      id: updatedSubmission.id,
+      formType: updatedSubmission.form.type,
+      studentId: updatedSubmission.student.id,
+      status: updatedSubmission.status,
+      data: updatedSubmission.data,
+      updatedAt: updatedSubmission.updated_at,
       message: 'Form Draft Updated',
     };
   }

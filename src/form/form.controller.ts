@@ -52,17 +52,9 @@ export class FormController {
 
   @Patch('submissions/:id')
   @ApiOperation({ summary: 'Update a draft submission' })
-  @ApiParam({ name: 'id', description: 'Student ID' })
-  @ApiBody({ type: UpdateSubmissionDto })
-  @ApiResponse({
-    status: 200,
-    description: 'The submission has been successfully updated.',
-    type: FormSubmission,
-  })
-  @ApiNotFoundResponse({ description: 'Submission not found' })
-  @ApiUnauthorizedResponse({ description: 'User is not authenticated' })
-  updateSubmission(@Param('id') id: string, @Body() dto: UpdateSubmissionDto) {
-    return this.formSubmissionService.updateDraft(dto, id);
+  @ApiParam({ name: 'id', description: 'Submission ID' })
+  async updateDraft(@Param('id') id: string, @Body() dto: UpdateSubmissionDto) {
+    return this.formSubmissionService.updateDraft(id, dto);
   }
 
   @Post('submissions/submit/:id')
