@@ -115,7 +115,6 @@ export class FormService {
         .findOne({
           where: {
             id,
-            status: SubmissionStatus.DRAFT,
           },
           relations: ['form', 'student'],
         })
@@ -127,7 +126,7 @@ export class FormService {
         });
 
       if (!submission) {
-        throw new NotFoundException(`No draft submission found with ID: ${id}`);
+        throw new NotFoundException(`No submission found with ID: ${id}`);
       }
 
       // Validate submission is in draft status
