@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsObject } from 'class-validator';
-import { FormType } from '../../utils/enum/form-type';
+import { IsObject } from 'class-validator';
 
 export class UpdateSubmissionDto {
   @ApiProperty({
