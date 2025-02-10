@@ -12,12 +12,4 @@ export class UpdateSubmissionDto {
   })
   @IsObject()
   data: Record<string, any>;
-
-  @ApiProperty({
-    enum: FormType,
-    description: 'The type of form being submitted',
-  })
-  @IsNotEmpty()
-  @IsEnum(FormType)
-  formType: FormType;
 }
