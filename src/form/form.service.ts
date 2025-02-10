@@ -1,7 +1,13 @@
 import { Form } from './entity/form.entity';
 import { FormSubmission } from './entity/form-submission.entity';
 import { Repository } from 'typeorm';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateSubmissionDto } from './dto/create-submission.entity';
 import { UpdateSubmissionDto } from './dto/update-submission.entity';
 import { ReviewSubmissionDto } from './dto/review-submission.entity';
@@ -9,9 +15,12 @@ import { SubmissionStatus } from '../utils/enum/submission-status';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from '../users/users.service';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
+import { Logger } from '@nestjs/common';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class FormService {
+  private readonly logger = new Logger(FormService.name);
   constructor(
     @InjectRepository(FormSubmission)
     private submissionRepo: Repository<FormSubmission>,
@@ -95,53 +104,99 @@ export class FormService {
   }
 
   async updateDraft(id: string, dto: UpdateSubmissionDto) {
-    // Find submission by id
-    const submission = await this.submissionRepo.findOne({
-      where: {
-        id,
-        status: SubmissionStatus.DRAFT,
-      },
-      relations: ['form'],
-    });
+    try {
+      // Validate submission ID format
+      if (!isUUID(id)) {
+        throw new BadRequestException('Invalid submission ID format');
+      }
 
-    if (!submission) {
-      throw new NotFoundException('Draft submission not found');
+      // Find submission by id
+      const submission = await this.submissionRepo
+        .findOne({
+          where: {
+            id,
+            status: SubmissionStatus.DRAFT,
+          },
+          relations: ['form', 'student'],
+        })
+        .catch(error => {
+          this.logger.error(`Database query error: ${error.message}`);
+          throw new InternalServerErrorException(
+            'Error accessing the database'
+          );
+        });
+
+      if (!submission) {
+        throw new NotFoundException(`No draft submission found with ID: ${id}`);
+      }
+
+      // Validate submission is in draft status
+      if (submission.status !== SubmissionStatus.DRAFT) {
+        throw new BadRequestException(
+          `Cannot update submission with status: ${submission.status}`
+        );
+      }
+
+      // Validate input data
+      if (!dto.data || typeof dto.data !== 'object') {
+        throw new BadRequestException('Invalid data format provided');
+      }
+
+      try {
+        // Check if current data has nested data structure
+        const hasNestedData = submission.data && 'data' in submission.data;
+
+        // Prepare new data based on structure
+        let updatedData;
+        if (hasNestedData) {
+          updatedData = {
+            data: {
+              ...submission.data.data,
+              ...dto.data,
+            },
+          };
+        } else {
+          updatedData = {
+            ...submission.data,
+            ...dto.data,
+          };
+        }
+
+        // Update submission
+        submission.data = updatedData;
+
+        // Save changes
+        const updatedSubmission = await this.submissionRepo.save(submission);
+
+        return {
+          id: updatedSubmission.id,
+          formType: updatedSubmission.form.type,
+          studentId: updatedSubmission.student.id,
+          status: updatedSubmission.status,
+          data: updatedSubmission.data,
+          updatedAt: updatedSubmission.updated_at,
+          message: 'Form Draft Updated Successfully',
+        };
+      } catch (error) {
+        this.logger.error(`Error updating submission data: ${error.message}`);
+        throw new InternalServerErrorException(
+          'Failed to update submission data'
+        );
+      }
+    } catch (error) {
+      // Log the error
+      this.logger.error(`Error in updateDraft: ${error.message}`);
+
+      // Rethrow HTTP exceptions
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      // Handle unexpected errors
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while updating the draft'
+      );
     }
-
-    // Check if current data has nested data structure
-    const hasNestedData = submission.data && 'data' in submission.data;
-
-    // Prepare new data based on structure
-    let updatedData;
-    if (hasNestedData) {
-      updatedData = {
-        data: {
-          ...submission.data.data,
-          ...dto.data,
-        },
-      };
-    } else {
-      updatedData = {
-        ...submission.data,
-        ...dto.data,
-      };
-    }
-
-    // Update submission
-    submission.data = updatedData;
-
-    // Save changes
-    const updatedSubmission = await this.submissionRepo.save(submission);
-
-    return {
-      id: updatedSubmission.id,
-      formType: updatedSubmission.form.type,
-      studentId: updatedSubmission.student.id,
-      status: updatedSubmission.status,
-      data: updatedSubmission.data,
-      updatedAt: updatedSubmission.updated_at,
-      message: 'Form Draft Updated',
-    };
   }
 
   async submitForm(studentId: string) {

@@ -7,6 +7,8 @@ import { FormSubmission } from './entity/form-submission.entity';
 import { UserService } from '../users/users.service';
 import { UsersModule } from '../users/users.module';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
+import { Logger } from '@nestjs/common';
+
 
 @Module({
   imports: [
@@ -14,7 +16,7 @@ import { ProspectiveStudent } from '../recruiter/entities/prospective-student.en
     UsersModule,
   ],
   controllers: [FormController],
-  providers: [UserService, FormService],
+  providers: [UserService, FormService, Logger],
   exports: [FormService],
 })
 export class FormModule {}
