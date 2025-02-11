@@ -130,11 +130,11 @@ export class FormService {
       }
 
       // Validate submission is in draft status
-      if (submission.status !== SubmissionStatus.DRAFT) {
-        throw new BadRequestException(
-          `Cannot update submission with status: ${submission.status}`
-        );
-      }
+      // if (submission.status !== SubmissionStatus.DRAFT) {
+      //   throw new BadRequestException(
+      //     `Cannot update submission with status: ${submission.status}`
+      //   );
+      // }
 
       // Validate input data
       if (!dto.data || typeof dto.data !== 'object') {
