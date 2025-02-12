@@ -202,7 +202,7 @@ export class FormService {
     const submissions = await this.submissionRepo.find({
       where: {
         student: { id: studentId },
-        status: SubmissionStatus.DRAFT,
+        // status: SubmissionStatus.DRAFT,
       },
       relations: ['form'],
     });
