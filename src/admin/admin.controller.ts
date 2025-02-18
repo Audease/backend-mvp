@@ -46,6 +46,7 @@ import { CreateWorflowDto } from './dto/workflow.dto';
 import { Permissions } from '../shared/decorators/permission.decorator';
 import { PermissionGuard } from '../auth/guards/permission.guard';
 import { Permission } from '../utils/enum/permission';
+import { UploadFileDto } from './dto/upload.dto';
 
 @ApiTags('Admin')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
@@ -498,12 +499,79 @@ export class AdminController {
 
   @Post('folders/:folderId/documents')
   @Roles(Role.SCHOOL_ADMIN)
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadFileToFolder(
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({
+    name: 'folderId',
+    type: String,
+    required: true,
+    description: 'ID of the folder to upload to',
+  })
+  @ApiBody({
+    type: UploadFileDto,
+    description: 'File to upload',
+  })
+  @ApiOperation({
+    summary: 'Upload a document to a specific folder',
+    description: 'Upload a file to be stored in the specified folder',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'File uploaded successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Document uploaded successfully' },
+        document: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            fileName: { type: 'string' },
+            fileType: { type: 'string' },
+            publicUrl: { type: 'string' },
+            uploadedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Invalid file or folder ID',
+  })
+  @ApiResponse({ status: 404, description: 'Folder not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+      },
+      fileFilter: (req, file, callback) => {
+        const allowedMimeTypes = [
+          'application/pdf',
+          'image/jpeg',
+          'image/png',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+          return callback(new BadRequestException('Invalid file type'), false);
+        }
+        callback(null, true);
+      },
+    })
+  )
+  async uploadDocumentToFolder(
     @CurrentUserId() userId: string,
     @Param('folderId') folderId: string,
     @UploadedFile() file: Express.Multer.File
   ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+
     return await this.adminService.uploadDocumentToFolder(
       userId,
       folderId,

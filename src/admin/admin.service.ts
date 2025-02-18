@@ -24,6 +24,8 @@ import { Permissions } from '../shared/entities/permission.entity';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { CreateWorflowDto } from './dto/workflow.dto';
 import { AssignRoleStaffDto } from './dto/misc-dto';
+import { Document } from '../shared/entities/document.entity';
+import { Folder } from '../shared/entities/file-folder.entity';
 
 @Injectable()
 export class AdminService {
@@ -40,7 +42,11 @@ export class AdminService {
     @InjectRepository(Permissions)
     private readonly permissionRepository: Repository<Permissions>,
     @InjectRepository(RolePermission)
-    private readonly rolepermissionRepoistory: Repository<RolePermission>
+    private readonly rolepermissionRepoistory: Repository<RolePermission>,
+    @InjectRepository(Document)
+    private readonly documentRepository: Repository<Document>,
+    @InjectRepository(Folder)
+    private readonly folderRepository: Repository<Folder>
   ) {}
 
   async getPaginatedStudents(userId: string, page: number, limit: number) {
@@ -436,35 +442,46 @@ export class AdminService {
     userId: string,
     folderId: string,
     file: Express.Multer.File
-  ) {
+  ): Promise<{ message: string; document: Document }> {
     try {
       const user = await this.userService.findOne(userId);
       if (!user) {
         throw new NotFoundException('User not found');
       }
 
-      const folder = await this.adminRepository.findFolderById(folderId);
+      const folder = await this.folderRepository.findOne({
+        where: { id: folderId, userId },
+        relations: ['documents'],
+      });
+
       if (!folder) {
         throw new NotFoundException('Folder not found');
       }
 
-      const upload = await this.storageService.uploadBuffer(file);
-      const document = await this.adminRepository.saveDocument({
+      const uploadedFileUrl = await this.storageService.uploadBuffer(file);
+
+      const document = await this.documentRepository.save({
         user,
         folder,
-        publicUrl: upload,
         fileName: file.originalname,
         fileType: file.mimetype,
+        publicUrl: uploadedFileUrl,
         onboarding_status: 'completed',
       });
 
       return {
         message: 'Document uploaded successfully',
-        document_link: document.publicUrl,
+        document,
       };
     } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
+      this.logger.error(
+        `Error uploading document: ${error.message}`,
+        error.stack
+      );
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error uploading document');
     }
   }
 
