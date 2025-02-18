@@ -492,6 +492,34 @@ export class AdminService {
     }
   }
 
+  async getAllFolders(userId: string, page = 1, limit = 10) {
+    try {
+      const user = await this.userService.findOne(userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const [folders, total] = await this.adminRepository.getAllFolders(
+        userId,
+        page,
+        limit
+      );
+
+      return {
+        data: folders,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async getFolders(userId: string, page: number, limit: number) {
     const user = await this.userService.findOne(userId);
 

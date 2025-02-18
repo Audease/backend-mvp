@@ -575,6 +575,27 @@ export class AdminRepository {
     };
   }
 
+  async getAllFolders(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<[Folder[], number]> {
+    const skip = (page - 1) * limit;
+
+    const [folders, total] = await this.folderRepository
+      .createQueryBuilder('folder')
+      .leftJoinAndSelect('folder.subFolders', 'subFolders')
+      .leftJoinAndSelect('folder.documents', 'documents')
+      .where('folder.userId = :userId', { userId })
+      .andWhere('folder.parentFolderId IS NULL') // Get only root folders
+      .orderBy('folder.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    return [folders, total];
+  }
+
   async moveToFolder(logId: string[], folderId: string): Promise<AppLogger> {
     const folder = await this.logFolderRepoistory.findOne({
       where: { id: folderId },

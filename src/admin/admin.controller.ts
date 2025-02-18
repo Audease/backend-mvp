@@ -452,7 +452,36 @@ export class AdminController {
     }
   }
 
-  //  Get paginated list of folders
+  @Get('folders')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of items per page',
+  })
+  @ApiOperation({
+    summary: 'Get all folders with their subfolders and documents',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns folders with pagination',
+  })
+  async getAllFolders(
+    @CurrentUserId() userId: string,
+    @Query() pagination: PaginationDto
+  ) {
+    const { page, limit } = pagination;
+    return await this.adminService.getAllFolders(userId, page, limit);
+  }
+
   @Post('folders')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
