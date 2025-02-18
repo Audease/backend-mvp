@@ -33,7 +33,7 @@ export class Document {
   school: School;
 
   @ManyToOne(() => Folder, folder => folder.documents)
-  @JoinColumn({ name: 'folder_id' })
+  @JoinColumn({ name: 'folderId' })
   folder: Folder;
 
   @Column({ nullable: true })
