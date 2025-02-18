@@ -10,7 +10,7 @@ import { Users } from '../users/entities/user.entity';
 import { Document } from '../shared/entities/document.entity';
 import { Roles } from '../shared/entities/role.entity';
 import { AdminController } from './admin.controller';
-import { CloudinaryService } from '../shared/services/cloudinary.service';
+import { StorageService } from '../shared/services/cloud-storage.service';
 import { LogService } from '../shared/services/logger.service';
 import { AppLogger } from '../shared/entities/logger.entity';
 import { MailService } from '../shared/services/mail.service';
@@ -20,6 +20,7 @@ import { RolePermission } from '../shared/entities/rolepermission.entity';
 import { LogFolder } from '../shared/entities/folder.entity';
 import { Staff } from '../shared/entities/staff.entity';
 import { Workflow } from '../shared/entities/workflow.entity';
+import { Folder } from '../shared/entities/file-folder.entity';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { Workflow } from '../shared/entities/workflow.entity';
       LogFolder,
       Staff,
       Workflow,
+      Folder,
     ]),
   ],
   controllers: [AdminController],
@@ -46,7 +48,7 @@ import { Workflow } from '../shared/entities/workflow.entity';
     Logger,
     UserService,
     AdminService,
-    CloudinaryService,
+    StorageService,
     LogService,
     MailService,
   ],

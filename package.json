@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
+    "@google-cloud/storage": "^7.15.1",
     "@googleapis/calendar": "^9.7.9",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.2",
@@ -43,7 +44,7 @@
     "@nestjs/typeorm": "^10.0.2",
     "@slack/web-api": "^7.1.0",
     "@types/bcrypt": "^5.0.2",
-    "@types/multer": "^1.4.11",
+    "@types/multer": "^1.4.12",
     "@types/pdfkit": "^0.13.4",
     "@types/uuid": "^9.0.8",
     "bcrypt": "^5.1.1",

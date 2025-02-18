@@ -7,7 +7,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CloudinaryService } from '../shared/services/cloudinary.service';
+import { StorageService } from '../shared/services/cloud-storage.service';
 import { Logger } from '@nestjs/common';
 import { UserService } from '../users/users.service';
 import { MailService } from '../shared/services/mail.service';
@@ -31,7 +31,7 @@ export class AdminService {
   constructor(
     private readonly adminRepository: AdminRepository,
     private readonly authRepository: AuthRepository,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly storageService: StorageService,
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly dataSource: DataSource,
@@ -67,17 +67,17 @@ export class AdminService {
         throw new NotFoundException('User not found');
       }
 
-      const upload = await this.cloudinaryService.uploadBuffer(file);
+      const upload = await this.storageService.uploadBuffer(file);
       const document = await this.adminRepository.saveDocument({
         user,
-        cloudinaryUrl: upload.secure_url,
+        publicUrl: upload,
         fileName: file.originalname,
         fileType: file.mimetype,
         onboarding_status: 'completed',
       });
       return {
         message: 'Document uploaded successfully',
-        document_link: document.cloudinaryUrl,
+        document_link: document.publicUrl,
       };
     } catch (error) {
       this.logger.error(error.message);
@@ -408,18 +408,84 @@ export class AdminService {
     }
   }
 
-  async createFolder(name: string, userId: string) {
+  async createFolder(name: string, userId: string, parentFolderId?: string) {
     try {
       const user = await this.userService.findOne(userId);
-
       if (!user) {
-        this.logger.error('User not found');
         throw new NotFoundException('User not found');
       }
 
-      await this.adminRepository.createFolder(name, userId);
+      if (parentFolderId) {
+        const parentFolder =
+          await this.adminRepository.findFolderById(parentFolderId);
+        if (!parentFolder) {
+          throw new NotFoundException('Parent folder not found');
+        }
+      }
+
+      await this.adminRepository.createFolder(name, userId, parentFolderId);
 
       return { message: 'Folder created successfully' };
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async uploadDocumentToFolder(
+    userId: string,
+    folderId: string,
+    file: Express.Multer.File
+  ) {
+    try {
+      const user = await this.userService.findOne(userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const folder = await this.adminRepository.findFolderById(folderId);
+      if (!folder) {
+        throw new NotFoundException('Folder not found');
+      }
+
+      const upload = await this.storageService.uploadBuffer(file);
+      const document = await this.adminRepository.saveDocument({
+        user,
+        folder,
+        publicUrl: upload,
+        fileName: file.originalname,
+        fileType: file.mimetype,
+        onboarding_status: 'completed',
+      });
+
+      return {
+        message: 'Document uploaded successfully',
+        document_link: document.publicUrl,
+      };
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async getFolderContents(
+    userId: string,
+    folderId: string,
+    page: number,
+    limit: number
+  ) {
+    try {
+      const user = await this.userService.findOne(userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const folder = await this.adminRepository.findFolderById(folderId);
+      if (!folder) {
+        throw new NotFoundException('Folder not found');
+      }
+
+      return this.adminRepository.getFolderContents(folderId, page, limit);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
@@ -466,11 +532,11 @@ export class AdminService {
         throw new NotFoundException('User not found');
       }
 
-      const upload = await this.cloudinaryService.uploadBuffer(file);
+      const upload = await this.storageService.uploadBuffer(file);
       const document = await this.adminRepository.saveDocumentWithSchoolId(
         {
           user,
-          cloudinaryUrl: upload.secure_url,
+          publicUrl: upload,
           fileName: file.originalname,
           fileType: file.mimetype,
         },
@@ -479,7 +545,7 @@ export class AdminService {
 
       return {
         message: 'Document uploaded successfully',
-        document_link: document.cloudinaryUrl,
+        document_link: document.publicUrl,
       };
     } catch (error) {
       this.logger.error(error.message);

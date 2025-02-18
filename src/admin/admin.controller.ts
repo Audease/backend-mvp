@@ -41,7 +41,7 @@ import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorato
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { RoleDto } from './dto/create-role.dto';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { createFolder, moveLogs, editLogs } from './dto/create-folder.dto';
+import { CreateFolderDto } from './dto/create-folder.dto';
 import { CreateWorflowDto } from './dto/workflow.dto';
 import { Permissions } from '../shared/decorators/permission.decorator';
 import { PermissionGuard } from '../auth/guards/permission.guard';
@@ -452,114 +452,50 @@ export class AdminController {
     }
   }
 
-  @Post('create-folder')
+  //  Get paginated list of folders
+  @Post('folders')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Create a folder',
-  })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.CREATED)
   async createFolder(
     @CurrentUserId() userId: string,
-    @Body() folderName: createFolder
+    @Body() data: CreateFolderDto
   ) {
-    try {
-      return await this.adminService.createFolder(folderName.folder, userId);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
+    return await this.adminService.createFolder(
+      data.name,
+      userId,
+      data.parentFolderId
+    );
   }
 
-  //  Get paginated list of folders
-  @Get('folders')
+  @Post('folders/:folderId/documents')
   @Roles(Role.SCHOOL_ADMIN)
-  @ApiBearerAuth()
-  @ApiQuery({
-    name: 'page',
-    type: Number,
-    required: false,
-    description: 'Page number for pagination',
-  })
-  @ApiQuery({
-    name: 'limit',
-    type: Number,
-    required: false,
-    description: 'Number of items per page',
-  })
-  @ApiOperation({
-    summary: 'View all folders in the school',
-  })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiNotFoundResponse({ description: 'Folders not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.OK)
-  async getFolders(
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFileToFolder(
     @CurrentUserId() userId: string,
-    @Query() pagination: PaginationDto
+    @Param('folderId') folderId: string,
+    @UploadedFile() file: Express.Multer.File
   ) {
-    try {
-      const { limit, page } = pagination;
-      return await this.adminService.getFolders(userId, page, limit);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
+    return await this.adminService.uploadDocumentToFolder(
+      userId,
+      folderId,
+      file
+    );
   }
 
   @Get('folders/:folderId')
   @Roles(Role.SCHOOL_ADMIN)
-  @ApiBearerAuth()
-  @ApiParam({
-    name: 'folderId',
-    type: String,
-    required: true,
-    description: 'Folder ID',
-  })
-  @ApiQuery({
-    name: 'page',
-    type: Number,
-    required: false,
-    description: 'Page number for pagination',
-  })
-  @ApiQuery({
-    name: 'limit',
-    type: Number,
-    required: false,
-    description: 'Number of items per page',
-  })
-  @ApiOperation({
-    summary: 'View information of a folder',
-  })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiNotFoundResponse({ description: 'Folder not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.OK)
-  async getFolder(
+  async getFolderContents(
     @CurrentUserId() userId: string,
     @Param('folderId') folderId: string,
     @Query() pagination: PaginationDto
   ) {
-    try {
-      const { limit, page } = pagination;
-      return await this.adminService.getFolderLogs(
-        userId,
-        folderId,
-        page,
-        limit
-      );
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
+    const { limit, page } = pagination;
+    return await this.adminService.getFolderContents(
+      userId,
+      folderId,
+      page,
+      limit
+    );
   }
 
   @Post('/documents/school')

@@ -21,6 +21,7 @@ import { LogFolder } from '../entities/folder.entity';
 import { Workflow } from '../entities/workflow.entity';
 import { Form } from '../../form/entity/form.entity';
 import { FormSubmission } from '../../form/entity/form-submission.entity';
+import { Folder } from '../entities/file-folder.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -53,6 +54,7 @@ export class ApiConfigService {
         Workflow,
         Form,
         FormSubmission,
+        Folder,
       ],
       migrationsRun: true,
       username,

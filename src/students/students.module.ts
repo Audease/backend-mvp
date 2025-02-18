@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Student } from './entities/student.entity';
 import { StudentRepository } from './student.repository';
 import { Document } from '../shared/entities/document.entity';
-import { CloudinaryService } from '../shared/services/cloudinary.service';
+import { StorageService } from '../shared/services/cloud-storage.service';
 import { UserService } from '../users/users.service';
 import { Logger } from '@nestjs/common';
 import { Users } from '../users/entities/user.entity';
@@ -28,7 +28,7 @@ import { Permissions } from '../shared/entities/permission.entity';
   providers: [
     StudentsService,
     Logger,
-    CloudinaryService,
+    StorageService,
     UserService,
     StudentRepository,
   ],

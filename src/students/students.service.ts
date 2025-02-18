@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { StudentRepository } from './student.repository';
-import { CloudinaryService } from '../shared/services/cloudinary.service';
+import { StorageService } from '../shared/services/cloud-storage.service';
 import { UserService } from '../users/users.service';
 import { Logger } from '@nestjs/common';
 
@@ -8,7 +8,7 @@ import { Logger } from '@nestjs/common';
 export class StudentsService {
   constructor(
     private readonly studentRepository: StudentRepository,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly storageService: StorageService,
     private readonly userService: UserService,
     private readonly logger: Logger
   ) {}
@@ -34,11 +34,11 @@ export class StudentsService {
       throw new NotFoundException('User not found');
     }
 
-    const document = await this.cloudinaryService.uploadBuffer(file);
+    const document = await this.storageService.uploadBuffer(file);
 
     return this.studentRepository.saveDocument({
       user,
-      cloudinaryUrl: document.secure_url,
+      publicUrl: document,
       fileName: file.originalname,
       fileType: file.mimetype,
       school: user.school,

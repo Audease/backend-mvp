@@ -18,6 +18,7 @@ import { AppLogger } from '../shared/entities/logger.entity';
 import { Staff } from '../shared/entities/staff.entity';
 import { DataSource } from 'typeorm';
 import { Workflow } from '../shared/entities/workflow.entity';
+import { Folder } from '../shared/entities/file-folder.entity';
 
 @Injectable()
 export class AdminRepository {
@@ -46,7 +47,9 @@ export class AdminRepository {
     @InjectRepository(Staff)
     private readonly staffRepository: Repository<Staff>,
     @InjectRepository(Workflow)
-    private readonly workflowRepository: Repository<Workflow>
+    private readonly workflowRepository: Repository<Workflow>,
+    @InjectRepository(Folder)
+    private readonly folderRepository: Repository<Folder>
   ) {}
   //   Get a paginated list of students based on the school id
   // async getStudentsBySchoolId(schoolId: string, page: number, limit: number) {
@@ -535,12 +538,41 @@ export class AdminRepository {
     return this.appLoggerRepository.save(log);
   }
 
-  async createFolder(name: string, userId: string): Promise<LogFolder> {
-    const folder = this.logFolderRepoistory.create({
+  async createFolder(
+    name: string,
+    userId: string,
+    parentFolderId: string
+  ): Promise<Folder> {
+    const folder = this.folderRepository.create({
       name,
       userId,
+      parentFolderId,
     });
-    return this.logFolderRepoistory.save(folder);
+    return this.folderRepository.save(folder);
+  }
+
+  // Find folder by id
+  async findFolderById(folderId: string): Promise<Folder> {
+    return this.folderRepository.findOne({
+      where: { id: folderId },
+    });
+  }
+
+  // Get folder contents using pagination
+  async getFolderContents(folderId: string, page: number, limit: number) {
+    const [folders, total] = await this.folderRepository.findAndCount({
+      where: { id: folderId },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      folders,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async moveToFolder(logId: string[], folderId: string): Promise<AppLogger> {

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Users } from '../../users/entities/user.entity';
 import { School } from './school.entity';
+import { Folder } from './file-folder.entity';
 
 @Entity('documents')
 export class Document {
@@ -25,11 +26,18 @@ export class Document {
   fileType: string;
 
   @Column('varchar', { length: 255, nullable: false })
-  cloudinaryUrl: string;
+  publicUrl: string;
 
   @ManyToOne(() => School, school => school.documents)
   @JoinColumn({ name: 'school_id' })
   school: School;
+
+  @ManyToOne(() => Folder, folder => folder.documents)
+  @JoinColumn({ name: 'folder_id' })
+  folder: Folder;
+
+  @Column({ nullable: true })
+  folderId: string;
 
   @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })
   onboarding_status?: string;
