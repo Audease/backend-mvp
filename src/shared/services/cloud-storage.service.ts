@@ -61,29 +61,40 @@ export class StorageService {
   async uploadBuffer(file: Express.Multer.File): Promise<string> {
     try {
       const fileName = `${Date.now()}-${Math.round(Math.random() * 1000)}-${file.originalname}`;
-      const gcsFile = this.storage.bucket(this.bucket).file(fileName);
-
-      const stream = gcsFile.createWriteStream({
-        metadata: {
-          contentType: file.mimetype,
-        },
-        resumable: false,
-      });
+      const bucket = this.storage.bucket(this.bucket);
+      const blob = bucket.file(fileName);
 
       return new Promise((resolve, reject) => {
-        stream.on('error', error => {
-          reject(error);
+        const blobStream = blob.createWriteStream({
+          resumable: false,
+          metadata: {
+            contentType: file.mimetype,
+          },
         });
 
-        stream.on('finish', async () => {
-          await gcsFile.makePublic();
-          const publicUrl = format(
-            `https://storage.googleapis.com/${this.bucket}/${fileName}`
-          );
-          resolve(publicUrl);
-        });
+        blobStream
+          .on('error', error => {
+            reject(
+              new Error(
+                `Unable to upload image, something went wrong: ${error.message}`
+              )
+            );
+          })
+          .on('finish', async () => {
+            try {
+              // Make the file public
+              await blob.makePublic();
 
-        stream.end(file.buffer);
+              // Construct the public URL
+              const publicUrl = `https://storage.googleapis.com/${this.bucket}/${fileName}`;
+              resolve(publicUrl);
+            } catch (error) {
+              reject(new Error(`Error making file public: ${error.message}`));
+            }
+          });
+
+        // Write the file data to the stream
+        blobStream.end(file.buffer);
       });
     } catch (error) {
       throw new Error(`Failed to upload file: ${error.message}`);
