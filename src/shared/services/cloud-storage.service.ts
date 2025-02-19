@@ -8,14 +8,35 @@ export class StorageService {
   private bucket: string;
 
   constructor() {
-    this.storage = new Storage({
-      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-      credentials: {
-        client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY,
-      },
-    });
-    this.bucket = process.env.GOOGLE_CLOUD_BUCKET_NAME;
+    try {
+      this.storage = new Storage({
+        projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
+        credentials: {
+          client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+          private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY.replace(
+            /\\n/g,
+            '\n'
+          ),
+        },
+      });
+
+      this.bucket = process.env.GOOGLE_CLOUD_BUCKET_NAME;
+
+      // Verify connection
+      this.storage
+        .bucket(this.bucket)
+        .exists()
+        .then(([exists]) => {
+          if (!exists) {
+            console.error('Bucket does not exist:', this.bucket);
+          }
+        })
+        .catch(error => {
+          console.error('Error verifying bucket:', error);
+        });
+    } catch (error) {
+      console.error('Error initializing storage:', error);
+    }
   }
 
   async uploadImage(image: string): Promise<string> {
