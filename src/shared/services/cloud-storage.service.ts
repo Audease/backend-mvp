@@ -85,38 +85,14 @@ export class StorageService {
       const bucket = this.storage.bucket(this.bucket);
       const blob = bucket.file(fileName);
 
-      return new Promise((resolve, reject) => {
-        const blobStream = blob.createWriteStream({
-          resumable: false,
-          metadata: {
-            contentType: file.mimetype,
-          },
-        });
-
-        blobStream
-          .on('error', error => {
-            reject(
-              new Error(
-                `Unable to upload image, something went wrong: ${error.message}`
-              )
-            );
-          })
-          .on('finish', async () => {
-            try {
-              // Make the file public
-              await blob.makePublic();
-
-              // Construct the public URL
-              const publicUrl = `https://storage.googleapis.com/${this.bucket}/${fileName}`;
-              resolve(publicUrl);
-            } catch (error) {
-              reject(new Error(`Error making file public: ${error.message}`));
-            }
-          });
-
-        // Write the file data to the stream
-        blobStream.end(file.buffer);
+      // Upload the file
+      await blob.save(file.buffer, {
+        contentType: file.mimetype,
+        public: true,
       });
+
+      // Return the public URL
+      return `https://storage.googleapis.com/${this.bucket}/${fileName}`;
     } catch (error) {
       throw new Error(`Failed to upload file: ${error.message}`);
     }
