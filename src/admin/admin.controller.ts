@@ -47,6 +47,7 @@ import { Permissions } from '../shared/decorators/permission.decorator';
 import { PermissionGuard } from '../auth/guards/permission.guard';
 import { Permission } from '../utils/enum/permission';
 import { UploadFileDto } from './dto/upload.dto';
+import { CreateDocumentDto } from './dto/create-document.dto';
 
 @ApiTags('Admin')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
@@ -483,18 +484,56 @@ export class AdminController {
     return await this.adminService.getAllFolders(userId, page, limit);
   }
 
+  @Post('folders/:folderId/documents')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiParam({
+    name: 'folderId',
+    type: String,
+    required: true,
+    description: 'ID of the folder to add document to',
+  })
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Create a document in a folder using Cloudinary URL',
+    description:
+      'Save document metadata and Cloudinary URL in a specific folder',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Document created successfully',
+  })
+  @ApiBody({ type: CreateDocumentDto })
+  async createDocument(
+    @CurrentUserId() userId: string,
+    @Param('folderId') folderId: string,
+    @Body() createDocumentDto: CreateDocumentDto
+  ) {
+    return await this.adminService.createDocument(
+      userId,
+      folderId,
+      createDocumentDto
+    );
+  }
+
   @Post('folders')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Create a folder or subfolder',
+    description:
+      'Creates a new folder. If parentFolderId is provided, creates a subfolder.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Folder created successfully',
+  })
+  @ApiBody({ type: CreateFolderDto })
   async createFolder(
     @CurrentUserId() userId: string,
-    @Body() data: CreateFolderDto
+    @Body() createFolderDto: CreateFolderDto
   ) {
-    return await this.adminService.createFolder(
-      data.name,
-      userId,
-      data.parentFolderId
-    );
+    const { name, parentFolderId } = createFolderDto;
+    return await this.adminService.createFolder(name, userId, parentFolderId);
   }
 
   @Post('folders/:folderId/documents')

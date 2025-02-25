@@ -25,15 +25,15 @@ export class Folder {
   @Column({ nullable: true })
   parentFolderId: string;
 
-  @OneToMany(() => Document, document => document.folder)
-  documents: Document[];
-
-  @ManyToOne(() => Folder, folder => folder.subFolders)
+  @ManyToOne(() => Folder, folder => folder.childFolders)
   @JoinColumn({ name: 'parentFolderId' })
   parentFolder: Folder;
 
-  @OneToMany(() => Folder, folder => folder.parentFolder)
-  subFolders: Folder[];
+  @OneToMany(() => Folder, folder => folder.parentFolder, { cascade: true })
+  childFolders: Folder[];
+
+  @OneToMany(() => Document, document => document.folder, { cascade: true })
+  documents: Document[];
 
   @CreateDateColumn()
   createdAt: Date;

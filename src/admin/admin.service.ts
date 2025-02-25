@@ -12,7 +12,7 @@ import { Logger } from '@nestjs/common';
 import { UserService } from '../users/users.service';
 import { MailService } from '../shared/services/mail.service';
 import { RoleDto } from './dto/create-role.dto';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { QueryRunner } from 'typeorm';
 import { Staff } from '../shared/entities/staff.entity';
 import * as crypto from 'crypto';
@@ -26,6 +26,7 @@ import { CreateWorflowDto } from './dto/workflow.dto';
 import { AssignRoleStaffDto } from './dto/misc-dto';
 import { Document } from '../shared/entities/document.entity';
 import { Folder } from '../shared/entities/file-folder.entity';
+import { CreateDocumentDto } from './dto/create-document.dto';
 
 @Injectable()
 export class AdminService {
@@ -414,7 +415,46 @@ export class AdminService {
     }
   }
 
-  async createFolder(name: string, userId: string, parentFolderId?: string) {
+  async createDocument(
+    userId: string,
+    folderId: string,
+    documentData: CreateDocumentDto
+  ): Promise<Document> {
+    try {
+      const user = await this.userService.findOne(userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const folder = await this.folderRepository.findOne({
+        where: { id: folderId },
+      });
+
+      if (!folder) {
+        throw new NotFoundException('Folder not found');
+      }
+
+      const document = await this.documentRepository.save({
+        user,
+        folder,
+        fileName: documentData.fileName,
+        fileType: documentData.fileType,
+        publicUrl: documentData.publicUrl,
+        onboarding_status: 'completed',
+      });
+
+      return document;
+    } catch (error) {
+      this.logger.error(`Error creating document: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async createFolder(
+    name: string,
+    userId: string,
+    parentFolderId?: string
+  ): Promise<Folder> {
     try {
       const user = await this.userService.findOne(userId);
       if (!user) {
@@ -422,19 +462,25 @@ export class AdminService {
       }
 
       if (parentFolderId) {
-        const parentFolder =
-          await this.adminRepository.findFolderById(parentFolderId);
+        const parentFolder = await this.folderRepository.findOne({
+          where: { id: parentFolderId },
+        });
+
         if (!parentFolder) {
           throw new NotFoundException('Parent folder not found');
         }
       }
 
-      await this.adminRepository.createFolder(name, userId, parentFolderId);
+      const folder = await this.folderRepository.save({
+        name,
+        userId,
+        parentFolderId,
+      });
 
-      return { message: 'Folder created successfully' };
+      return folder;
     } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
+      this.logger.error(`Error creating folder: ${error.message}`);
+      throw error;
     }
   }
 
@@ -485,6 +531,73 @@ export class AdminService {
     }
   }
 
+  async getFolderWithContents(folderId: string): Promise<Folder> {
+    const folder = await this.folderRepository.findOne({
+      where: { id: folderId },
+      relations: ['documents'],
+    });
+
+    if (!folder) {
+      throw new NotFoundException('Folder not found');
+    }
+
+    // Get child folders
+    const childFolders = await this.folderRepository.find({
+      where: { parentFolderId: folder.id },
+    });
+
+    // Recursively get contents of child folders
+    folder.childFolders = await Promise.all(
+      childFolders.map(async childFolder => {
+        return this.getFolderWithContents(childFolder.id);
+      })
+    );
+
+    return folder;
+  }
+
+  async getAllFolders(userId: string, page = 1, limit = 10) {
+    try {
+      const user = await this.userService.findOne(userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const skip = (page - 1) * limit;
+
+      // Get root folders (those without parents)
+      const [rootFolders, total] = await this.folderRepository.findAndCount({
+        where: {
+          userId,
+          parentFolderId: IsNull(),
+        },
+        order: { createdAt: 'DESC' },
+        skip,
+        take: limit,
+      });
+
+      // Load the full tree for each root folder
+      const foldersWithTree = await Promise.all(
+        rootFolders.map(async folder => {
+          return this.getFolderWithContents(folder.id);
+        })
+      );
+
+      return {
+        data: foldersWithTree,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      this.logger.error(`Error getting folders: ${error.message}`);
+      throw error;
+    }
+  }
+
   async getFolderContents(
     userId: string,
     folderId: string,
@@ -503,34 +616,6 @@ export class AdminService {
       }
 
       return this.adminRepository.getFolderContents(folderId, page, limit);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  async getAllFolders(userId: string, page = 1, limit = 10) {
-    try {
-      const user = await this.userService.findOne(userId);
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-
-      const [folders, total] = await this.adminRepository.getAllFolders(
-        userId,
-        page,
-        limit
-      );
-
-      return {
-        data: folders,
-        meta: {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        },
-      };
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
