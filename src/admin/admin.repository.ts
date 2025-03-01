@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { Student } from '../students/entities/student.entity';
@@ -647,6 +648,49 @@ export class AdminRepository {
       .take(limit)
       .orderBy('app_logger.createdAt', 'DESC')
       .getMany();
+  }
+
+  // Add document to a student profile
+  async addDocumentsToStudent(studentId: string, documentIds: string[]) {
+    try {
+      const student = await this.prospectiveStudentRepository.findOne({
+        where: { id: studentId },
+      });
+
+      if (!student) {
+        throw new NotFoundException('Student not found');
+      }
+
+      const documents = await this.documentRepository.findByIds(documentIds);
+
+      if (documents.length !== documentIds.length) {
+        const foundIds = documents.map(doc => doc.id);
+        const missingIds = documentIds.filter(id => !foundIds.includes(id));
+        throw new NotFoundException(
+          `Documents not found: ${missingIds.join(', ')}`
+        );
+      }
+
+      const newDocuments = documents.map(document =>
+        this.documentRepository.create({
+          ...document,
+          student,
+        })
+      );
+
+      await this.documentRepository.save(newDocuments);
+      return {
+        message: 'Documents added to student successfully',
+        count: newDocuments.length,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Error adding documents to student'
+      );
+    }
   }
 
   // Duplicate log using the log id and a query builder

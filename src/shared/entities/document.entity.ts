@@ -9,6 +9,7 @@ import {
 import { Users } from '../../users/entities/user.entity';
 import { School } from './school.entity';
 import { Folder } from './file-folder.entity';
+import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
 
 @Entity('documents')
 export class Document {
@@ -35,6 +36,10 @@ export class Document {
   @ManyToOne(() => Folder, folder => folder.documents)
   @JoinColumn({ name: 'folderId' })
   folder: Folder;
+
+  @ManyToOne(() => ProspectiveStudent, student => student.documents)
+  @JoinColumn({ name: 'studentId' })
+  student: ProspectiveStudent;
 
   @Column({ nullable: true })
   folderId: string;

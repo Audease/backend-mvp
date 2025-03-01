@@ -531,6 +531,18 @@ export class AdminService {
     }
   }
 
+  // Add document to a student profile
+  async addDocumentToStudent(studentId: string, documentIds: string[]) {
+    try {
+      await this.adminRepository.addDocumentsToStudent(studentId, documentIds);
+      return { message: 'Document added to student successfully' };
+    } catch {
+      throw new InternalServerErrorException(
+        'Error adding document to student'
+      );
+    }
+  }
+
   async getFolderWithContents(folderId: string): Promise<Folder> {
     const folder = await this.folderRepository.findOne({
       where: { id: folderId },

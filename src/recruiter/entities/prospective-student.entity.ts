@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { Users } from '../../users/entities/user.entity';
 import { FormSubmission } from '../../form/entity/form-submission.entity';
+import { Document } from '../../shared/entities/document.entity';
 
 @Entity('prospective_students')
 export class ProspectiveStudent {
@@ -52,6 +53,9 @@ export class ProspectiveStudent {
 
   @OneToMany(() => FormSubmission, submission => submission.student)
   submissions: FormSubmission[];
+
+  @OneToMany(() => Document, document => document.student)
+  documents: Document[];
 
   @Column('varchar', { length: 255, nullable: true, default: 'Not sent' })
   application_mail: string;

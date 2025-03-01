@@ -47,6 +47,7 @@ import { Permissions } from '../shared/decorators/permission.decorator';
 import { PermissionGuard } from '../auth/guards/permission.guard';
 import { Permission } from '../utils/enum/permission';
 import { CreateDocumentDto } from './dto/create-document.dto';
+import { AddDocumentsToStudentDto } from './dto/add-student-document.dto';
 
 @ApiTags('Admin')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
@@ -171,6 +172,31 @@ export class AdminController {
       this.logger.error(error.message, error.stack);
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  @Post('students/:studentId/documents')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add multiple documents to a student' })
+  @ApiParam({
+    name: 'studentId',
+    description: 'ID of the student',
+    type: String,
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Documents successfully added to student',
+  })
+  @ApiResponse({ status: 404, description: 'Student or document not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async addDocumentsToStudent(
+    @Param('studentId') studentId: string,
+    @Body() addDocumentsDto: AddDocumentsToStudentDto
+  ) {
+    return this.adminService.addDocumentToStudent(
+      studentId,
+      addDocumentsDto.documentIds
+    );
   }
 
   @Get('/profile')
