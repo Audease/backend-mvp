@@ -661,8 +661,14 @@ export class AdminRepository {
         throw new NotFoundException('Document not found');
       }
 
+      console.log(document);
+
       const students =
-        await this.prospectiveStudentRepository.findByIds(studentIds);
+        (await this.prospectiveStudentRepository.find({
+          where: studentIds.map(id => ({ id })),
+        })) || [];
+
+      console.log(students);
 
       if (students.length !== studentIds.length) {
         const foundIds = students.map(student => student.id);
@@ -680,6 +686,8 @@ export class AdminRepository {
           student,
         })
       );
+
+      console.log(documentAssignments);
 
       await this.documentRepository.save(documentAssignments);
 
