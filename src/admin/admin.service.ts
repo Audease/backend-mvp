@@ -532,9 +532,12 @@ export class AdminService {
   }
 
   // Add document to a student profile
-  async addDocumentToStudent(studentId: string, documentIds: string[]) {
+  async addDocumentToStudent(documentId: string, studentIds: string[]) {
     try {
-      await this.adminRepository.addDocumentsToStudent(studentId, documentIds);
+      await this.adminRepository.assignDocumentToStudents(
+        documentId,
+        studentIds
+      );
       return { message: 'Document added to student successfully' };
     } catch {
       throw new InternalServerErrorException(

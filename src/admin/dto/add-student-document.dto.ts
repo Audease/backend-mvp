@@ -1,9 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsUUID } from 'class-validator';
 
-export class AddDocumentsToStudentDto {
+export class AssignDocumentToStudentsDto {
   @ApiProperty({
-    description: 'Array of document IDs to assign to the student',
+    description: 'Document ID to assign to multiple students',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    type: String,
+  })
+  @IsNotEmpty()
+  @IsUUID(4)
+  documentId: string;
+
+  @ApiProperty({
+    description: 'Array of student IDs to assign the document to',
     example: [
       '123e4567-e89b-12d3-a456-426614174000',
       '123e4567-e89b-12d3-a456-426614174001',
@@ -13,13 +22,5 @@ export class AddDocumentsToStudentDto {
   @IsArray()
   @IsNotEmpty()
   @IsUUID(4, { each: true })
-  documentIds: string[];
-
-  @ApiProperty({
-    description: 'Student ID to assign the documents',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-    type: String,
-  })
-  @IsNotEmpty()
-  studentId: string;
+  studentIds: string[];
 }

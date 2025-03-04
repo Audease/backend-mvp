@@ -26,6 +26,10 @@ export class StudentsService {
     return this.studentRepository.updateStudentById(id, student);
   }
 
+  async getDocumentsByStudentId(studentId: string) {
+    return this.studentRepository.getDocumentsByStudentId(studentId);
+  }
+
   async saveDocument(userId: string, file: Express.Multer.File) {
     const user = await this.userService.findOne(userId);
 

@@ -651,44 +651,48 @@ export class AdminRepository {
   }
 
   // Add document to a student profile
-  async addDocumentsToStudent(studentId: string, documentIds: string[]) {
+  async assignDocumentToStudents(documentId: string, studentIds: string[]) {
     try {
-      const student = await this.prospectiveStudentRepository.findOne({
-        where: { id: studentId },
+      const document = await this.documentRepository.findOne({
+        where: { id: documentId },
       });
 
-      if (!student) {
-        throw new NotFoundException('Student not found');
+      if (!document) {
+        throw new NotFoundException('Document not found');
       }
 
-      const documents = await this.documentRepository.findByIds(documentIds);
+      const students =
+        await this.prospectiveStudentRepository.findByIds(studentIds);
 
-      if (documents.length !== documentIds.length) {
-        const foundIds = documents.map(doc => doc.id);
-        const missingIds = documentIds.filter(id => !foundIds.includes(id));
+      if (students.length !== studentIds.length) {
+        const foundIds = students.map(student => student.id);
+        const missingIds = studentIds.filter(id => !foundIds.includes(id));
         throw new NotFoundException(
-          `Documents not found: ${missingIds.join(', ')}`
+          `Students not found: ${missingIds.join(', ')}`
         );
       }
 
-      const newDocuments = documents.map(document =>
+      // Create document copies for each student
+      const documentAssignments = students.map(student =>
         this.documentRepository.create({
           ...document,
+          id: undefined, // Create new ID for each document copy
           student,
         })
       );
 
-      await this.documentRepository.save(newDocuments);
+      await this.documentRepository.save(documentAssignments);
+
       return {
-        message: 'Documents added to student successfully',
-        count: newDocuments.length,
+        message: 'Document assigned to students successfully',
+        count: students.length,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new InternalServerErrorException(
-        'Error adding documents to student'
+        'Error assigning document to students'
       );
     }
   }

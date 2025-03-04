@@ -7,6 +7,7 @@ import {
   HttpStatus,
   InternalServerErrorException,
   Controller,
+  Param,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -58,6 +59,15 @@ export class StudentsController {
         message: 'An error occurred while updating student profile',
       });
     }
+  }
+
+  //  Get a student's documents
+  @Get('/documents/:studentId')
+  @Permissions(Permission.MANAGE_PROFILE)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a student documents' })
+  async getStudentDocuments(@Param('studentId') studentId: string) {
+    return this.studentsService.getDocumentsByStudentId(studentId);
   }
 
   //  Save a student's document

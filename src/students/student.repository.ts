@@ -21,6 +21,13 @@ export class StudentRepository {
       .getOne();
   }
 
+  // Fetch documents for a particular student
+  async getDocumentsByStudentId(studentId: string): Promise<Document[]> {
+    return this.documentRepository.find({
+      where: { student: { id: studentId } },
+    });
+  }
+
   //   Update student's details by ID
   async updateStudentById(id: string, student: Student): Promise<Student> {
     await this.studentRepository.update(id, student);

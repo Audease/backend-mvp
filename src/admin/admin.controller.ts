@@ -47,7 +47,8 @@ import { Permissions } from '../shared/decorators/permission.decorator';
 import { PermissionGuard } from '../auth/guards/permission.guard';
 import { Permission } from '../utils/enum/permission';
 import { CreateDocumentDto } from './dto/create-document.dto';
-import { AddDocumentsToStudentDto } from './dto/add-student-document.dto';
+import { AssignDocumentToStudentsDto } from './dto/add-student-document.dto';
+import Api from 'twilio/lib/rest/Api';
 
 @ApiTags('Admin')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
@@ -174,28 +175,22 @@ export class AdminController {
     }
   }
 
-  @Post('students/:studentId/documents')
+  @Post('documents/assign')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Add multiple documents to a student' })
-  @ApiParam({
-    name: 'studentId',
-    description: 'ID of the student',
-    type: String,
-  })
+  @ApiOperation({ summary: 'Assign a document to multiple students' })
   @ApiResponse({
     status: 201,
-    description: 'Documents successfully added to student',
+    description: 'Document successfully assigned to students',
   })
-  @ApiResponse({ status: 404, description: 'Student or document not found' })
+  @ApiResponse({ status: 404, description: 'Document or student not found' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  async addDocumentsToStudent(
-    @Param('studentId') studentId: string,
-    @Body() addDocumentsDto: AddDocumentsToStudentDto
+  async assignDocumentToStudents(
+    @Body() assignDocumentDto: AssignDocumentToStudentsDto
   ) {
     return this.adminService.addDocumentToStudent(
-      studentId,
-      addDocumentsDto.documentIds
+      assignDocumentDto.documentId,
+      assignDocumentDto.studentIds
     );
   }
 
