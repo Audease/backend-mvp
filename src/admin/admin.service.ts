@@ -541,10 +541,10 @@ export class AdminService {
       console.log(document);
       return { message: 'Document added to student successfully' };
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException(
         'Error adding document to student'
       );
-      console.log(error);
     }
   }
 
