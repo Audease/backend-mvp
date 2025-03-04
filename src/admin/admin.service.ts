@@ -534,16 +534,21 @@ export class AdminService {
   // Add document to a student profile
   async addDocumentToStudent(documentId: string, studentIds: string[]) {
     try {
-      const document = await this.adminRepository.assignDocumentToStudents(
+      const result = await this.adminRepository.assignDocumentToStudents(
         documentId,
         studentIds
       );
-      console.log(document);
-      return { message: 'Document added to student successfully' };
+      return {
+        message: 'Document added to students successfully',
+        count: result.count,
+      };
     } catch (error) {
-      console.log(error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error in addDocumentToStudent:', error);
       throw new InternalServerErrorException(
-        'Error adding document to student'
+        'Error adding document to students'
       );
     }
   }

@@ -1,4 +1,4 @@
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   ConflictException,
@@ -661,14 +661,9 @@ export class AdminRepository {
         throw new NotFoundException('Document not found');
       }
 
-      console.log(document);
-
-      const students =
-        (await this.prospectiveStudentRepository.find({
-          where: studentIds.map(id => ({ id })),
-        })) || [];
-
-      console.log(students);
+      const students = await this.prospectiveStudentRepository.find({
+        where: { id: In(studentIds) }, // Using In operator is more efficient
+      });
 
       if (students.length !== studentIds.length) {
         const foundIds = students.map(student => student.id);
@@ -678,24 +673,41 @@ export class AdminRepository {
         );
       }
 
-      // Create document copies for each student
+      // Create document copies for each student, but extract only the fields we need
+      // This avoids any circular references or non-column properties
       const documentAssignments = students.map(student =>
         this.documentRepository.create({
-          ...document,
-          id: undefined, // Create new ID for each document copy
-          student,
+          fileName: document.fileName,
+          fileType: document.fileType,
+          publicUrl: document.publicUrl,
+          folderId: document.folderId,
+          onboarding_status: document.onboarding_status,
+          uploadedAt: document.uploadedAt,
+          student: student,
         })
       );
 
-      console.log(documentAssignments);
-
-      await this.documentRepository.save(documentAssignments);
+      // Save each document individually to better handle errors
+      const savedDocuments = [];
+      for (const docAssignment of documentAssignments) {
+        try {
+          const savedDoc = await this.documentRepository.save(docAssignment);
+          savedDocuments.push(savedDoc);
+        } catch (e) {
+          console.error(
+            `Failed to save document for student: ${docAssignment.student.id}`,
+            e
+          );
+          // Continue with other students even if one fails
+        }
+      }
 
       return {
         message: 'Document assigned to students successfully',
-        count: students.length,
+        count: savedDocuments.length,
       };
     } catch (error) {
+      console.error('Error in assignDocumentToStudents:', error);
       if (error instanceof NotFoundException) {
         throw error;
       }
