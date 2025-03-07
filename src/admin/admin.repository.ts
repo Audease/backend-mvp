@@ -684,8 +684,9 @@ export class AdminRepository {
             publicUrl: document.publicUrl,
             folderId: document.folderId,
             onboarding_status: document.onboarding_status,
-            uploadedAt: new Date(), // Use current timestamp for new document
-            student: student, // Use the relation instead of direct ID
+            uploadedAt: new Date(),
+            student: student,
+            studentId: student.id, // Include both relation and ID
           });
 
           const savedDoc = await this.documentRepository.save(newDocument);
@@ -697,7 +698,6 @@ export class AdminRepository {
             e
           );
           console.error(e);
-          // Continue with other students even if one fails
         }
       }
 
