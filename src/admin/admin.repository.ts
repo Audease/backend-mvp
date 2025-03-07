@@ -653,6 +653,10 @@ export class AdminRepository {
   // Add document to a student profile
   async assignDocumentToStudents(documentId: string, studentIds: string[]) {
     try {
+      console.log(
+        `Starting document assignment: documentId=${documentId}, students=${studentIds.join(',')}`
+      );
+
       const document = await this.documentRepository.findOne({
         where: { id: documentId },
       });
@@ -660,10 +664,12 @@ export class AdminRepository {
       if (!document) {
         throw new NotFoundException('Document not found');
       }
+      console.log(`Found document: ${document.id}, ${document.fileName}`);
 
       const students = await this.prospectiveStudentRepository.find({
         where: { id: In(studentIds) },
       });
+      console.log(`Found ${students.length} students`);
 
       if (students.length !== studentIds.length) {
         const foundIds = students.map(student => student.id);
@@ -677,30 +683,34 @@ export class AdminRepository {
       const savedDocuments = [];
       for (const student of students) {
         try {
-          // Create a new document for each student
-          const newDocument = this.documentRepository.create({
+          console.log(`Processing student: ${student.id} (${student.name})`);
+
+          // Create a new document - don't copy the ID from the original
+          const newDocument = {
             fileName: document.fileName,
             fileType: document.fileType,
             publicUrl: document.publicUrl,
             folderId: document.folderId,
-            onboarding_status: document.onboarding_status,
+            onboarding_status: document.onboarding_status || 'pending',
             uploadedAt: new Date(),
             student: student,
-            studentId: student.id, // Include both relation and ID
-          });
+          };
 
+          console.log(
+            `Attempting to save new document: ${JSON.stringify(newDocument, null, 2)}`
+          );
+
+          // Save using entity manager to avoid any potential repository issues
           const savedDoc = await this.documentRepository.save(newDocument);
-          console.log(`Document saved for student: ${student.id}`);
+          console.log(`Success! Document saved with ID: ${savedDoc.id}`);
+
           savedDocuments.push(savedDoc);
         } catch (e) {
-          console.error(
-            `Failed to save document for student: ${student.id}`,
-            e
-          );
-          console.error(e);
+          console.error(`Error saving document for student ${student.id}:`, e);
         }
       }
 
+      console.log(`Total documents saved: ${savedDocuments.length}`);
       return {
         message: 'Document assigned to students successfully',
         count: savedDocuments.length,
@@ -715,7 +725,6 @@ export class AdminRepository {
       );
     }
   }
-
   // Duplicate log using the log id and a query builder
   async duplicateLog(logId: string): Promise<AppLogger> {
     const log = await this.appLoggerRepository.findOne({
