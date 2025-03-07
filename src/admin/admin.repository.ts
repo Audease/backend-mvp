@@ -691,7 +691,13 @@ export class AdminRepository {
       const savedDocuments = [];
       for (const docAssignment of documentAssignments) {
         try {
-          const savedDoc = await this.documentRepository.save(docAssignment);
+          const savedDoc = await this.prospectiveStudentRepository.save({
+            documents: [docAssignment],
+          });
+          console.log(
+            `Document saved for student: ${docAssignment.student.id}`
+          );
+          console.log(savedDoc);
           savedDocuments.push(savedDoc);
         } catch (e) {
           console.error(

@@ -48,7 +48,6 @@ import { PermissionGuard } from '../auth/guards/permission.guard';
 import { Permission } from '../utils/enum/permission';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { AssignDocumentToStudentsDto } from './dto/add-student-document.dto';
-import Api from 'twilio/lib/rest/Api';
 
 @ApiTags('Admin')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
