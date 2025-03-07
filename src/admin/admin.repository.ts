@@ -629,6 +629,32 @@ export class AdminRepository {
       .getMany();
   }
 
+  // Delete a folder by id
+  async deleteFolder(folderId: string) {
+    const folder = await this.folderRepository.findOne({
+      where: { id: folderId },
+    });
+
+    if (!folder) {
+      throw new NotFoundException('Folder not found');
+    }
+
+    return await this.folderRepository.delete({ id: folderId });
+  }
+
+  // Delete documents by id
+  async deleteDocument(documentId: string) {
+    const document = await this.documentRepository.findOne({
+      where: { id: documentId },
+    });
+
+    if (!document) {
+      throw new NotFoundException('Document not found');
+    }
+
+    return await this.documentRepository.delete({ id: documentId });
+  }
+
   async getLogsByFolder(folderId: string, page: number, limit: number) {
     // Use query builder to get logs by folder id
     return this.appLoggerRepository

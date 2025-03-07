@@ -636,6 +636,64 @@ export class AdminController {
     }
   }
 
+  @Delete('/delete-folder/:folderId')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete a folder',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Folder not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiParam({
+    name: 'folderId',
+    type: String,
+    description: 'ID of the folder to be deleted',
+  })
+  @HttpCode(HttpStatus.OK)
+  async deleteFolder(
+    @CurrentUserId() userId: string,
+    @Param('folderId') folderId: string
+  ) {
+    try {
+      return await this.adminService.deleteFolder(folderId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Delete('/delete-document/:documentId')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete a document',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Document not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiParam({
+    name: 'documentId',
+    type: String,
+    description: 'ID of the document to be deleted',
+  })
+  @HttpCode(HttpStatus.OK)
+  async deleteDocument(
+    @CurrentUserId() userId: string,
+    @Param('documentId') documentId: string
+  ) {
+    try {
+      return await this.adminService.deleteDocument(documentId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   @Post('/create-workflow')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()

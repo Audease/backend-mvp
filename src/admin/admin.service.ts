@@ -531,6 +531,36 @@ export class AdminService {
     }
   }
 
+  async deleteDocument(documentId: string): Promise<{ message: string }> {
+    try {
+      await this.adminRepository.deleteDocument(documentId);
+      return {
+        message: 'Document deleted successfully',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error in deleteDocument:', error);
+      throw new InternalServerErrorException('Error deleting document');
+    }
+  }
+
+  // Delete a folder
+  async deleteFolder(folderId: string): Promise<{ message: string }> {
+    try {
+      await this.adminRepository.deleteFolder(folderId);
+      return {
+        message: 'Folder deleted successfully',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error in deleteFolder:', error);
+      throw new InternalServerErrorException('Error deleting folder');
+    }
+  }
   // Add document to a student profile
   async addDocumentToStudent(documentId: string, studentIds: string[]) {
     try {
