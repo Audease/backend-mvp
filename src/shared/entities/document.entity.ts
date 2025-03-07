@@ -42,6 +42,9 @@ export class Document {
   student: ProspectiveStudent;
 
   @Column({ nullable: true })
+  studentId: string;
+
+  @Column({ nullable: true })
   folderId: string;
 
   @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })

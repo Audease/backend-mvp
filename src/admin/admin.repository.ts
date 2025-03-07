@@ -662,7 +662,7 @@ export class AdminRepository {
       }
 
       const students = await this.prospectiveStudentRepository.find({
-        where: { id: In(studentIds) }, // Using In operator is more efficient
+        where: { id: In(studentIds) },
       });
 
       if (students.length !== studentIds.length) {
@@ -673,35 +673,27 @@ export class AdminRepository {
         );
       }
 
-      // Create document copies for each student, but extract only the fields we need
-      // This avoids any circular references or non-column properties
-      const documentAssignments = students.map(student =>
-        this.documentRepository.create({
-          fileName: document.fileName,
-          fileType: document.fileType,
-          publicUrl: document.publicUrl,
-          folderId: document.folderId,
-          onboarding_status: document.onboarding_status,
-          uploadedAt: document.uploadedAt,
-          student: student,
-        })
-      );
-
-      // Save each document individually to better handle errors
+      // Save documents directly using DocumentRepository
       const savedDocuments = [];
-      for (const docAssignment of documentAssignments) {
+      for (const student of students) {
         try {
-          const savedDoc = await this.prospectiveStudentRepository.save({
-            documents: [docAssignment],
+          // Create a new document for each student
+          const newDocument = this.documentRepository.create({
+            fileName: document.fileName,
+            fileType: document.fileType,
+            publicUrl: document.publicUrl,
+            folderId: document.folderId,
+            onboarding_status: document.onboarding_status,
+            uploadedAt: new Date(), // Use current timestamp for new document
+            studentId: student.id, // Set the foreign key directly
           });
-          console.log(
-            `Document saved for student: ${docAssignment.student.id}`
-          );
-          console.log(savedDoc);
+
+          const savedDoc = await this.documentRepository.save(newDocument);
+          console.log(`Document saved for student: ${student.id}`);
           savedDocuments.push(savedDoc);
         } catch (e) {
           console.error(
-            `Failed to save document for student: ${docAssignment.student.id}`,
+            `Failed to save document for student: ${student.id}`,
             e
           );
           // Continue with other students even if one fails
