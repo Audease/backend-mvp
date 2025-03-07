@@ -685,7 +685,7 @@ export class AdminRepository {
             folderId: document.folderId,
             onboarding_status: document.onboarding_status,
             uploadedAt: new Date(), // Use current timestamp for new document
-            studentId: student.id, // Set the foreign key directly
+            student: student, // Use the relation instead of direct ID
           });
 
           const savedDoc = await this.documentRepository.save(newDocument);
@@ -696,6 +696,7 @@ export class AdminRepository {
             `Failed to save document for student: ${student.id}`,
             e
           );
+          console.error(e);
           // Continue with other students even if one fails
         }
       }
