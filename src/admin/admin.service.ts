@@ -583,6 +583,23 @@ export class AdminService {
     }
   }
 
+  // A method to search for student using a defined method in the repository
+  async searchStudents(userId: string, search: string) {
+    try {
+      const getSchool = await this.authRepository.findSchoolByUserId(userId);
+
+      if (!getSchool) {
+        this.logger.error('School not found');
+        throw new NotFoundException('School not found');
+      }
+
+      return this.adminRepository.searchStudentBySchoolId(getSchool.id, search);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async getFolderWithContents(folderId: string): Promise<Folder> {
     const folder = await this.folderRepository.findOne({
       where: { id: folderId },

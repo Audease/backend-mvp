@@ -193,12 +193,16 @@ export class AuthService {
         permissions: result.map(p => p.name),
         user_id: user.id,
         learner_id: student.id,
+        email: user.email,
+        name: student.name,
       };
     } else {
       return {
         token,
         permissions: result.map(p => p.name),
         user_id: user.id,
+        email: user.email,
+        name: `${user.first_name} ${user.last_name}`,
       };
     }
   }

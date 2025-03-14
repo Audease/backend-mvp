@@ -665,6 +665,37 @@ export class AdminController {
     }
   }
 
+  // Write a controller to search for students in the school
+  @Get('/search-students')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: true,
+    description: 'Search query',
+  })
+  @ApiOperation({
+    summary: 'Search for students in the school',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Student not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async searchStudent(
+    @CurrentUserId() userId: string,
+    @Query('search') search: string
+  ) {
+    try {
+      return await this.adminService.searchStudent(userId, search);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   @Delete('/delete-document/:documentId')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()

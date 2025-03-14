@@ -676,6 +676,31 @@ export class AdminRepository {
       .getMany();
   }
 
+  // Write a method to search for students using like operator and query builder
+  async searchStudents(schoolId: string, search: string) {
+    return this.studentRepository
+      .createQueryBuilder('student')
+      .leftJoinAndSelect('student.user', 'user')
+      .select([
+        'student.id',
+        'student.first_name',
+        'student.last_name',
+        'student.date_of_birth',
+        'student.home_address',
+        'student.created_at',
+        'user.email',
+        'user.username',
+      ])
+      .where('student.school_id = :schoolId', { schoolId })
+      .andWhere(
+        'student.first_name ILIKE :search OR student.last_name ILIKE :search OR student.home_address ILIKE :search OR user.email ILIKE :search OR user.username ILIKE :search',
+        {
+          search: `%${search}%`,
+        }
+      )
+      .getMany();
+  }
+
   // Add document to a student profile
   async assignDocumentToStudents(documentId: string, studentIds: string[]) {
     try {
