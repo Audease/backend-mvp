@@ -24,7 +24,7 @@ export class Workflow {
   @OneToMany(() => Roles, role => role.id)
   role: Roles;
 
-  @Column('enum', { enum: ['Pending', 'completed'], default: 'pending' })
+  @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })
   onboarding_status?: string;
 
   @ManyToOne(() => School, school => school.id)

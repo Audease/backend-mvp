@@ -13,6 +13,11 @@ export class FilterStudentsDto {
   @ApiPropertyOptional()
   chosen_course?: string;
 
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  search?: string;
+
   @IsOptional()
   @ApiPropertyOptional()
   @Transform(({ value }) => parseInt(value, 10))

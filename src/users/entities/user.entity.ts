@@ -37,10 +37,10 @@ export class Users {
   @Column('varchar', { length: 255, nullable: false })
   password: string;
 
-  @Column('boolean', { nullable: false })
+  @Column('boolean', { nullable: true, default: false })
   '2fa_required': boolean;
 
-  @Column('boolean', { nullable: false })
+  @Column('boolean', { nullable: false, default: true })  
   is_active: boolean;
 
   @Column('varchar', { length: 255, nullable: false })

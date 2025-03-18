@@ -56,6 +56,8 @@ export class ApiConfigService {
         FormSubmission,
         Folder,
       ],
+      synchronize: this.configService.get('NODE_ENV') !== 'production',
+      logging: this.configService.get('NODE_ENV') !== 'production',
       migrationsRun: true,
       username,
       password,

@@ -275,7 +275,7 @@ export class RecruiterService {
   }
 
   async getFilteredStudents(userId: string, filterDto: FilterStudentsDto) {
-    const { funding, chosen_course, page, limit } = filterDto;
+    const { funding, chosen_course, page, limit, search } = filterDto;
 
     const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
@@ -296,9 +296,7 @@ export class RecruiterService {
       .where('user.id = :userId', { userId: loggedInUser.id })
       .select([
         'prospective_student.id',
-        'prospective_student.first_name',
-        'prospective_student.last_name',
-        'prospective_student.middle_name',
+        'prospective_student.name',
         'prospective_student.email',
         'prospective_student.date_of_birth',
         'prospective_student.mobile_number',
@@ -316,6 +314,15 @@ export class RecruiterService {
       queryBuilder.andWhere('prospective_student.funding LIKE :funding', {
         funding: `%${funding}%`,
       });
+    }
+
+    if (search) {
+      queryBuilder.andWhere(
+        '(prospective_student.name LIKE :search OR prospective_student.email LIKE :search OR prospective_student.mobile_number LIKE :search OR prospective_student.NI_number LIKE :search OR prospective_student.passport_number LIKE :search OR prospective_student.home_address LIKE :search OR prospective_student.funding LIKE :search OR prospective_student.level LIKE :search OR prospective_student.awarding LIKE :search OR prospective_student.chosen_course LIKE :search)',
+        {
+          search: `%${search}%`,
+        }
+      );
     }
 
     if (chosen_course) {
