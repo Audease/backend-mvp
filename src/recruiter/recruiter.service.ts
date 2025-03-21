@@ -318,7 +318,16 @@ export class RecruiterService {
 
     if (search) {
       queryBuilder.andWhere(
-        '(prospective_student.name LIKE :search OR prospective_student.email LIKE :search OR prospective_student.mobile_number LIKE :search OR prospective_student.NI_number LIKE :search OR prospective_student.passport_number LIKE :search OR prospective_student.home_address LIKE :search OR prospective_student.funding LIKE :search OR prospective_student.level LIKE :search OR prospective_student.awarding LIKE :search OR prospective_student.chosen_course LIKE :search)',
+        '(prospective_student.name LIKE :search OR ' +
+          'prospective_student.email LIKE :search OR ' +
+          'prospective_student.mobile_number LIKE :search OR ' +
+          'prospective_student.NI_number LIKE :search OR ' +
+          'prospective_student.passport_number LIKE :search OR ' +
+          'prospective_student.home_address LIKE :search OR ' +
+          'prospective_student.funding LIKE :search OR ' +
+          'CAST(prospective_student.level AS TEXT) LIKE :search OR ' +
+          'prospective_student.awarding LIKE :search OR ' +
+          'prospective_student.chosen_course LIKE :search)',
         {
           search: `%${search}%`,
         }
