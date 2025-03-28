@@ -11,7 +11,7 @@ export class CreateWorkflow1725969249352 implements MigrationInterface {
             onboarding_status VARCHAR CHECK (onboarding_status IN ('pending', 'completed')) DEFAULT 'pending',
             school_id UUID,
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-            FOREIGN KEY (school_id) REFERENCES schools(id)
+            FOREIGN KEY (school_id) REFERENCES school(id)
             );
             `
     );

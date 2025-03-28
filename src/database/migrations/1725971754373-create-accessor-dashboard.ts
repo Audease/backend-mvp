@@ -5,6 +5,16 @@ export class CreateAccessorDashboard1725971754373
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'application_status_enum') THEN
+          CREATE TYPE application_status_enum AS ENUM ('Pending', 'Approved', 'Rejected');
+        END IF;
+      END
+      $$;
+    `);
+
+    await queryRunner.query(`
         CREATE TABLE accessor_dashboard (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     first_name VARCHAR(255) NOT NULL,

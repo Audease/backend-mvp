@@ -46,9 +46,10 @@ export class BksdService {
     if (learner) {
       const accessorUsername = loggedInUser.username;
       const sanitizedCollegeName = accessorUsername.split('.')[1];
+      const sanitizedLearnerName = learner.name.replace(/\s+/g, '_');
       const college_id = loggedInUser.school.id;
       let generated_username =
-        `${learner.name}.${sanitizedCollegeName}.student`.toLowerCase();
+        `${sanitizedLearnerName}.${sanitizedCollegeName}.student`.toLowerCase();
       const generated_password = crypto
         .randomBytes(12)
         .toString('hex')
@@ -173,9 +174,10 @@ export class BksdService {
   }
 
   async getFilteredStudents(userId: string, filterDto: FilterDto) {
-    const { funding, chosen_course, application_mail, page, limit } = filterDto;
+    const { funding, chosen_course, application_mail, page, limit, search } =
+      filterDto;
 
-    const accessor = await this.bksdRepository.findUser(userId);
+    const accessor = await this.userService.findOne(userId);
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('student')
@@ -193,6 +195,24 @@ export class BksdService {
       queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
         chosen_course: `%${chosen_course}%`,
       });
+    }
+
+    if (search) {
+      queryBuilder.andWhere(
+        '(prospective_student.name LIKE :search OR ' +
+          'prospective_student.email LIKE :search OR ' +
+          'prospective_student.mobile_number LIKE :search OR ' +
+          'prospective_student.NI_number LIKE :search OR ' +
+          'prospective_student.passport_number LIKE :search OR ' +
+          'prospective_student.home_address LIKE :search OR ' +
+          'prospective_student.funding LIKE :search OR ' +
+          'CAST(prospective_student.level AS TEXT) LIKE :search OR ' +
+          'prospective_student.awarding LIKE :search OR ' +
+          'prospective_student.chosen_course LIKE :search)',
+        {
+          search: `%${search}%`,
+        }
+      );
     }
 
     if (application_mail) {

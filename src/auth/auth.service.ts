@@ -58,7 +58,10 @@ export class AuthService {
 
       const role = await this.userService.getRoleByName(Role.SCHOOL_ADMIN);
 
-      const userExists = await this.userService.getUserByUsername(username);
+      const sanitizedUsername = username.replace(/\s+/g, '_');
+
+      const userExists =
+        await this.userService.getUserByUsername(sanitizedUsername);
 
       if (userExists) {
         this.logger.error('Username already exists');

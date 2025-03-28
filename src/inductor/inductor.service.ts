@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FilterDto } from '../bksd/dto/bksd-filter.dto';
 import { SendMeetingDto } from './dto/send-meeting.dto';
 import { MailService } from '../shared/services/mail.service';
+import { UserService } from '../users/users.service';
 
 @Injectable()
 export class InductorService {
@@ -14,7 +15,8 @@ export class InductorService {
     @InjectRepository(ProspectiveStudent)
     private readonly learnerRepository: Repository<ProspectiveStudent>,
     private readonly bksdRepository: BksdRepository,
-    private readonly mailService: MailService
+    private readonly mailService: MailService,
+    private readonly userService: UserService
   ) {}
   async getAllStudents(userId: string, page: number, limit: number) {
     const accessor = await this.bksdRepository.findUser(userId);
@@ -42,7 +44,7 @@ export class InductorService {
 
   async getFilteredStudents(userId: string, filters: FilterDto) {
     const { funding, chosen_course, application_status, search } = filters;
-    const accessor = await this.bksdRepository.findUser(userId);
+    const accessor = await this.userService.findOne(userId);
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('student')
       .where('student.school = :schoolId', {
@@ -54,8 +56,19 @@ export class InductorService {
 
     if (search) {
       queryBuilder.andWhere(
-        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
-        { search: `%${search}%` }
+        '(prospective_student.name LIKE :search OR ' +
+          'prospective_student.email LIKE :search OR ' +
+          'prospective_student.mobile_number LIKE :search OR ' +
+          'prospective_student.NI_number LIKE :search OR ' +
+          'prospective_student.passport_number LIKE :search OR ' +
+          'prospective_student.home_address LIKE :search OR ' +
+          'prospective_student.funding LIKE :search OR ' +
+          'CAST(prospective_student.level AS TEXT) LIKE :search OR ' +
+          'prospective_student.awarding LIKE :search OR ' +
+          'prospective_student.chosen_course LIKE :search)',
+        {
+          search: `%${search}%`,
+        }
       );
     }
 
