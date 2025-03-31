@@ -42,17 +42,20 @@ export class LazerService {
     const { funding, chosen_course, search } = filters;
     const accessor = await this.bksdRepository.findUser(userId);
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .where('student.school = :schoolId', {
+      .createQueryBuilder('prospective_student')
+      .where('prospective_student.school = :schoolId', {
         schoolId: accessor.school.id,
       })
-      .andWhere('student.application_status = :application_status', {
-        application_status: 'Approved',
-      });
+      .andWhere(
+        'prospective_student.application_status = :application_status',
+        {
+          application_status: 'Approved',
+        }
+      );
 
     if (search) {
       queryBuilder.andWhere(
-        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
+        'prospective_student.first_name LIKE :search OR prospective_student.email LIKE :search',
         { search: `%${search}%` }
       );
     }

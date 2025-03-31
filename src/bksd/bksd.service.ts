@@ -49,7 +49,7 @@ export class BksdService {
       const sanitizedLearnerName = learner.name.replace(/\s+/g, '_');
       const college_id = loggedInUser.school.id;
       let generated_username =
-        `${sanitizedLearnerName}.${sanitizedCollegeName}.student`.toLowerCase();
+        `${sanitizedLearnerName}.${sanitizedCollegeName}.learner`.toLowerCase();
       const generated_password = crypto
         .randomBytes(12)
         .toString('hex')
@@ -180,21 +180,24 @@ export class BksdService {
     const accessor = await this.userService.findOne(userId);
 
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .where('student.school = :schoolId', {
+      .createQueryBuilder('prospective_student')
+      .where('prospective_student.school = :schoolId', {
         schoolId: accessor.school.id,
       });
 
     if (funding) {
-      queryBuilder.andWhere('student.funding LIKE :funding', {
+      queryBuilder.andWhere('prospective_student.funding LIKE :funding', {
         funding: `%${funding}%`,
       });
     }
 
     if (chosen_course) {
-      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
-        chosen_course: `%${chosen_course}%`,
-      });
+      queryBuilder.andWhere(
+        'prospective_student.chosen_course LIKE :chosen_course',
+        {
+          chosen_course: `%${chosen_course}%`,
+        }
+      );
     }
 
     if (search) {
@@ -216,9 +219,12 @@ export class BksdService {
     }
 
     if (application_mail) {
-      queryBuilder.andWhere('student.application_mail LIKE :application_mail', {
-        application_mail: `%${application_mail}%`,
-      });
+      queryBuilder.andWhere(
+        'prospective_student.application_mail LIKE :application_mail',
+        {
+          application_mail: `%${application_mail}%`,
+        }
+      );
     }
 
     const total = await queryBuilder.getCount();

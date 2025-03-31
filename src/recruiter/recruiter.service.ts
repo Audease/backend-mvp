@@ -83,76 +83,135 @@ export class RecruiterService {
   }
 
   async importLearners(userId: string, file: Express.Multer.File) {
+    if (!file) {
+      this.logger.error('No file uploaded');
+      throw new BadRequestException('No file uploaded');
+    }
+
     const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    // const recruiter = await this.recruiterRepository.findRecruiter(userId);
-    // if (!recruiter) {
-    //   this.logger.error('Recruiter not found for the user');
-    //   throw new NotFoundException('Recruiter not found for the user');
-    // }
-
-    const learners = [];
-    const parser = parse(file.buffer.toString(), {
-      columns: true,
-      skip_empty_lines: true,
-    });
-
-    for await (const record of parser) {
-      const learnerExist = await this.recruiterRepository.findLearner(record);
-
-      if (learnerExist) {
-        this.logger.warn(
-          `Email or mobile number already exist: ${record.email}, ${record.mobile_number}`
-        );
-        continue;
-      }
-
-      const formatDate = (dateStr: string): string => {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) {
-          throw new Error(`Invalid date format: ${dateStr}`);
-        }
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
-
-      let formattedDate;
-      try {
-        formattedDate = formatDate(record.date_of_birth);
-      } catch (error) {
-        this.logger.error(`Error formatting date for record: ${record}`);
-        this.logger.error(error.message);
-        continue;
-      }
-
-      const learner = this.learnerRepository.create({
-        name: record.name,
-        date_of_birth: formattedDate,
-        mobile_number: record.mobile_number,
-        email: record.email,
-        NI_number: record.NI_number,
-        passport_number: record.passport_number,
-        home_address: record.home_address,
-        funding: record.funding,
-        level: record.level,
-        awarding: record.awarding,
-        chosen_course: record.chosen_course,
-        user: loggedInUser,
-        school: loggedInUser.school,
+    const records = [];
+    // Parse the CSV file
+    try {
+      const parser = parse(file.buffer.toString(), {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
       });
 
-      learners.push(learner);
+      for await (const record of parser) {
+        records.push(record);
+      }
+    } catch (error) {
+      this.logger.error(`Error parsing CSV: ${error.message}`);
+      throw new BadRequestException(`Error parsing CSV: ${error.message}`);
     }
 
-    const newLearners = await this.learnerRepository.save(learners);
-    this.logger.log('Learners created successfully from CSV');
-    return { message: 'You just created learners from CSV', newLearners };
+    if (records.length === 0) {
+      this.logger.warn('CSV file contains no valid records');
+      throw new BadRequestException('CSV file contains no valid records');
+    }
+
+    // Process and validate records
+    const learners = [];
+    const errors = [];
+
+    for (const record of records) {
+      try {
+        // Check required fields
+        if (!record.name || !record.email || !record.date_of_birth) {
+          errors.push(
+            `Record missing required fields: ${JSON.stringify(record)}`
+          );
+          continue;
+        }
+
+        // Check if learner already exists
+        const learnerExist = await this.recruiterRepository.findLearner({
+          email: record.email,
+          mobile_number: record.mobile_number,
+        });
+
+        if (learnerExist) {
+          errors.push(
+            `Duplicate learner found: ${record.email}, ${record.mobile_number}`
+          );
+          continue;
+        }
+
+        // Format date
+        let formattedDate;
+        try {
+          const date = new Date(record.date_of_birth);
+          if (isNaN(date.getTime())) {
+            errors.push(
+              `Invalid date format: ${record.date_of_birth} for record: ${record.email}`
+            );
+            continue;
+          }
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          formattedDate = `${year}-${month}-${day}`;
+        } catch (error) {
+          errors.push(
+            `Error formatting date for record: ${record.email} - ${error.message}`
+          );
+          continue;
+        }
+
+        // Create learner object
+        const learner = this.learnerRepository.create({
+          name: record.name,
+          date_of_birth: formattedDate,
+          mobile_number: record.mobile_number || null,
+          email: record.email,
+          NI_number: record.NI_number || null,
+          passport_number: record.passport_number || null,
+          home_address: record.home_address || null,
+          funding: record.funding || null,
+          level: record.level ? parseInt(record.level, 10) : null,
+          awarding: record.awarding || null,
+          chosen_course: record.chosen_course || null,
+          user: loggedInUser,
+          school: loggedInUser.school,
+          onboarding_status: 'completed', // Set default status
+        });
+
+        learners.push(learner);
+      } catch (error) {
+        errors.push(
+          `Error processing record: ${JSON.stringify(record)} - ${error.message}`
+        );
+      }
+    }
+
+    if (learners.length === 0) {
+      this.logger.error('No valid learners found in CSV');
+      throw new BadRequestException(
+        `No valid learners found in CSV. Errors: ${errors.join('; ')}`
+      );
+    }
+
+    // Save learners to database
+    try {
+      const savedLearners = await this.learnerRepository.save(learners);
+      this.logger.log(`Successfully imported ${savedLearners.length} learners`);
+
+      return {
+        message: `Successfully imported ${savedLearners.length} learners`,
+        imported: savedLearners.length,
+        errors: errors.length > 0 ? errors : undefined,
+        total: records.length,
+      };
+    } catch (error) {
+      this.logger.error(`Error saving learners: ${error.message}`);
+      throw new BadRequestException(`Error saving learners: ${error.message}`);
+    }
   }
 
   async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {

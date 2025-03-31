@@ -224,6 +224,26 @@ export class AdminService {
             continue; // Skip this assignment and proceed with others
           }
 
+          function extractCollegeName(username: string): string {
+            const parts = username.split('.');
+            if (parts.length >= 3) {
+              return parts[1];
+            }
+            return '';
+          }
+
+          let collegeName = '';
+          if (staff.username) {
+            collegeName = extractCollegeName(staff.username);
+          }
+
+          // If no college name was extracted from username, use the one from school
+          if (!collegeName) {
+            collegeName = staff.school.college_name
+              .replace(/[^a-zA-Z0-9]/g, '')
+              .toLowerCase();
+          }
+
           const generated_password = crypto
             .randomBytes(12)
             .toString('hex')
@@ -231,9 +251,6 @@ export class AdminService {
           const password = bcrypt.hashSync(generated_password, 10);
           const email = staff.email
             .split('@')[0]
-            .replace(/[^a-zA-Z0-9]/g, '')
-            .toLowerCase();
-          const collegeName = staff.school.college_name
             .replace(/[^a-zA-Z0-9]/g, '')
             .toLowerCase();
           const username =

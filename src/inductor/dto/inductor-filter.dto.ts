@@ -16,7 +16,7 @@ export class FilterDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional()
-  application_mail?: string;
+  application_status?: string;
 
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))

@@ -58,7 +58,9 @@ export class AuthService {
 
       const role = await this.userService.getRoleByName(Role.SCHOOL_ADMIN);
 
-      const sanitizedUsername = username.replace(/\s+/g, '_');
+      // Sanitize the username by deleting the spaces
+
+      const sanitizedUsername = username.replace(/\s+/g, '');
 
       const userExists =
         await this.userService.getUserByUsername(sanitizedUsername);

@@ -3,7 +3,7 @@ import { Repository } from 'typeorm';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { BksdRepository } from '../bksd/bksd.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FilterDto } from '../bksd/dto/bksd-filter.dto';
+import { FilterDto } from './dto/inductor-filter.dto';
 import { SendMeetingDto } from './dto/send-meeting.dto';
 import { MailService } from '../shared/services/mail.service';
 import { UserService } from '../users/users.service';
@@ -21,13 +21,16 @@ export class InductorService {
   async getAllStudents(userId: string, page: number, limit: number) {
     const accessor = await this.bksdRepository.findUser(userId);
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .where('student.school = :schoolId', {
+      .createQueryBuilder('prospective_student')
+      .where('prospective_student.school = :schoolId', {
         schoolId: accessor.school.id,
       })
-      .andWhere('student.application_status = :application_status', {
-        application_status: 'Approved',
-      });
+      .andWhere(
+        'prospective_student.application_status = :application_status',
+        {
+          application_status: 'Approved',
+        }
+      );
 
     const [results, total] = await queryBuilder
       .skip((page - 1) * limit)
@@ -46,8 +49,8 @@ export class InductorService {
     const { funding, chosen_course, application_status, search } = filters;
     const accessor = await this.userService.findOne(userId);
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .where('student.school = :schoolId', {
+      .createQueryBuilder('prospective_student')
+      .where('prospective_student.school = :schoolId', {
         schoolId: accessor.school.id,
       })
       .andWhere('student.application_status = :application_status', {
@@ -73,20 +76,23 @@ export class InductorService {
     }
 
     if (funding) {
-      queryBuilder.andWhere('student.funding LIKE :funding', {
+      queryBuilder.andWhere('prospective_student.funding LIKE :funding', {
         funding: `%${funding}%`,
       });
     }
 
     if (chosen_course) {
-      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
-        chosen_course: `%${chosen_course}%`,
-      });
+      queryBuilder.andWhere(
+        'prospective_student.chosen_course LIKE :chosen_course',
+        {
+          chosen_course: `%${chosen_course}%`,
+        }
+      );
     }
 
     if (application_status) {
       queryBuilder.andWhere(
-        'student.application_status LIKE :application_status',
+        'prospective_student.application_status LIKE :application_status',
         {
           application_status: `%${application_status}%`,
         }

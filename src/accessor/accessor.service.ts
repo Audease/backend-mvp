@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { BksdRepository } from '../bksd/bksd.repository';
 import { MailService } from '../shared/services/mail.service';
-import { FilterDto } from '../bksd/dto/bksd-filter.dto';
+import { FilterDto } from './dto/accessor-filter.dto';
 import { Student } from '../students/entities/student.entity';
 import { FormSubmission } from '../form/entity/form-submission.entity';
 import { SubmissionStatus } from '../utils/enum/submission-status';
@@ -35,36 +35,39 @@ export class AccessorService {
     const accessor = await this.bksdRepository.findUser(userId);
 
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .where('student.school = :schoolId', {
+      .createQueryBuilder('prospective_student')
+      .where('prospective_student.school = :schoolId', {
         schoolId: accessor.school.id,
       })
-      .andWhere('student.application_mail = :application_mail', {
+      .andWhere('prospective_student.application_mail = :application_mail', {
         application_mail: 'Sent',
       });
 
     if (search) {
       queryBuilder.andWhere(
-        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
+        'prospective_student.name LIKE :search OR prospective_student.email LIKE :search',
         { search: `%${search}%` }
       );
     }
 
     if (funding) {
-      queryBuilder.andWhere('student.funding LIKE :funding', {
+      queryBuilder.andWhere('prospective_student.funding LIKE :funding', {
         funding: `%${funding}%`,
       });
     }
 
     if (chosen_course) {
-      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
-        chosen_course: `%${chosen_course}%`,
-      });
+      queryBuilder.andWhere(
+        'prospective_student.chosen_course LIKE :chosen_course',
+        {
+          chosen_course: `%${chosen_course}%`,
+        }
+      );
     }
 
     if (application_status) {
       queryBuilder.andWhere(
-        'student.application_status LIKE :application_status',
+        'prospective_student.application_status LIKE :application_status',
         {
           application_mail: `%${application_status}%`,
         }
