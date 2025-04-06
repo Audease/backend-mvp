@@ -28,8 +28,8 @@ import { Permission } from '../utils/enum/permission';
 import { Permissions } from '../shared/decorators/permission.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
-import { FilterDto } from '../bksd/dto/bksd-filter.dto';
 import { SendMeetingDto } from './dto/send-meeting.dto';
+import { StudentFilterDto } from '../shared/dto/student-filter.dto';
 
 @ApiTags('INDUCTOR DASHBOARD')
 @Controller('induction')
@@ -123,7 +123,7 @@ export class InductorController {
   @HttpCode(HttpStatus.OK)
   async findAllFiltered(
     @CurrentUserId() userId: string,
-    @Query() filters: FilterDto
+    @Query() filters: StudentFilterDto
   ) {
     try {
       return await this.inductorService.getFilteredStudents(userId, filters);

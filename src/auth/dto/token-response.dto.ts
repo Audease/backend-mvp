@@ -30,10 +30,50 @@ class RefreshToken {
   expires: string;
 }
 
+// src/auth/dto/token-response.dto.ts
 export class TokenResponseDto {
   @ApiProperty({ type: AccessToken })
   access: AccessToken;
 
   @ApiProperty({ type: RefreshToken })
   refresh: RefreshToken;
+
+  @ApiProperty({
+    description: 'Whether the user needs to change their password',
+    example: true,
+    type: Boolean,
+  })
+  requires_password_change: boolean;
+
+  @ApiProperty({
+    description: 'List of user permissions',
+    example: ['Add student', 'Manage Personal Profile'],
+    type: [String],
+  })
+  permissions: string[];
+
+  @ApiProperty({
+    description: 'User ID',
+    example: '6bb722fd-466c-4ece-bf74-71464f2162ec',
+  })
+  user_id: string;
+
+  @ApiProperty({
+    description: 'User email',
+    example: 'john.doe@example.com',
+  })
+  email: string;
+
+  @ApiProperty({
+    description: 'User display name',
+    example: 'John Doe',
+  })
+  name: string;
+
+  @ApiProperty({
+    description: 'Learner ID (only for students)',
+    example: '12e4567-e89b-12d3-a456-426614174000',
+    required: false,
+  })
+  learner_id?: string;
 }

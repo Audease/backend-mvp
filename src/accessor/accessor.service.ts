@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
@@ -8,6 +13,7 @@ import { FilterDto } from './dto/accessor-filter.dto';
 import { Student } from '../students/entities/student.entity';
 import { FormSubmission } from '../form/entity/form-submission.entity';
 import { SubmissionStatus } from '../utils/enum/submission-status';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AccessorService {
@@ -20,7 +26,8 @@ export class AccessorService {
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
     private readonly bksdRepository: BksdRepository,
-    private readonly mailService: MailService
+    private readonly mailService: MailService,
+    private readonly dataSource: DataSource
   ) {}
 
   async getAllStudents(userId: string, filters: FilterDto) {
@@ -106,65 +113,8 @@ export class AccessorService {
     return student;
   }
 
+  // Improved approveApplication method in accessor.service.ts
   async approveApplication(userId: string, studentId: string) {
-    const accessor = await this.bksdRepository.findUser(userId);
-
-    const learner = await this.learnerRepository.findOne({
-      where: {
-        id: studentId,
-        application_mail: 'Sent',
-        school: { id: accessor.school.id },
-      },
-      relations: ['school'],
-    });
-
-    if (!learner) {
-      throw new NotFoundException(`Learner with id: ${studentId} not found`);
-    }
-
-    const student = await this.studentRepository.findOne({
-      where: { email: learner.email, school: { id: learner.school.id } },
-      relations: ['school'],
-    });
-
-    await this.learnerRepository.update(learner.id, {
-      application_status: 'Approved',
-    });
-
-    await this.studentRepository.update(student.id, {
-      application_status: 'Approved',
-    });
-
-    const submission = await this.formSubmissionRepository.find({
-      where: {
-        student: { id: learner.id },
-        status: SubmissionStatus.SUBMITTED,
-      },
-    });
-
-    if (!submission) {
-      throw new NotFoundException('Student is yet to submit their form');
-    }
-
-    await Promise.all(
-      submission.map(async submission => {
-        submission.is_submitted = true;
-        return this.formSubmissionRepository.save(submission);
-      })
-    );
-
-    const updatedStudent = await this.learnerRepository.findOne({
-      where: { id: learner.id },
-      relations: ['school'],
-    });
-
-    return {
-      message: "Learner's application has been approved",
-      student: updatedStudent,
-    };
-  }
-
-  async rejectApplication(userId: string, studentId: string, reason: string) {
     const accessor = await this.bksdRepository.findUser(userId);
 
     if (!accessor) {
@@ -190,31 +140,39 @@ export class AccessorService {
       relations: ['school'],
     });
 
-    await this.learnerRepository.update(learner.id, {
-      application_status: 'Rejected',
-    });
-
-    const submission = await this.formSubmissionRepository.find({
-      where: {
-        student: { id: learner.id },
-        status: SubmissionStatus.SUBMITTED,
-      },
-    });
-
-    if (!submission) {
-      throw new NotFoundException('Student is yet to submit their form');
+    if (!student) {
+      throw new NotFoundException('Student record not found');
     }
 
-    // Update the submission status to rejected
-    await Promise.all(
-      submission.map(async submission => {
-        submission.is_submitted = false;
-        return this.formSubmissionRepository.save(submission);
-      })
-    );
+    // Transaction to ensure both updates succeed or fail together
+    await this.dataSource.transaction(async manager => {
+      await manager.update(ProspectiveStudent, learner.id, {
+        application_status: 'Approved',
+      });
 
-    await this.studentRepository.update(student.id, {
-      application_status: 'Rejected',
+      await manager.update(Student, student.id, {
+        application_status: 'Approved',
+      });
+
+      // Find all submitted forms for this student
+      const submissions = await manager.find(FormSubmission, {
+        where: {
+          student: { id: studentId },
+          status: SubmissionStatus.SUBMITTED,
+        },
+      });
+
+      if (submissions.length === 0) {
+        this.logger.warn(`No form submissions found for student ${studentId}`);
+      } else {
+        // Mark all forms as submitted
+        await Promise.all(
+          submissions.map(submission => {
+            submission.is_submitted = true;
+            return manager.save(FormSubmission, submission);
+          })
+        );
+      }
     });
 
     const updatedStudent = await this.learnerRepository.findOne({
@@ -222,21 +180,101 @@ export class AccessorService {
       relations: ['school'],
     });
 
+    return {
+      message: "Learner's application has been approved",
+      student: updatedStudent,
+    };
+  }
+
+  // Improved rejectApplication method in accessor.service.ts
+  async rejectApplication(userId: string, studentId: string, reason: string) {
+    if (!reason) {
+      throw new BadRequestException('Rejection reason is required');
+    }
+
+    const accessor = await this.bksdRepository.findUser(userId);
+
+    if (!accessor) {
+      this.logger.error('Accessor not found for the user');
+      throw new NotFoundException('Accessor not found for the user');
+    }
+
+    const learner = await this.learnerRepository.findOne({
+      where: {
+        id: studentId,
+        application_mail: 'Sent',
+        school: { id: accessor.school.id },
+      },
+      relations: ['school'],
+    });
+
+    if (!learner) {
+      throw new NotFoundException(`Learner with id: ${studentId} not found`);
+    }
+
+    const student = await this.studentRepository.findOne({
+      where: { email: learner.email, school: { id: learner.school.id } },
+      relations: ['school'],
+    });
+
+    if (!student) {
+      throw new NotFoundException('Student record not found');
+    }
+
+    // Transaction to ensure both updates succeed or fail together
+    await this.dataSource.transaction(async manager => {
+      await manager.update(ProspectiveStudent, learner.id, {
+        application_status: 'Rejected',
+      });
+
+      await manager.update(Student, student.id, {
+        application_status: 'Rejected',
+      });
+
+      // Update form submissions
+      const submissions = await manager.find(FormSubmission, {
+        where: {
+          student: { id: studentId },
+          status: SubmissionStatus.SUBMITTED,
+        },
+      });
+
+      await Promise.all(
+        submissions.map(submission => {
+          submission.is_submitted = false;
+          submission.status = SubmissionStatus.REJECTED;
+          submission.reviewComment = reason;
+          return manager.save(FormSubmission, submission);
+        })
+      );
+    });
+
+    const updatedStudent = await this.learnerRepository.findOne({
+      where: { id: learner.id },
+      relations: ['school'],
+    });
+
+    // Send rejection email
     const loginUrl = `${process.env.FRONTEND_URL}`;
     const first_name = updatedStudent.name.split(' ')[0];
 
-    await this.mailService.sendTemplateMail(
-      {
-        to: updatedStudent.email,
-        subject: 'Action Required: Verify Your Profile Details on Audease',
-      },
-      'rejection-mail',
-      {
-        first_name,
-        loginUrl,
-        reason,
-      }
-    );
+    try {
+      await this.mailService.sendTemplateMail(
+        {
+          to: updatedStudent.email,
+          subject: 'Action Required: Verify Your Profile Details on Audease',
+        },
+        'rejection-mail',
+        {
+          first_name,
+          loginUrl,
+          reason,
+        }
+      );
+    } catch (error) {
+      this.logger.error(`Failed to send rejection email: ${error.message}`);
+      // Continue with the function even if email fails
+    }
 
     return {
       message: "Learner's application has been rejected",

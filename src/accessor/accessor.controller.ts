@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -37,6 +38,8 @@ import { Permission } from '../utils/enum/permission';
 export class AccessorController {
   private readonly logger = new Logger(AccessorController.name);
   constructor(private readonly accessorService: AccessorService) {}
+
+  // Improved error handling in AccessorController
   @Get('/students')
   @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
@@ -77,14 +80,17 @@ export class AccessorController {
         paginationParams
       );
     } catch (error) {
-      this.logger.error(error.message);
+      this.logger.error(`Error in findAll: ${error.message}`, error.stack);
+
       if (error instanceof NotFoundException) {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
       } else if (error instanceof ConflictException) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else if (error instanceof BadRequestException) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       } else {
         throw new HttpException(
-          error.message,
+          'An unexpected error occurred while fetching students',
           HttpStatus.INTERNAL_SERVER_ERROR
         );
       }

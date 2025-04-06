@@ -65,20 +65,20 @@ export class AdminRepository {
   async getStudentsBySchoolId(schoolId: string, page: number, limit: number) {
     const result = await this.studentRepository
       .createQueryBuilder('student')
-      .leftJoinAndSelect('student.user', 'user')
+      .leftJoinAndSelect('prospective_studentuser', 'user')
       .select([
-        'student.id',
-        'student.first_name',
-        'student.last_name',
-        'student.date_of_birth',
-        'student.home_address',
-        'student.created_at',
-        'student.funding',
-        'student.chosen_course',
+        'prospective_studentid',
+        'prospective_studentfirst_name',
+        'prospective_studentlast_name',
+        'prospective_studentdate_of_birth',
+        'prospective_studenthome_address',
+        'prospective_studentcreated_at',
+        'prospective_studentfunding',
+        'prospective_studentchosen_course',
         'user.email',
         'user.username',
       ])
-      .where('student.school_id = :schoolId', { schoolId })
+      .where('prospective_studentschool_id = :schoolId', { schoolId })
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
@@ -95,18 +95,18 @@ export class AdminRepository {
   async getStudentById(studentId: string) {
     const result = await this.studentRepository
       .createQueryBuilder('student')
-      .leftJoinAndSelect('student.user', 'user')
+      .leftJoinAndSelect('prospective_studentuser', 'user')
       .select([
-        'student.id',
-        'student.first_name',
-        'student.last_name',
-        'student.date_of_birth',
-        'student.home_address',
-        'student.created_at',
+        'prospective_studentid',
+        'prospective_studentfirst_name',
+        'prospective_studentlast_name',
+        'prospective_studentdate_of_birth',
+        'prospective_studenthome_address',
+        'prospective_studentcreated_at',
         'user.email',
         'user.username',
       ])
-      .where('student.id = :studentId', { studentId })
+      .where('prospective_studentid = :studentId', { studentId })
       .getOne();
 
     if (!result) return null;
@@ -127,22 +127,22 @@ export class AdminRepository {
   async searchStudentBySchoolId(schoolId: string, search: string) {
     const result = await this.studentRepository
       .createQueryBuilder('student')
-      .leftJoinAndSelect('student.user', 'user')
+      .leftJoinAndSelect('prospective_studentuser', 'user')
       .select([
-        'student.id',
-        'student.first_name',
-        'student.last_name',
-        'student.date_of_birth',
-        'student.address',
-        'student.created_at',
-        'student.updated_at',
-        'student.user_id',
+        'prospective_studentid',
+        'prospective_studentfirst_name',
+        'prospective_studentlast_name',
+        'prospective_studentdate_of_birth',
+        'prospective_studentaddress',
+        'prospective_studentcreated_at',
+        'prospective_studentupdated_at',
+        'prospective_studentuser_id',
         'user.email',
         'user.username',
       ])
-      .where('student.school_id = :schoolId', { schoolId })
+      .where('prospective_studentschool_id = :schoolId', { schoolId })
       .andWhere(
-        'student.first_name ILIKE :search OR student.last_name ILIKE :search OR student.address ILIKE :search OR user.email ILIKE :search OR user.username ILIKE :search',
+        'prospective_studentfirst_name ILIKE :search OR prospective_studentlast_name ILIKE :search OR prospective_studentaddress ILIKE :search OR user.email ILIKE :search OR user.username ILIKE :search',
         {
           search: `%${search}%`,
         }
@@ -156,12 +156,11 @@ export class AdminRepository {
       name: student.name,
       date_of_birth: student.date_of_birth,
       address: student.home_address,
-      email: student.user?.email,
+      email: student?.email,
       username: student.user?.username,
       created_at: student.created_at,
     }));
   }
-
   async getAdminDetails(userId: string) {
     const result = await this.userRepository.findOne({
       where: { id: userId },
@@ -680,20 +679,20 @@ export class AdminRepository {
   async searchStudents(schoolId: string, search: string) {
     return this.studentRepository
       .createQueryBuilder('student')
-      .leftJoinAndSelect('student.user', 'user')
+      .leftJoinAndSelect('prospective_studentuser', 'user')
       .select([
-        'student.id',
-        'student.first_name',
-        'student.last_name',
-        'student.date_of_birth',
-        'student.home_address',
-        'student.created_at',
+        'prospective_studentid',
+        'prospective_studentfirst_name',
+        'prospective_studentlast_name',
+        'prospective_studentdate_of_birth',
+        'prospective_studenthome_address',
+        'prospective_studentcreated_at',
         'user.email',
         'user.username',
       ])
-      .where('student.school_id = :schoolId', { schoolId })
+      .where('prospective_studentschool_id = :schoolId', { schoolId })
       .andWhere(
-        'student.first_name ILIKE :search OR student.last_name ILIKE :search OR student.home_address ILIKE :search OR user.email ILIKE :search OR user.username ILIKE :search',
+        'prospective_studentfirst_name ILIKE :search OR prospective_studentlast_name ILIKE :search OR prospective_studenthome_address ILIKE :search OR user.email ILIKE :search OR user.username ILIKE :search',
         {
           search: `%${search}%`,
         }

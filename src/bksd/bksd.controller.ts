@@ -25,10 +25,10 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
-import { FilterDto } from './dto/bksd-filter.dto';
 import { PermissionGuard } from '../auth/guards/permission.guard';
 import { Permissions } from '../shared/decorators/permission.decorator';
 import { Permission } from '../utils/enum/permission';
+import { StudentFilterDto } from '../shared/dto/student-filter.dto';
 
 @ApiTags('BKSD DASHBOARD')
 @Controller('bksd')
@@ -172,7 +172,7 @@ export class BksdController {
   @HttpCode(HttpStatus.OK)
   async filter(
     @CurrentUserId() userId: string,
-    @Query() filterParams: FilterDto
+    @Query() filterParams: StudentFilterDto
   ) {
     try {
       return await this.bksdService.getFilteredStudents(userId, filterParams);

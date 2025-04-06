@@ -15,7 +15,7 @@ import { Student } from '../students/entities/student.entity';
 import { MailService } from '../shared/services/mail.service';
 import { BksdRepository } from './bksd.repository';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
-import { FilterDto } from './dto/bksd-filter.dto';
+import { StudentFilterDto } from '../shared/dto/student-filter.dto';
 
 @Injectable()
 export class BksdService {
@@ -137,13 +137,13 @@ export class BksdService {
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('student')
-      .where('student.school = :schoolId', {
+      .where('prospective_studentschool = :schoolId', {
         schoolId: accessor.school.id,
       });
 
     if (search) {
       queryBuilder.andWhere(
-        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
+        'prospective_studentfirst_name LIKE :search OR prospective_studentlast_name LIKE :search OR prospective_studentmiddle_name LIKE :search OR prospective_studentemail LIKE :search',
         { search: `%${search}%` }
       );
     }
@@ -173,45 +173,55 @@ export class BksdService {
     return student;
   }
 
-  async getFilteredStudents(userId: string, filterDto: FilterDto) {
-    const { funding, chosen_course, application_mail, page, limit, search } =
-      filterDto;
+  // Improved filter method in bksd.service.ts
+  async getFilteredStudents(userId: string, filterDto: StudentFilterDto) {
+    const {
+      funding,
+      chosen_course,
+      application_mail,
+      page = 1,
+      limit = 10,
+      search,
+    } = filterDto;
 
     const accessor = await this.userService.findOne(userId);
+    if (!accessor || !accessor.school) {
+      throw new NotFoundException('User or school not found');
+    }
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .where('prospective_student.school = :schoolId', {
+      .where('prospective_student.school_id = :schoolId', {
         schoolId: accessor.school.id,
-      });
+      })
+      .leftJoinAndSelect('prospective_student.school', 'school');
 
     if (funding) {
-      queryBuilder.andWhere('prospective_student.funding LIKE :funding', {
-        funding: `%${funding}%`,
+      queryBuilder.andWhere('prospective_student.funding = :funding', {
+        funding,
       });
     }
 
     if (chosen_course) {
       queryBuilder.andWhere(
-        'prospective_student.chosen_course LIKE :chosen_course',
+        'prospective_student.chosen_course = :chosen_course',
         {
-          chosen_course: `%${chosen_course}%`,
+          chosen_course,
         }
       );
     }
 
     if (search) {
       queryBuilder.andWhere(
-        '(prospective_student.name LIKE :search OR ' +
-          'prospective_student.email LIKE :search OR ' +
-          'prospective_student.mobile_number LIKE :search OR ' +
-          'prospective_student.NI_number LIKE :search OR ' +
-          'prospective_student.passport_number LIKE :search OR ' +
-          'prospective_student.home_address LIKE :search OR ' +
-          'prospective_student.funding LIKE :search OR ' +
-          'CAST(prospective_student.level AS TEXT) LIKE :search OR ' +
-          'prospective_student.awarding LIKE :search OR ' +
-          'prospective_student.chosen_course LIKE :search)',
+        '(prospective_student.name ILIKE :search OR ' +
+          'prospective_student.email ILIKE :search OR ' +
+          'prospective_student.mobile_number ILIKE :search OR ' +
+          'prospective_student.NI_number ILIKE :search OR ' +
+          'prospective_student.passport_number ILIKE :search OR ' +
+          'prospective_student.home_address ILIKE :search OR ' +
+          'prospective_student.funding ILIKE :search OR ' +
+          'prospective_student.awarding ILIKE :search OR ' +
+          'prospective_student.chosen_course ILIKE :search)',
         {
           search: `%${search}%`,
         }
@@ -220,20 +230,24 @@ export class BksdService {
 
     if (application_mail) {
       queryBuilder.andWhere(
-        'prospective_student.application_mail LIKE :application_mail',
+        'prospective_student.application_mail = :application_mail',
         {
-          application_mail: `%${application_mail}%`,
+          application_mail,
         }
       );
     }
 
-    const total = await queryBuilder.getCount();
-
-    const data = await queryBuilder
+    const [data, total] = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
-      .getMany();
+      .getManyAndCount();
 
-    return { data, total };
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

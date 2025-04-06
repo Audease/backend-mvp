@@ -53,9 +53,12 @@ export class InductorService {
       .where('prospective_student.school = :schoolId', {
         schoolId: accessor.school.id,
       })
-      .andWhere('student.application_status = :application_status', {
-        application_status: 'Approved',
-      });
+      .andWhere(
+        'prospective_student.application_status = :application_status',
+        {
+          application_status: 'Approved',
+        }
+      );
 
     if (search) {
       queryBuilder.andWhere(

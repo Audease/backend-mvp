@@ -184,6 +184,7 @@ export class AdminService {
   }
 
   // Assign a role to a user
+  // src/admin/admin.service.ts (or relevant service where staff accounts are created)
   async assignRoles(userId: string, assignments: AssignRoleStaffDto[]) {
     return await this.dataSource.transaction(
       async transactionalEntityManager => {
@@ -256,9 +257,13 @@ export class AdminService {
           const username =
             `${email}.${collegeName}.${data.role.role}`.toLowerCase();
 
+          // Create user with is_password_changed set to false
           await this.adminRepository.createStaff(
             transactionalEntityManager,
-            staff,
+            {
+              ...staff,
+              is_password_changed: false, // Set the flag
+            },
             data.role,
             username,
             password

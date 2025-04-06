@@ -40,7 +40,7 @@ export class Users {
   @Column('boolean', { nullable: true, default: false })
   '2fa_required': boolean;
 
-  @Column('boolean', { nullable: false, default: true })  
+  @Column('boolean', { nullable: false, default: true })
   is_active: boolean;
 
   @Column('varchar', { length: 255, nullable: false })
@@ -77,6 +77,9 @@ export class Users {
 
   @OneToMany(() => Document, document => document.user)
   documents: Document[];
+
+  @Column('boolean', { default: false })
+  is_password_changed: boolean;
 
   @CreateDateColumn({
     nullable: false,
