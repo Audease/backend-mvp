@@ -136,15 +136,25 @@ export class BksdService {
     }
 
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .where('prospective_studentschool = :schoolId', {
+      .createQueryBuilder('prospective_student')
+      .where('prospective_student.school_id = :schoolId', {
         schoolId: accessor.school.id,
       });
 
     if (search) {
       queryBuilder.andWhere(
-        'prospective_studentfirst_name LIKE :search OR prospective_studentlast_name LIKE :search OR prospective_studentmiddle_name LIKE :search OR prospective_studentemail LIKE :search',
-        { search: `%${search}%` }
+        '(prospective_student.name ILIKE :search OR ' +
+          'prospective_student.email ILIKE :search OR ' +
+          'prospective_student.mobile_number ILIKE :search OR ' +
+          'prospective_student.NI_number ILIKE :search OR ' +
+          'prospective_student.passport_number ILIKE :search OR ' +
+          'prospective_student.home_address ILIKE :search OR ' +
+          'prospective_student.funding ILIKE :search OR ' +
+          'prospective_student.awarding ILIKE :search OR ' +
+          'prospective_student.chosen_course ILIKE :search)',
+        {
+          search: `%${search}%`,
+        }
       );
     }
 
