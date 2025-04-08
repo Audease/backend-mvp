@@ -17,11 +17,11 @@ export class CertificateService {
   async getAllStudents(userId: string, page: number, limit: number) {
     const accessor = await this.bksdRepository.findUser(userId);
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .where('prospective_studentschool = :schoolId', {
+      .createQueryBuilder('prospective_student')
+      .where('prospective_student.school_id = :schoolId', {
         schoolId: accessor.school.id,
       })
-      .andWhere('prospective_studentlazer_status = :lazer_status', {
+      .andWhere('prospective_student.lazer_status = :lazer_status', {
         lazer_status: 'Approved',
       });
 
