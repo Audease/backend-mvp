@@ -165,4 +165,25 @@ export class InductorService {
       studentId,
     };
   }
+
+  async updateAttendanceStatus(
+    userId: string,
+    studentId: string,
+    status: 'present' | 'absent'
+  ) {
+    const student = await this.getStudent(userId, studentId);
+
+    if (!student) {
+      throw new NotFoundException(`Learner with id: ${studentId} not found`);
+    }
+
+    student.attendance_status = status;
+    await this.learnerRepository.save(student);
+
+    return {
+      message: `Attendance status updated to ${status}`,
+      studentId,
+      status,
+    };
+  }
 }

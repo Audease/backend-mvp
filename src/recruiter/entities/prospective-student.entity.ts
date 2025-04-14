@@ -66,6 +66,9 @@ export class ProspectiveStudent {
   @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })
   onboarding_status?: string;
 
+  @Column('enum', { enum: ['present', 'absent'], default: 'absent' })
+  attendance_status?: string;
+
   @ManyToOne(() => Users, user => user.prospectiveStudents)
   @JoinColumn({ name: 'user_id' })
   user?: Users;

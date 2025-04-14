@@ -342,17 +342,11 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    // const recruiter = await this.recruiterRepository.findRecruiter(userId);
-
-    // if (!recruiter) {
-    //   this.logger.error('Recruiter not found for the user');
-    //   throw new NotFoundException('Recruiter not found for the user');
-    // }
-
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .innerJoin('prospective_student.user', 'user', 'user.id = :userId')
-      .where('user.id = :userId', { userId: loggedInUser.id })
+      .where('prospective_student.school = :schoolId', {
+        schoolId: loggedInUser.school.id,
+      })
       .select([
         'prospective_student.id',
         'prospective_student.name',

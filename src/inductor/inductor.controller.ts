@@ -30,6 +30,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { SendMeetingDto } from './dto/send-meeting.dto';
 import { StudentFilterDto } from '../shared/dto/student-filter.dto';
+import { UpdateAttendanceStatusDto } from './dto/update-attendance-status.dto';
 
 @ApiTags('INDUCTOR DASHBOARD')
 @Controller('induction')
@@ -213,6 +214,52 @@ export class InductorController {
         userId,
         studentId,
         sendMeetingDto
+      );
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+  }
+
+  @Post('/students/:studentId/attendance-status')
+  @Permissions(Permission.INDUCTION)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'studentId',
+    type: String,
+    description: 'ID of the student',
+  })
+  @ApiOperation({
+    summary: 'Update attendance status for a student on the Inductor dashboard',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
+  @ApiNotFoundResponse({
+    description: 'Student with studentId not found for the user',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async updateAttendanceStatus(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string,
+    @Body('attendance_status') attendanceStatus: UpdateAttendanceStatusDto
+  ) {
+    try {
+      return await this.inductorService.updateAttendanceStatus(
+        userId,
+        studentId,
+        attendanceStatus.attendance_status
       );
     } catch (error) {
       this.logger.error(error.message);
