@@ -51,6 +51,18 @@ export class ProspectiveStudent {
   @Column('varchar', { length: 255, nullable: true })
   chosen_course: string;
 
+  @Column('boolean', { default: false })
+  is_archived: boolean;
+
+  @Column('timestamp', { nullable: true })
+  archived_at: Date;
+
+  @Column('varchar', { length: 255, nullable: true })
+  archived_by: string;
+
+  @Column('varchar', { length: 1000, nullable: true })
+  archive_reason: string;
+
   @OneToMany(() => FormSubmission, submission => submission.student)
   submissions: FormSubmission[];
 

@@ -26,11 +26,11 @@ import {
 } from '@nestjs/swagger';
 import { RejectDto } from './dto/body-accessor.dto';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
-import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PermissionGuard } from '../auth/guards/permission.guard';
 import { Permissions } from '../shared/decorators/permission.decorator';
 import { Permission } from '../utils/enum/permission';
+import { FilterDto } from './dto/accessor-filter.dto';
 
 @ApiTags('ACCESSOR DASHBOARD')
 @Controller('accessor')
@@ -61,6 +61,24 @@ export class AccessorController {
     required: false,
     description: 'Search query for filtering results',
   })
+  @ApiQuery({
+    name: 'funding',
+    type: String,
+    required: false,
+    description: 'Filter by funding type',
+  })
+  @ApiQuery({
+    name: 'chosen_course',
+    type: String,
+    required: false,
+    description: 'Filter by chosen course',
+  })
+  @ApiQuery({
+    name: 'application_status',
+    type: String,
+    required: false,
+    description: 'Filter by application status',
+  })
   @ApiOperation({
     summary: 'View information of all students on the Accessor dashboard',
   })
@@ -70,15 +88,9 @@ export class AccessorController {
     description: 'Unauthorized',
   })
   @HttpCode(HttpStatus.OK)
-  async findAll(
-    @CurrentUserId() userId: string,
-    @Query() paginationParams: PaginationParamsDto
-  ) {
+  async findAll(@CurrentUserId() userId: string, @Query() filters: FilterDto) {
     try {
-      return await this.accessorService.getAllStudents(
-        userId,
-        paginationParams
-      );
+      return await this.accessorService.getAllStudents(userId, filters);
     } catch (error) {
       this.logger.error(`Error in findAll: ${error.message}`, error.stack);
 

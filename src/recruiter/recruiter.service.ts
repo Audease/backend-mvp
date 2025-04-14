@@ -245,6 +245,9 @@ export class RecruiterService {
         'prospective_student.awarding',
         'prospective_student.created_at',
       ])
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
+      })
       .where('prospective_student.school_id = :schoolId', { schoolId });
 
     const [result, total] = await Promise.all([

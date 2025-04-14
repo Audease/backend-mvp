@@ -675,6 +675,59 @@ export class AdminRepository {
       .getMany();
   }
 
+  async getNewStaffs(
+    schoolId: string,
+    page: number,
+    limit: number,
+    search?: string,
+    status?: string
+  ): Promise<any> {
+    // Create the base query builder
+    const queryBuilder = this.staffRepository
+      .createQueryBuilder('staff')
+      .select([
+        'staff.id',
+        'staff.username',
+        'staff.email',
+        'staff.status',
+        'staff.onboarding_status',
+        'staff.created_at',
+        'staff.updated_at',
+      ])
+      .where('staff.school_id = :schoolId', { schoolId });
+
+    // Add search functionality if provided
+    if (search) {
+      queryBuilder.andWhere(
+        '(staff.email ILIKE :search OR staff.username ILIKE :search)',
+        { search: `%${search}%` }
+      );
+    }
+
+    // Add status filter if provided
+    if (status) {
+      queryBuilder.andWhere('staff.status = :status', { status });
+    }
+
+    // Execute the query with pagination
+    const [result, totalCount] = await Promise.all([
+      queryBuilder
+        .skip((page - 1) * limit)
+        .take(limit)
+        .orderBy('staff.created_at', 'DESC')
+        .getMany(),
+      queryBuilder.getCount(),
+    ]);
+
+    return {
+      result,
+      total: totalCount,
+      page,
+      limit,
+      totalPages: Math.ceil(totalCount / limit),
+    };
+  }
+
   // Write a method to search for students using like operator and query builder
   async searchStudents(schoolId: string, search: string) {
     return this.studentRepository

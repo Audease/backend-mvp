@@ -113,6 +113,18 @@ export class InductorController {
     required: false,
     description: 'Application status query for filtering results',
   })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of items per page',
+  })
   @ApiOperation({
     summary: 'View filtered information of students on the Inductor dashboard',
   })
@@ -142,6 +154,7 @@ export class InductorController {
       }
     }
   }
+
   @Get('/students/:studentId')
   @Permissions(Permission.INDUCTION)
   @ApiBearerAuth()

@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
 
 export class StudentFilterDto {
   @IsOptional()
@@ -51,34 +51,23 @@ export class StudentFilterDto {
   })
   lazer_status?: string;
 
-  @IsString()
   @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1)
   @ApiPropertyOptional({
-    description: 'Filter by certificate status',
-    example: 'Approved',
-  })
-  certificate_status?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiPropertyOptional({
-    description: 'Filter by course status',
-    example: 'Completed',
-  })
-  course_status?: string;
-
-  @IsOptional()
-  @Transform(({ value }) => parseInt(value, 10))
-  @ApiPropertyOptional({
-    description: 'Page number for pagination',
+    description: 'Page number (starts from 1)',
     example: 1,
   })
   page?: number = 1;
 
   @IsOptional()
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1)
+  @Max(100)
   @ApiPropertyOptional({
-    description: 'Number of items per page',
+    description: 'Number of items per page (max 100)',
     example: 10,
   })
   limit?: number = 10;

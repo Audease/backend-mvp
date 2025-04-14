@@ -18,12 +18,21 @@ export class InductorService {
     private readonly mailService: MailService,
     private readonly userService: UserService
   ) {}
+
   async getAllStudents(userId: string, page: number, limit: number) {
     const accessor = await this.bksdRepository.findUser(userId);
+    if (!accessor) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .where('prospective_student.school = :schoolId', {
+      .where('prospective_student.school_id = :schoolId', {
         schoolId: accessor.school.id,
+      })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
       })
       .andWhere(
         'prospective_student.application_status = :application_status',
@@ -41,74 +50,109 @@ export class InductorService {
       data: results || [],
       total,
       page,
+      limit,
       lastPage: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit), // Including both for compatibility
     };
   }
 
   async getFilteredStudents(userId: string, filters: FilterDto) {
-    const { funding, chosen_course, application_status, search } = filters;
-    const accessor = await this.userService.findOne(userId);
+    const {
+      funding,
+      chosen_course,
+      application_status,
+      page = 1,
+      limit = 10,
+      search,
+    } = filters;
+
+    const loggedInUser = await this.bksdRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    // Create the base query builder
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .where('prospective_student.school = :schoolId', {
-        schoolId: accessor.school.id,
+      .where('prospective_student.school_id = :schoolId', {
+        schoolId: loggedInUser.school.id,
+      })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
       })
       .andWhere(
-        'prospective_student.application_status = :application_status',
+        'prospective_student.application_status = :application_status_approved',
         {
-          application_status: 'Approved',
+          application_status_approved: 'Approved',
         }
       );
 
+    // Apply search filter if provided
     if (search) {
       queryBuilder.andWhere(
-        '(prospective_student.name LIKE :search OR ' +
-          'prospective_student.email LIKE :search OR ' +
-          'prospective_student.mobile_number LIKE :search OR ' +
-          'prospective_student.NI_number LIKE :search OR ' +
-          'prospective_student.passport_number LIKE :search OR ' +
-          'prospective_student.home_address LIKE :search OR ' +
-          'prospective_student.funding LIKE :search OR ' +
-          'CAST(prospective_student.level AS TEXT) LIKE :search OR ' +
-          'prospective_student.awarding LIKE :search OR ' +
-          'prospective_student.chosen_course LIKE :search)',
+        '(prospective_student.name ILIKE :search OR ' +
+          'prospective_student.email ILIKE :search OR ' +
+          'prospective_student.mobile_number ILIKE :search OR ' +
+          'prospective_student.NI_number ILIKE :search OR ' +
+          'prospective_student.passport_number ILIKE :search OR ' +
+          'prospective_student.home_address ILIKE :search OR ' +
+          'prospective_student.funding ILIKE :search OR ' +
+          'CAST(prospective_student.level AS TEXT) ILIKE :search OR ' +
+          'prospective_student.awarding ILIKE :search OR ' +
+          'prospective_student.chosen_course ILIKE :search)',
         {
           search: `%${search}%`,
         }
       );
     }
 
+    // Apply funding filter if provided
     if (funding) {
-      queryBuilder.andWhere('prospective_student.funding LIKE :funding', {
-        funding: `%${funding}%`,
+      queryBuilder.andWhere('prospective_student.funding = :funding', {
+        funding,
       });
     }
 
+    // Apply chosen_course filter if provided
     if (chosen_course) {
       queryBuilder.andWhere(
-        'prospective_student.chosen_course LIKE :chosen_course',
+        'prospective_student.chosen_course = :chosen_course',
         {
-          chosen_course: `%${chosen_course}%`,
+          chosen_course,
         }
       );
     }
 
-    if (application_status) {
+    // Apply application_status filter if provided (in addition to the base 'Approved' filter)
+    if (application_status && application_status !== 'Approved') {
+      // We need a specific filter here to handle the case where we want to further filter
+      // the already filtered "Approved" students
       queryBuilder.andWhere(
-        'prospective_student.application_status LIKE :application_status',
+        'prospective_student.inductor_status = :inductor_status',
         {
-          application_status: `%${application_status}%`,
+          inductor_status: application_status,
         }
       );
     }
 
-    const results = await queryBuilder.getMany();
+    // Execute the query with pagination
+    const [results, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
 
+    // Return properly structured pagination data
     return {
       data: results || [],
-      total: results.length,
+      total,
+      page,
+      limit,
+      lastPage: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit), // Including both for compatibility
     };
   }
+
   async getStudent(userId: string, studentId: string) {
     const loggedInUser = await this.bksdRepository.findUser(userId);
     if (!loggedInUser) {

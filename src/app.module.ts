@@ -25,6 +25,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { FormModule } from './form/form.module';
 import { LazerModule } from './lazer/lazer.module';
 import { CertificateModule } from './certificate/certificate.module';
+import { ArchiveModule } from './archive/archive.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { CertificateModule } from './certificate/certificate.module';
     FormModule,
     LazerModule,
     CertificateModule,
+    ArchiveModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: 'APP_GUARD', useClass: ThrottlerGuard }],

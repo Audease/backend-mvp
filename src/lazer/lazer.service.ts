@@ -1,3 +1,5 @@
+// src/lazer/lazer.service.ts
+
 import { Repository } from 'typeorm';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { BksdRepository } from '../bksd/bksd.repository';
@@ -14,40 +16,64 @@ export class LazerService {
     private readonly bksdRepository: BksdRepository
   ) {}
 
-  async getAllStudents(userId: string, page: number, limit: number) {
+  async getAllStudents(userId: string, filters: StudentFilterDto) {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      funding,
+      chosen_course,
+      inductor_status,
+    } = filters;
+
     const accessor = await this.bksdRepository.findUser(userId);
-    const queryBuilder = this.learnerRepository
-      .createQueryBuilder('prospective_student')
-      .where('prospective_student.school = :schoolId', {
-        schoolId: accessor.school.id,
-      })
-      .andWhere(
-        'prospective_student.application_status = :application_status',
-        {
-          application_status: 'Approved',
-        }
-      );
+    if (!accessor) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
 
-    const [results, total] = await queryBuilder
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
-
-    return {
-      data: results || [],
-      total,
+    return this.getFilteredStudentsQuery(accessor.school.id, {
       page,
-      lastPage: Math.ceil(total / limit),
-    };
+      limit,
+      search,
+      funding,
+      chosen_course,
+      inductor_status,
+    });
   }
 
   async getFilteredStudents(userId: string, filters: StudentFilterDto) {
-    const { funding, chosen_course, search, inductor_status } = filters;
     const accessor = await this.bksdRepository.findUser(userId);
+    if (!accessor) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    return this.getFilteredStudentsQuery(accessor.school.id, filters);
+  }
+
+  // Helper method to build and execute the filtered query
+  private async getFilteredStudentsQuery(
+    schoolId: string,
+    filters: StudentFilterDto
+  ) {
+    const {
+      funding,
+      chosen_course,
+      search,
+      inductor_status,
+      page = 1,
+      limit = 10,
+    } = filters;
+
+    // Create the base query builder
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .where('prospective_student.school = :schoolId', {
-        schoolId: accessor.school.id,
+      .where('prospective_student.school_id = :schoolId', {
+        schoolId,
+      })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
       })
       .andWhere(
         'prospective_student.application_status = :application_status',
@@ -56,46 +82,43 @@ export class LazerService {
         }
       );
 
+    // Apply search filter if provided
     if (search) {
       queryBuilder.andWhere(
-        'prospective_student.first_name LIKE :search OR prospective_student.email LIKE :search',
-        { search: `%${search}%` }
-      );
-    }
-
-    if (funding) {
-      queryBuilder.andWhere('prospective_student.funding LIKE :funding', {
-        funding: `%${funding}%`,
-      });
-    }
-
-    if (search) {
-      queryBuilder.andWhere(
-        '(prospective_student.name LIKE :search OR ' +
-          'prospective_student.email LIKE :search OR ' +
-          'prospective_student.mobile_number LIKE :search OR ' +
-          'prospective_student.NI_number LIKE :search OR ' +
-          'prospective_student.passport_number LIKE :search OR ' +
-          'prospective_student.home_address LIKE :search OR ' +
-          'prospective_student.funding LIKE :search OR ' +
-          'CAST(prospective_student.level AS TEXT) LIKE :search OR ' +
-          'prospective_student.awarding LIKE :search OR ' +
-          'prospective_student.chosen_course LIKE :search)',
+        '(prospective_student.name ILIKE :search OR ' +
+          'prospective_student.email ILIKE :search OR ' +
+          'prospective_student.mobile_number ILIKE :search OR ' +
+          'prospective_student.NI_number ILIKE :search OR ' +
+          'prospective_student.passport_number ILIKE :search OR ' +
+          'prospective_student.home_address ILIKE :search OR ' +
+          'prospective_student.funding ILIKE :search OR ' +
+          'CAST(prospective_student.level AS TEXT) ILIKE :search OR ' +
+          'prospective_student.awarding ILIKE :search OR ' +
+          'prospective_student.chosen_course ILIKE :search)',
         {
           search: `%${search}%`,
         }
       );
     }
 
+    // Apply funding filter if provided
+    if (funding) {
+      queryBuilder.andWhere('prospective_student.funding = :funding', {
+        funding,
+      });
+    }
+
+    // Apply chosen_course filter if provided
     if (chosen_course) {
       queryBuilder.andWhere(
-        'prospective_student.chosen_course LIKE :chosen_course',
+        'prospective_student.chosen_course = :chosen_course',
         {
-          chosen_course: `%${chosen_course}%`,
+          chosen_course,
         }
       );
     }
 
+    // Apply inductor_status filter if provided
     if (inductor_status) {
       queryBuilder.andWhere(
         'prospective_student.inductor_status = :inductor_status',
@@ -105,19 +128,36 @@ export class LazerService {
       );
     }
 
-    const [results, total] = await queryBuilder.getManyAndCount();
+    // Execute the query with pagination
+    const [results, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('prospective_student.created_at', 'DESC')
+      .getManyAndCount();
 
+    // Return properly structured pagination data
     return {
       data: results || [],
       total,
-      page: 1,
-      lastPage: 1,
+      page,
+      limit,
+      lastPage: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit), // Including both for compatibility
     };
   }
 
   async approveStudent(userId: string, studentId: string) {
+    const accessor = await this.bksdRepository.findUser(userId);
+    if (!accessor) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
     const student = await this.learnerRepository.findOne({
-      where: { id: studentId },
+      where: {
+        id: studentId,
+        school: { id: accessor.school.id },
+      },
     });
 
     if (!student) {
@@ -127,6 +167,14 @@ export class LazerService {
     student.lazer_status = 'Approved';
     await this.learnerRepository.save(student);
 
-    return student;
+    return {
+      message: 'Student approved successfully',
+      student: {
+        id: student.id,
+        name: student.name,
+        email: student.email,
+        lazer_status: student.lazer_status,
+      },
+    };
   }
 }

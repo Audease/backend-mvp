@@ -31,20 +31,28 @@ export class AccessorService {
   ) {}
 
   async getAllStudents(userId: string, filters: FilterDto) {
-    const { funding, chosen_course, application_status, page, limit, search } =
-      filters;
+    const {
+      funding,
+      chosen_course,
+      application_status,
+      page = 1,
+      limit = 10,
+      search,
+    } = filters;
+
     const loggedInUser = await this.bksdRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const accessor = await this.bksdRepository.findUser(userId);
-
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
       .where('prospective_student.school = :schoolId', {
-        schoolId: accessor.school.id,
+        schoolId: loggedInUser.school.id,
+      })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
       })
       .andWhere('prospective_student.application_mail = :application_mail', {
         application_mail: 'Sent',
@@ -76,7 +84,7 @@ export class AccessorService {
       queryBuilder.andWhere(
         'prospective_student.application_status LIKE :application_status',
         {
-          application_mail: `%${application_status}%`,
+          application_status: `%${application_status}%`,
         }
       );
     }

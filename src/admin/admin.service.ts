@@ -173,14 +173,17 @@ export class AdminService {
   }
 
   async getStaffs(userId: string, page: number, limit: number) {
-    const getSchool = await this.authRepository.findSchoolByUserId(userId);
-
-    if (!getSchool) {
-      this.logger.error('School not found');
-      throw new NotFoundException('School not found');
+    const admin = await this.userService.findOne(userId);
+    if (!admin || !admin.school) {
+      this.logger.error('Admin or school not found');
+      throw new NotFoundException('Admin or school not found');
     }
 
-    return this.adminRepository.getUsersBySchoolId(getSchool.id, page, limit);
+    return this.adminRepository.getUsersBySchoolId(
+      admin.school.id,
+      page,
+      limit
+    );
   }
 
   // Assign a role to a user
@@ -774,15 +777,26 @@ export class AdminService {
     }
   }
 
-  async getNewStaffs(userId: string, page: number, limit: number) {
-    const getSchool = await this.authRepository.findSchoolByUserId(userId);
-
-    if (!getSchool) {
-      this.logger.error('School not found');
-      throw new NotFoundException('School not found');
+  async getNewStaffs(
+    userId: string,
+    page: number,
+    limit: number,
+    search?: string,
+    status?: string
+  ) {
+    const admin = await this.userService.findOne(userId);
+    if (!admin || !admin.school) {
+      this.logger.error('Admin or school not found');
+      throw new NotFoundException('Admin or school not found');
     }
 
-    return this.adminRepository.getStaffBySchoolId(getSchool.id, page, limit);
+    return this.adminRepository.getNewStaffs(
+      admin.school.id,
+      page,
+      limit,
+      search,
+      status
+    );
   }
 
   async createWorkflow(userId: string, data: CreateWorflowDto) {

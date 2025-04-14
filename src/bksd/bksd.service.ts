@@ -137,6 +137,9 @@ export class BksdService {
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
+      })
       .where('prospective_student.school_id = :schoolId', {
         schoolId: accessor.school.id,
       });
@@ -203,6 +206,9 @@ export class BksdService {
       .createQueryBuilder('prospective_student')
       .where('prospective_student.school_id = :schoolId', {
         schoolId: accessor.school.id,
+      })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
       })
       .leftJoinAndSelect('prospective_student.school', 'school');
 

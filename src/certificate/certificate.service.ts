@@ -21,6 +21,9 @@ export class CertificateService {
       .where('prospective_student.school_id = :schoolId', {
         schoolId: accessor.school.id,
       })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
+      })
       .andWhere('prospective_student.lazer_status = :lazer_status', {
         lazer_status: 'Approved',
       });
@@ -45,6 +48,9 @@ export class CertificateService {
       .createQueryBuilder('prospective_student')
       .where('prospective_student.school = :schoolId', {
         schoolId: accessor.school.id,
+      })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
       })
       .andWhere('prospective_student.lazer_status = :lazer_status', {
         lazer_status: 'Approved',

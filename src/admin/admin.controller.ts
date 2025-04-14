@@ -617,6 +617,30 @@ export class AdminController {
   @ApiOperation({
     summary: 'View all new staffs in the school',
   })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by email or username',
+  })
+  @ApiQuery({
+    name: 'status',
+    type: String,
+    required: false,
+    description: 'Filter by status (assigned, unassigned)',
+  })
   @ApiNotFoundResponse({ description: 'Admin not found' })
   @ApiNotFoundResponse({ description: 'Staffs not found' })
   @ApiUnauthorizedResponse({
@@ -625,11 +649,19 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async getNewStaffs(
     @CurrentUserId() userId: string,
-    @Query() pagination: PaginationDto
+    @Query() pagination: PaginationDto,
+    @Query('search') search?: string,
+    @Query('status') status?: string
   ) {
     try {
       const { limit, page } = pagination;
-      return await this.adminService.getNewStaffs(userId, page, limit);
+      return await this.adminService.getNewStaffs(
+        userId,
+        page,
+        limit,
+        search,
+        status
+      );
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);

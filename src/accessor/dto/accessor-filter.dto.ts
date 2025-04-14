@@ -5,17 +5,26 @@ import { IsOptional, IsString } from 'class-validator';
 export class FilterDto {
   @IsOptional()
   @IsString()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Filter students by funding type',
+    example: 'SPE',
+  })
   funding?: string;
 
   @IsString()
   @IsOptional()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Filter students by chosen course',
+    example: 'AdultCare',
+  })
   chosen_course?: string;
 
   @IsString()
   @IsOptional()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Filter students by application status',
+    example: 'Approved',
+  })
   application_status?: string;
 
   @IsOptional()

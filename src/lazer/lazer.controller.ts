@@ -27,7 +27,7 @@ import { Permission } from '../utils/enum/permission';
 import { Permissions } from '../shared/decorators/permission.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
-import { FilterDto } from '../bksd/dto/bksd-filter.dto';
+import { StudentFilterDto } from '../shared/dto/student-filter.dto';
 
 @ApiTags('LAZER DASHBOARD')
 @Controller('lazer')
@@ -42,30 +42,49 @@ export class LazerController {
   @ApiQuery({
     name: 'page',
     type: Number,
-    required: true,
+    required: false,
     description: 'Page number for pagination',
   })
   @ApiQuery({
     name: 'limit',
     type: Number,
-    required: true,
+    required: false,
     description: 'Number of items per page',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search query for filtering results',
   })
   @ApiOperation({
     summary:
       'View paginated information of all students on the Lazer dashboard',
   })
   @ApiNotFoundResponse({ description: 'User not found' })
-  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
+  @HttpCode(HttpStatus.OK)
   async getAllStudents(
     @CurrentUserId() userId: string,
-    @Query('page') page: number,
-    @Query('limit') limit: number
+    @Query() filters: StudentFilterDto
   ) {
-    return await this.lazerService.getAllStudents(userId, page, limit);
+    try {
+      return await this.lazerService.getAllStudents(userId, filters);
+    } catch (error) {
+      this.logger.error(`Error fetching students: ${error.message}`);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          'An unexpected error occurred while fetching students',
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
   }
 
   @Get('/students/filter')
@@ -89,19 +108,49 @@ export class LazerController {
     required: false,
     description: 'Search for a student',
   })
+  @ApiQuery({
+    name: 'inductor_status',
+    type: String,
+    required: false,
+    description: 'Filter by inductor status',
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of items per page',
+  })
   @ApiOperation({
     summary: 'Filter students on the Lazer dashboard',
   })
   @ApiNotFoundResponse({ description: 'User not found' })
-  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
+  @HttpCode(HttpStatus.OK)
   async getFilteredStudents(
     @CurrentUserId() userId: string,
-    @Query() filters: FilterDto
+    @Query() filters: StudentFilterDto
   ) {
-    return await this.lazerService.getFilteredStudents(userId, filters);
+    try {
+      return await this.lazerService.getFilteredStudents(userId, filters);
+    } catch (error) {
+      this.logger.error(`Error filtering students: ${error.message}`);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else {
+        throw new HttpException(
+          'An unexpected error occurred while filtering students',
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
   }
 
   @Post('/students/:studentId/approve')
@@ -116,10 +165,7 @@ export class LazerController {
     summary: 'Approve a student on the Lazer dashboard',
   })
   @ApiNotFoundResponse({ description: 'User not found' })
-  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
-  @ApiNotFoundResponse({
-    description: 'Student with studentId not found for the user',
-  })
+  @ApiNotFoundResponse({ description: 'Student not found' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
@@ -131,14 +177,14 @@ export class LazerController {
     try {
       return await this.lazerService.approveStudent(userId, studentId);
     } catch (error) {
-      this.logger.error(error.message);
+      this.logger.error(`Error approving student: ${error.message}`);
       if (error instanceof NotFoundException) {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
       } else if (error instanceof ConflictException) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
       } else {
         throw new HttpException(
-          error.message,
+          'An unexpected error occurred while approving student',
           HttpStatus.INTERNAL_SERVER_ERROR
         );
       }
