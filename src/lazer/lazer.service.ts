@@ -62,6 +62,7 @@ export class LazerService {
       chosen_course,
       search,
       inductor_status,
+      lazer_status,
       page = 1,
       limit = 10,
     } = filters;
@@ -124,6 +125,15 @@ export class LazerService {
         'prospective_student.inductor_status = :inductor_status',
         {
           inductor_status,
+        }
+      );
+    }
+
+    if (lazer_status) {
+      queryBuilder.andWhere(
+        'prospective_student.lazer_status = :lazer_status',
+        {
+          lazer_status,
         }
       );
     }

@@ -16,6 +16,7 @@ import {
 import { InductorService } from './inductor.service';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
@@ -29,8 +30,8 @@ import { Permissions } from '../shared/decorators/permission.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { SendMeetingDto } from './dto/send-meeting.dto';
-import { StudentFilterDto } from '../shared/dto/student-filter.dto';
 import { UpdateAttendanceStatusDto } from './dto/update-attendance-status.dto';
+import { FilterDto } from './dto/inductor-filter.dto';
 
 @ApiTags('INDUCTOR DASHBOARD')
 @Controller('induction')
@@ -136,7 +137,7 @@ export class InductorController {
   @HttpCode(HttpStatus.OK)
   async findAllFiltered(
     @CurrentUserId() userId: string,
-    @Query() filters: StudentFilterDto
+    @Query() filters: FilterDto
   ) {
     try {
       return await this.inductorService.getFilteredStudents(userId, filters);
@@ -251,6 +252,10 @@ export class InductorController {
     type: String,
     description: 'ID of the student',
   })
+  @ApiBody({
+    type: UpdateAttendanceStatusDto,
+    description: 'Attendance status to be updated',
+  })
   @ApiOperation({
     summary: 'Update attendance status for a student on the Inductor dashboard',
   })
@@ -266,7 +271,7 @@ export class InductorController {
   async updateAttendanceStatus(
     @CurrentUserId() userId: string,
     @Param('studentId') studentId: string,
-    @Body('attendance_status') attendanceStatus: UpdateAttendanceStatusDto
+    @Body() attendanceStatus: UpdateAttendanceStatusDto
   ) {
     try {
       return await this.inductorService.updateAttendanceStatus(

@@ -27,6 +27,14 @@ export class FilterDto {
   })
   application_status?: string;
 
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: 'Filter students by inductor status',
+    example: 'Pending',
+  })
+  inductor_status?: string;
+
   @IsOptional()
   @Transform(({ value }) => Number(value))
   @IsInt()

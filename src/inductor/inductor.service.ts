@@ -64,8 +64,8 @@ export class InductorService {
       page = 1,
       limit = 10,
       search,
+      inductor_status,
     } = filters;
-
     const loggedInUser = await this.bksdRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
@@ -132,6 +132,16 @@ export class InductorService {
         'prospective_student.inductor_status = :inductor_status',
         {
           inductor_status: application_status,
+        }
+      );
+    }
+
+    // Apply inductor_status filter if provided
+    if (inductor_status) {
+      queryBuilder.andWhere(
+        'prospective_student.inductor_status = :inductor_status',
+        {
+          inductor_status,
         }
       );
     }
