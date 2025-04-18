@@ -42,7 +42,7 @@ export class CertificateService {
   }
 
   async getFilteredStudents(userId: string, filters: FilterDto) {
-    const { funding, chosen_course, search } = filters;
+    const { funding, chosen_course, search, certificate_status } = filters;
     const accessor = await this.bksdRepository.findUser(userId);
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
@@ -85,6 +85,15 @@ export class CertificateService {
         'prospective_student.chosen_course LIKE :chosen_course',
         {
           chosen_course: `%${chosen_course}%`,
+        }
+      );
+    }
+
+    if (certificate_status) {
+      queryBuilder.andWhere(
+        'prospective_student.certificate_status LIKE :certificate_status',
+        {
+          certification_status: `%${certificate_status}%`,
         }
       );
     }

@@ -57,4 +57,12 @@ export class FilterDto {
     example: 'John Doe',
   })
   search?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description: 'Filter students by certification status',
+    example: 'Approved',
+  })
+  certificate_status?: string;
 }

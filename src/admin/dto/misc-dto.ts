@@ -33,6 +33,23 @@ export class PaginationDto {
   @Min(1)
   @ApiPropertyOptional({ description: 'Number of items per page', example: 10 })
   limit?: number;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description: 'Search by email or username',
+    example: 'john@example.com',
+  })
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description: 'Filter by status (assigned, unassigned)',
+    example: 'assigned',
+    enum: ['assigned', 'unassigned'],
+  })
+  status?: string;
 }
 
 export class EmailDto {

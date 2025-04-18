@@ -350,6 +350,9 @@ export class RecruiterService {
       .where('prospective_student.school = :schoolId', {
         schoolId: loggedInUser.school.id,
       })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
+      })
       .select([
         'prospective_student.id',
         'prospective_student.name',
