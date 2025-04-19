@@ -379,10 +379,13 @@ export class AdminRepository {
 
   // Create a method getRoles that uses a query builder to return the role and the permission name assigned to the role based on the school id from the role-permission table which has a relationship with the role and permission table
 
-  async getRoles(schoolId: string) {
+  async getRoles(schoolId: string, sort: 'asc' | 'desc' = 'asc') {
     const roles = await this.roleRepository.find({
       where: { school: { id: schoolId } },
       relations: ['rolePermission', 'rolePermission.permission'],
+      order: {
+        created_at: sort.toUpperCase() as 'ASC' | 'DESC', // TypeORM expects 'ASC' or 'DESC'
+      },
     });
 
     // Utility function to extract the date from a timestamp string
@@ -402,6 +405,80 @@ export class AdminRepository {
       createdDate: role.created_at
         ? extractDate(role.created_at.toISOString())
         : null,
+    }));
+  }
+
+  async archiveRole(
+    roleId: string,
+    userId: string,
+    reason?: string
+  ): Promise<Roles> {
+    const role = await this.roleRepository.findOne({
+      where: { id: roleId },
+    });
+
+    if (!role) {
+      throw new NotFoundException(`Role with ID ${roleId} not found`);
+    }
+
+    // Set archive fields
+    role.is_archived = true;
+    role.archived_at = new Date();
+    role.archived_by = userId;
+    role.archive_reason = reason || null;
+
+    return this.roleRepository.save(role);
+  }
+
+  async unarchiveRole(roleId: string): Promise<Roles> {
+    const role = await this.roleRepository.findOne({
+      where: { id: roleId, is_archived: true },
+    });
+
+    if (!role) {
+      throw new NotFoundException(`Archived role with ID ${roleId} not found`);
+    }
+
+    // Reset archive fields
+    role.is_archived = false;
+    role.archived_at = null;
+    role.archived_by = null;
+    role.archive_reason = null;
+
+    return this.roleRepository.save(role);
+  }
+
+  async getArchivedRoles(schoolId: string): Promise<any[]> {
+    const roles = await this.roleRepository.find({
+      where: {
+        school: { id: schoolId },
+        is_archived: true,
+      },
+      relations: ['rolePermission', 'rolePermission.permission'],
+      order: { archived_at: 'DESC' },
+    });
+
+    // Format the response similar to getRoles
+    function extractDate(timestamp: string): string {
+      const date = new Date(timestamp);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    return roles.map(role => ({
+      id: role.id,
+      role: role.role,
+      permissions: role.rolePermission.map(rp => rp.permission.name),
+      createdDate: role.created_at
+        ? extractDate(role.created_at.toISOString())
+        : null,
+      archivedDate: role.archived_at
+        ? extractDate(role.archived_at.toISOString())
+        : null,
+      archivedBy: role.archived_by,
+      archiveReason: role.archive_reason,
     }));
   }
 

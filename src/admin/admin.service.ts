@@ -27,6 +27,7 @@ import { AssignRoleStaffDto } from './dto/misc-dto';
 import { Document } from '../shared/entities/document.entity';
 import { Folder } from '../shared/entities/file-folder.entity';
 import { CreateDocumentDto } from './dto/create-document.dto';
+import { ArchiveRoleDto } from './dto/archive-reason.dto';
 
 @Injectable()
 export class AdminService {
@@ -298,14 +299,79 @@ export class AdminService {
     );
   }
 
-  async getRoles(userId: string) {
+  async getRoles(userId: string, sort: 'asc' | 'desc' = 'asc') {
     const user = await this.userService.findOne(userId);
     if (!user) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    return this.adminRepository.getRoles(user.school.id);
+    return this.adminRepository.getRoles(user.school.id, sort);
+  }
+
+  async archiveRole(
+    userId: string,
+    roleId: string,
+    archiveDto: ArchiveRoleDto
+  ) {
+    const user = await this.userService.findOne(userId);
+    if (!user) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    try {
+      const role = await this.adminRepository.archiveRole(
+        roleId,
+        userId,
+        archiveDto.reason
+      );
+
+      return {
+        message: 'Role archived successfully',
+        role: {
+          id: role.id,
+          name: role.role,
+          archivedAt: role.archived_at,
+        },
+      };
+    } catch (error) {
+      this.logger.error(`Error archiving role: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async unarchiveRole(userId: string, roleId: string) {
+    const user = await this.userService.findOne(userId);
+    if (!user) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    try {
+      const role = await this.adminRepository.unarchiveRole(roleId);
+
+      return {
+        message: 'Role unarchived successfully',
+        role: {
+          id: role.id,
+          name: role.role,
+        },
+      };
+    } catch (error) {
+      this.logger.error(`Error unarchiving role: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getArchivedRoles(userId: string) {
+    const user = await this.userService.findOne(userId);
+    if (!user) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    return this.adminRepository.getArchivedRoles(user.school.id);
   }
 
   async getPermissions(userId: string) {

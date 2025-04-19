@@ -15,6 +15,7 @@ import {
   Delete,
   NotFoundException,
   BadRequestException,
+  HttpException,
 } from '@nestjs/common';
 import { Role } from '../utils/enum/role';
 import { AdminService } from './admin.service';
@@ -48,6 +49,7 @@ import { PermissionGuard } from '../auth/guards/permission.guard';
 import { Permission } from '../utils/enum/permission';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { AssignDocumentToStudentsDto } from './dto/add-student-document.dto';
+import { ArchiveRoleDto } from './dto/archive-reason.dto';
 
 @ApiTags('Admin')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
@@ -364,15 +366,25 @@ export class AdminController {
   @ApiOperation({
     summary: 'View all roles in the school',
   })
+  @ApiQuery({
+    name: 'sort',
+    enum: ['asc', 'desc'],
+    required: false,
+    description:
+      'Sort order by creation date (asc for oldest first, desc for newest first)',
+  })
   @ApiNotFoundResponse({ description: 'Admin not found' })
   @ApiNotFoundResponse({ description: 'Roles not found' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
   @HttpCode(HttpStatus.OK)
-  async getRoles(@CurrentUserId() userId: string) {
+  async getRoles(
+    @CurrentUserId() userId: string,
+    @Query('sort') sort: 'asc' | 'desc' = 'asc'
+  ) {
     try {
-      return await this.adminService.getRoles(userId);
+      return await this.adminService.getRoles(userId, sort);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
@@ -728,6 +740,91 @@ export class AdminController {
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Get('/roles/archived')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'View all archived roles in the school',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getArchivedRoles(@CurrentUserId() userId: string) {
+    try {
+      return await this.adminService.getArchivedRoles(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Post('/roles/:roleId/archive')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Archive a role',
+  })
+  @ApiParam({
+    name: 'roleId',
+    description: 'ID of the role to archive',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Role not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async archiveRole(
+    @CurrentUserId() userId: string,
+    @Param('roleId') roleId: string,
+    @Body() archiveDto: ArchiveRoleDto
+  ) {
+    try {
+      return await this.adminService.archiveRole(userId, roleId, archiveDto);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else {
+        throw new InternalServerErrorException(error.message);
+      }
+    }
+  }
+
+  @Post('/roles/:roleId/unarchive')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Unarchive a role',
+  })
+  @ApiParam({
+    name: 'roleId',
+    description: 'ID of the role to unarchive',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Role not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async unarchiveRole(
+    @CurrentUserId() userId: string,
+    @Param('roleId') roleId: string
+  ) {
+    try {
+      return await this.adminService.unarchiveRole(userId, roleId);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else {
+        throw new InternalServerErrorException(error.message);
+      }
     }
   }
 

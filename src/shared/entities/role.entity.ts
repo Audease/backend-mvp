@@ -43,6 +43,18 @@ export class Roles {
   })
   created_at: Date;
 
+  @Column('boolean', { default: false })
+  is_archived: boolean;
+
+  @Column('timestamp', { nullable: true })
+  archived_at: Date;
+
+  @Column('varchar', { length: 255, nullable: true })
+  archived_by: string;
+
+  @Column('varchar', { length: 1000, nullable: true })
+  archive_reason: string;
+
   @CreateDateColumn({
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',
