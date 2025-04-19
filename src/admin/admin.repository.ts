@@ -381,7 +381,7 @@ export class AdminRepository {
 
   async getRoles(schoolId: string, sort: 'asc' | 'desc' = 'asc') {
     const roles = await this.roleRepository.find({
-      where: { school: { id: schoolId } },
+      where: { school: { id: schoolId }, is_archived: false },
       relations: ['rolePermission', 'rolePermission.permission'],
       order: {
         created_at: sort.toUpperCase() as 'ASC' | 'DESC', // TypeORM expects 'ASC' or 'DESC'
