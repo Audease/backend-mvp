@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -197,7 +198,8 @@ export class InductorController {
     }
   }
 
-  // Send meeting link to student
+  // src/inductor/inductor.controller.ts
+
   @Post('/students/:studentId/inductor')
   @Permissions(Permission.INDUCTION)
   @ApiBearerAuth()
@@ -207,13 +209,12 @@ export class InductorController {
     description: 'ID of the student',
   })
   @ApiOperation({
-    summary: 'Send a meeting link to a student on the Inductor dashboard',
+    summary: 'Send a meeting link to a student',
+    description:
+      'You can either provide individual meeting details or paste full meeting information',
   })
   @ApiNotFoundResponse({ description: 'User not found' })
-  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
-  @ApiNotFoundResponse({
-    description: 'Student with studentId not found for the user',
-  })
+  @ApiNotFoundResponse({ description: 'Student not found' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
@@ -230,14 +231,16 @@ export class InductorController {
         sendMeetingDto
       );
     } catch (error) {
-      this.logger.error(error.message);
+      this.logger.error(`Error sending meeting link: ${error.message}`);
       if (error instanceof NotFoundException) {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof BadRequestException) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       } else if (error instanceof ConflictException) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
       } else {
         throw new HttpException(
-          error.message,
+          'An error occurred while sending meeting details',
           HttpStatus.INTERNAL_SERVER_ERROR
         );
       }
