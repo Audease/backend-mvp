@@ -337,7 +337,14 @@ export class RecruiterService {
   }
 
   async getFilteredStudents(userId: string, filterDto: FilterStudentsDto) {
-    const { funding, chosen_course, page, limit, search } = filterDto;
+    const {
+      funding,
+      chosen_course,
+      page,
+      limit,
+      search,
+      sort = 'asc',
+    } = filterDto;
 
     const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
@@ -351,7 +358,7 @@ export class RecruiterService {
         schoolId: loggedInUser.school.id,
       })
       .andWhere('prospective_student.is_archived = :isArchived', {
-        isArchived: false,
+        isArchived: false, // Ensure we only get non-archived students
       })
       .select([
         'prospective_student.id',
@@ -366,6 +373,7 @@ export class RecruiterService {
         'prospective_student.level',
         'prospective_student.awarding',
         'prospective_student.chosen_course',
+        'prospective_student.created_at',
       ]);
 
     // Apply filters
@@ -402,6 +410,10 @@ export class RecruiterService {
       );
     }
 
+    // Apply sorting
+    const sortDirection = sort.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+    queryBuilder.orderBy('prospective_student.created_at', sortDirection);
+
     // Pagination
     const total = await queryBuilder.getCount();
     const data = await queryBuilder
@@ -409,6 +421,12 @@ export class RecruiterService {
       .take(limit)
       .getMany();
 
-    return { data, total };
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }
