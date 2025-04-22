@@ -46,6 +46,9 @@ export class Users {
   @Column('varchar', { length: 255, nullable: false })
   phone: string;
 
+  @Column('timestamp with time zone', { nullable: true })
+  last_login_at: Date;
+
   @OneToMany(() => FormSubmission, submission => submission.reviewer)
   reviewedSubmissions: FormSubmission[];
 

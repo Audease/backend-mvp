@@ -354,6 +354,7 @@ export class RecruiterService {
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
+      .innerJoinAndSelect('prospective_student.user', 'user')
       .where('prospective_student.school = :schoolId', {
         schoolId: loggedInUser.school.id,
       })
@@ -374,6 +375,8 @@ export class RecruiterService {
         'prospective_student.awarding',
         'prospective_student.chosen_course',
         'prospective_student.created_at',
+        'user.username',
+        'user.last_login_at',
       ]);
 
     // Apply filters
@@ -394,7 +397,8 @@ export class RecruiterService {
           'prospective_student.funding LIKE :search OR ' +
           'CAST(prospective_student.level AS TEXT) LIKE :search OR ' +
           'prospective_student.awarding LIKE :search OR ' +
-          'prospective_student.chosen_course LIKE :search)',
+          'prospective_student.chosen_course LIKE :search OR ' +
+          'user.username LIKE :search)',
         {
           search: `%${search}%`,
         }

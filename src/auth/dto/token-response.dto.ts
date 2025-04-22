@@ -76,4 +76,11 @@ export class TokenResponseDto {
     required: false,
   })
   learner_id?: string;
+
+  @ApiProperty({
+    description: 'Last login timestamp',
+    example: '2024-04-22T15:30:45.123Z',
+    required: false,
+  })
+  last_login_at?: string;
 }
