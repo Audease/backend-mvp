@@ -40,7 +40,6 @@ import { CreateLearnerDto } from './dto/create-learner.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PaginationParamsDto } from './dto/pagination-params.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
-import { StudentFilterDto } from '../shared/dto/student-filter.dto';
 import { FilterStudentsDto } from './dto/filter-params.dto';
 
 @ApiTags('Recruiter Dashboard')
