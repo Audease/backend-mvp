@@ -41,6 +41,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { PaginationParamsDto } from './dto/pagination-params.dto';
 import { UpdateLearnerDto } from './dto/update-learner.dto';
 import { StudentFilterDto } from '../shared/dto/student-filter.dto';
+import { FilterStudentsDto } from './dto/filter-params.dto';
 
 @ApiTags('Recruiter Dashboard')
 @UseGuards(JwtAuthGuard, PermissionGuard)
@@ -221,7 +222,7 @@ export class RecruiterController {
   @HttpCode(HttpStatus.OK)
   async filter(
     @CurrentUserId() userId: string,
-    @Query() filterParams: StudentFilterDto
+    @Query() filterParams: FilterStudentsDto
   ) {
     try {
       return await this.recruiterService.getFilteredStudents(
