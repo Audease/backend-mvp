@@ -354,7 +354,7 @@ export class RecruiterService {
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .innerJoinAndSelect('prospective_student.user', 'user')
+      .leftJoinAndSelect('prospective_student.user', 'user')
       .where('prospective_student.school = :schoolId', {
         schoolId: loggedInUser.school.id,
       })
