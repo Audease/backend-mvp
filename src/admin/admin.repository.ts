@@ -1039,16 +1039,24 @@ export class AdminRepository {
   async getUsersByPermissionId(
     permission_name: string,
     page: number,
-    pageSize: number
+    pageSize: number,
+    userId: string
   ) {
     const skip = (page - 1) * pageSize;
+
+    const usersSchool = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['school'],
+    });
 
     const [users, total] = await this.dataSource.manager
       .createQueryBuilder(Users, 'user')
       .innerJoinAndSelect('user.role', 'role')
       .innerJoinAndSelect('role.rolePermission', 'rolePermission')
       .innerJoinAndSelect('rolePermission.permission', 'permission')
-      .where('permission.name = :permission_name', { permission_name })
+      .innerJoinAndSelect('user.school', 'school')
+      .where('school.id = :schoolId', { schoolId: usersSchool.school.id })
+      .andWhere('permission.name = :permission_name', { permission_name })
       .select([
         'user.id',
         'user.first_name',

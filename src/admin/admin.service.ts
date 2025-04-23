@@ -936,6 +936,11 @@ export class AdminService {
     }
 
     // This method should now directly use the permission string
-    return this.adminRepository.getUsersByPermissionId(permission, page, limit);
+    return this.adminRepository.getUsersByPermissionId(
+      permission,
+      page,
+      limit,
+      userId
+    );
   }
 }
