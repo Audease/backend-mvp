@@ -340,8 +340,8 @@ export class RecruiterService {
     const {
       funding,
       chosen_course,
-      page,
-      limit,
+      page = 1,
+      limit = 10,
       search,
       sort = 'asc',
     } = filterDto;
@@ -352,14 +352,22 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
+    // Create query builder with LEFT JOIN to student account users
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .leftJoinAndSelect('prospective_student.user', 'user')
+      // Join to the CREATOR user (who added the student)
+      .leftJoinAndSelect('prospective_student.user', 'creator_user')
+      // Join to the STUDENT's account (based on matching email)
+      .leftJoin(
+        'users',
+        'student_user',
+        'student_user.email = prospective_student.email AND student_user.role_id != creator_user.role_id'
+      )
       .where('prospective_student.school = :schoolId', {
         schoolId: loggedInUser.school.id,
       })
       .andWhere('prospective_student.is_archived = :isArchived', {
-        isArchived: false, // Ensure we only get non-archived students
+        isArchived: false,
       })
       .select([
         'prospective_student.id',
@@ -375,8 +383,13 @@ export class RecruiterService {
         'prospective_student.awarding',
         'prospective_student.chosen_course',
         'prospective_student.created_at',
-        'user.username',
-        'user.last_login_at',
+        'prospective_student.application_mail',
+        'creator_user.id',
+        'creator_user.first_name',
+        'creator_user.last_name',
+        'student_user.username',
+        'student_user.last_login_at',
+        'student_user.id AS student_user_id',
       ]);
 
     // Apply filters
@@ -398,7 +411,7 @@ export class RecruiterService {
           'CAST(prospective_student.level AS TEXT) LIKE :search OR ' +
           'prospective_student.awarding LIKE :search OR ' +
           'prospective_student.chosen_course LIKE :search OR ' +
-          'user.username LIKE :search)',
+          'student_user.username LIKE :search)',
         {
           search: `%${search}%`,
         }
@@ -418,15 +431,46 @@ export class RecruiterService {
     const sortDirection = sort.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
     queryBuilder.orderBy('prospective_student.created_at', sortDirection);
 
-    // Pagination
+    // Execute the query with pagination
     const total = await queryBuilder.getCount();
-    const data = await queryBuilder
+    const results = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
-      .getMany();
+      .getRawMany(); // Use getRawMany() to get raw results with the selected aliases
+
+    // Transform the results to include account information
+    const transformedData = results.map(row => {
+      return {
+        id: row.prospective_student_id,
+        name: row.prospective_student_name,
+        email: row.prospective_student_email,
+        date_of_birth: row.prospective_student_date_of_birth,
+        mobile_number: row.prospective_student_mobile_number,
+        NI_number: row.prospective_student_NI_number,
+        passport_number: row.prospective_student_passport_number,
+        home_address: row.prospective_student_home_address,
+        funding: row.prospective_student_funding,
+        level: row.prospective_student_level,
+        awarding: row.prospective_student_awarding,
+        chosen_course: row.prospective_student_chosen_course,
+        created_at: row.prospective_student_created_at,
+        application_mail: row.prospective_student_application_mail,
+        created_by: {
+          id: row.creator_user_id,
+          name: `${row.creator_user_first_name} ${row.creator_user_last_name}`,
+        },
+        has_account: !!row.student_user_id,
+        user: row.student_user_id
+          ? {
+              username: row.student_user_username,
+              last_login_at: row.student_user_last_login_at,
+            }
+          : null,
+      };
+    });
 
     return {
-      data,
+      data: transformedData,
       total,
       page,
       limit,
