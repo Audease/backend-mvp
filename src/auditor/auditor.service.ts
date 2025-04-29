@@ -36,25 +36,25 @@ export class AuditorService {
 
     if (search) {
       queryBuilder.andWhere(
-        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
+        'student.first_name ILIKE :search OR student.last_name ILIKE :search OR student.middle_name ILIKE :search OR student.email ILIKE :search',
         { search: `%${search}%` }
       );
     }
 
     if (funding) {
-      queryBuilder.andWhere('student.funding LIKE :funding', {
+      queryBuilder.andWhere('student.funding ILIKE :funding', {
         funding: `%${funding}%`,
       });
     }
 
     if (chosen_course) {
-      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
+      queryBuilder.andWhere('student.chosen_course ILIKE :chosen_course', {
         chosen_course: `%${chosen_course}%`,
       });
     }
 
     if (course_status) {
-      queryBuilder.andWhere('student.course_status LIKE :course_status', {
+      queryBuilder.andWhere('student.course_status ILIKE :course_status', {
         course_status: `%${course_status}%`,
       });
     }

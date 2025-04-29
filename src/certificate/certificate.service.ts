@@ -57,23 +57,23 @@ export class CertificateService {
       });
 
     if (funding) {
-      queryBuilder.andWhere('prospective_student.funding LIKE :funding', {
+      queryBuilder.andWhere('prospective_student.funding ILIKE :funding', {
         funding: `%${funding}%`,
       });
     }
 
     if (search) {
       queryBuilder.andWhere(
-        '(prospective_student.name LIKE :search OR ' +
-          'prospective_student.email LIKE :search OR ' +
-          'prospective_student.mobile_number LIKE :search OR ' +
-          'prospective_student.NI_number LIKE :search OR ' +
-          'prospective_student.passport_number LIKE :search OR ' +
-          'prospective_student.home_address LIKE :search OR ' +
-          'prospective_student.funding LIKE :search OR ' +
-          'CAST(prospective_student.level AS TEXT) LIKE :search OR ' +
-          'prospective_student.awarding LIKE :search OR ' +
-          'prospective_student.chosen_course LIKE :search)',
+        '(prospective_student.name ILIKE :search OR ' +
+          'prospective_student.email ILIKE :search OR ' +
+          'prospective_student.mobile_number ILIKE :search OR ' +
+          'prospective_student.NI_number ILIKE :search OR ' +
+          'prospective_student.passport_number ILIKE :search OR ' +
+          'prospective_student.home_address ILIKE :search OR ' +
+          'prospective_student.funding ILIKE :search OR ' +
+          'CAST(prospective_student.level AS TEXT) ILIKE :search OR ' +
+          'prospective_student.awarding ILIKE :search OR ' +
+          'prospective_student.chosen_course ILIKE :search)',
         {
           search: `%${search}%`,
         }
@@ -82,7 +82,7 @@ export class CertificateService {
 
     if (chosen_course) {
       queryBuilder.andWhere(
-        'prospective_student.chosen_course LIKE :chosen_course',
+        'prospective_student.chosen_course ILIKE :chosen_course',
         {
           chosen_course: `%${chosen_course}%`,
         }
@@ -91,7 +91,7 @@ export class CertificateService {
 
     if (certificate_status) {
       queryBuilder.andWhere(
-        'prospective_student.certificate_status LIKE :certificate_status',
+        'prospective_student.certificate_status ILIKE :certificate_status',
         {
           certification_status: `%${certificate_status}%`,
         }

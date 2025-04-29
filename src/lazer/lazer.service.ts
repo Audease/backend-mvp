@@ -1,5 +1,3 @@
-// src/lazer/lazer.service.ts
-
 import { Repository } from 'typeorm';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { BksdRepository } from '../bksd/bksd.repository';

@@ -60,20 +60,20 @@ export class AccessorService {
 
     if (search) {
       queryBuilder.andWhere(
-        'prospective_student.name LIKE :search OR prospective_student.email LIKE :search',
+        'prospective_student.name ILIKE :search OR prospective_student.email ILIKE :search',
         { search: `%${search}%` }
       );
     }
 
     if (funding) {
-      queryBuilder.andWhere('prospective_student.funding LIKE :funding', {
+      queryBuilder.andWhere('prospective_student.funding ILIKE :funding', {
         funding: `%${funding}%`,
       });
     }
 
     if (chosen_course) {
       queryBuilder.andWhere(
-        'prospective_student.chosen_course LIKE :chosen_course',
+        'prospective_student.chosen_course ILIKE :chosen_course',
         {
           chosen_course: `%${chosen_course}%`,
         }
@@ -82,7 +82,7 @@ export class AccessorService {
 
     if (application_status) {
       queryBuilder.andWhere(
-        'prospective_student.application_status LIKE :application_status',
+        'prospective_student.application_status ILIKE :application_status',
         {
           application_status: `%${application_status}%`,
         }
