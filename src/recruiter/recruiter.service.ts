@@ -431,15 +431,20 @@ export class RecruiterService {
     const sortDirection = sort.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
     queryBuilder.orderBy('prospective_student.created_at', sortDirection);
 
-    // Execute the query with pagination
-    const total = await queryBuilder.getCount();
-    const results = await queryBuilder
+    // Create a clone of the query builder for count
+    const countQueryBuilder = queryBuilder.clone();
+
+    // Get total count before applying pagination
+    const total = await countQueryBuilder.getCount();
+
+    // Execute the paginated query
+    const pagedResults = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
-      .getRawMany(); // Use getRawMany() to get raw results with the selected aliases
+      .getRawMany();
 
     // Transform the results to include account information
-    const transformedData = results.map(row => {
+    const transformedData = pagedResults.map(row => {
       return {
         id: row.prospective_student_id,
         name: row.prospective_student_name,
