@@ -6,8 +6,10 @@ export class PopulatePermissions1722625077126 implements MigrationInterface {
             INSERT INTO permissions (name, description)
 VALUES 
 ('Add student', 'Permission to create new students'),
-('Add staff', 'Permission to add new staff'),
-('Send invite', 'Permission to send invite'),
+('Audit', 'Permission to audit students'),
+('Induction', 'Permission to induct students'),
+('Certificate', 'Permission to issue certificate'),
+('Learning Platform', 'Permission to access learning platform'),
 ('Approve/reject application', 'Permission to reject or approve application'),
 ('Send Application', 'Permission to send application');
             

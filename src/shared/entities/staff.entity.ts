@@ -22,6 +22,9 @@ export class Staff {
   @Column('enum', { enum: ['assigned', 'unassigned'], default: 'unassigned' })
   status: string;
 
+  @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })
+  onboarding_status?: string;
+
   @ManyToOne(() => School, school => school.staff)
   @JoinColumn({ name: 'school_id' })
   school: School;

@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class createFolder {
@@ -42,4 +42,22 @@ export class editLogs {
   })
   @IsString()
   message: string;
+}
+
+export class CreateFolderDto {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'The name of the folder to be created',
+    example: 'My Folder',
+  })
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    description: 'The id of the parent folder',
+    example: 'f7b3b2b3-7b3b-4b3b-8b3b-3b7b3b3b3b3b',
+  })
+  parentFolderId?: string;
 }

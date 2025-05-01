@@ -16,13 +16,7 @@ export class Student {
   id: string;
 
   @Column('varchar', { length: 255, nullable: false })
-  first_name: string;
-
-  @Column('varchar', { length: 255, nullable: false })
-  last_name: string;
-
-  @Column('varchar', { length: 255, nullable: true })
-  middle_name: string;
+  name: string;
 
   @Column('varchar', { length: 255, nullable: true })
   date_of_birth?: string;
@@ -54,6 +48,9 @@ export class Student {
   @Column('varchar', { length: 255, nullable: true })
   chosen_course: string;
 
+  // @Column('enum', { enum: ['pending', 'completed'], default: 'pending' })
+  // onboarding_status?: string;
+
   @OneToOne(() => Users, user => user.student)
   @JoinColumn({ name: 'user_id' })
   user: Users;
@@ -75,4 +72,10 @@ export class Student {
     name: 'updated_at',
   })
   updated_at: Date;
+
+  @Column('varchar', { length: 255, nullable: true, default: 'Not completed' })
+  course_status: string;
+
+  @Column('varchar', { length: 255, nullable: true, default: 'Pending' })
+  application_status: string;
 }

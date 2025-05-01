@@ -33,13 +33,13 @@ export class RecruiterRepository {
   async findLearner(dto) {
     return await this.learnerRepository.findOne({
       where: [{ email: dto.email }, { mobile_number: dto.mobile_number }],
-      relations: ['school', 'recruiter'],
+      relations: ['school', 'user'],
     });
   }
 
-  async findStudent(learnerId, recruiter) {
+  async findStudent(learnerId: string) {
     return await this.learnerRepository.findOne({
-      where: { id: learnerId, recruiter: { id: recruiter.id } },
+      where: { id: learnerId },
     });
   }
 }

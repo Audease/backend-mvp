@@ -6,13 +6,16 @@ import { RegistrationStatus } from '../utils/enum/registration_status';
 import { Injectable } from '@nestjs/common';
 // import { CreateSchoolDto } from './dto/create-school.dto';
 import { SchoolSchema } from './auth.interface';
+import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 
 @Injectable()
 export class AuthRepository {
   constructor(
     @InjectRepository(School)
     private readonly schoolRepository: Repository<School>,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    @InjectRepository(ProspectiveStudent)
+    private readonly learnerRepository: Repository<ProspectiveStudent>
   ) {}
 
   async create(createSchoolDto: SchoolSchema): Promise<School> {
@@ -41,6 +44,13 @@ export class AuthRepository {
   async findSchool(name: string): Promise<School> {
     return await this.schoolRepository.findOne({
       where: { college_name: name },
+    });
+  }
+
+  // Find a student with their email
+  async findStudentByEmail(email: string): Promise<ProspectiveStudent> {
+    return await this.learnerRepository.findOne({
+      where: { email },
     });
   }
 

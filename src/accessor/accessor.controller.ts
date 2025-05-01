@@ -1,4 +1,6 @@
 import {
+  BadRequestException,
+  Body,
   ConflictException,
   Controller,
   Get,
@@ -13,7 +15,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AccessorService } from './accessor.service';
-import { Roles } from '../shared/decorators/roles.decorator';
 import {
   ApiBearerAuth,
   ApiNotFoundResponse,
@@ -23,20 +24,24 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role } from '../utils/enum/role';
+import { RejectDto } from './dto/body-accessor.dto';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
-import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/role.guard';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+import { Permissions } from '../shared/decorators/permission.decorator';
+import { Permission } from '../utils/enum/permission';
+import { FilterDto } from './dto/accessor-filter.dto';
 
 @ApiTags('ACCESSOR DASHBOARD')
 @Controller('accessor')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 export class AccessorController {
   private readonly logger = new Logger(AccessorController.name);
   constructor(private readonly accessorService: AccessorService) {}
+
+  // Improved error handling in AccessorController
   @Get('/students')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
@@ -56,6 +61,24 @@ export class AccessorController {
     required: false,
     description: 'Search query for filtering results',
   })
+  @ApiQuery({
+    name: 'funding',
+    type: String,
+    required: false,
+    description: 'Filter by funding type',
+  })
+  @ApiQuery({
+    name: 'chosen_course',
+    type: String,
+    required: false,
+    description: 'Filter by chosen course',
+  })
+  @ApiQuery({
+    name: 'application_status',
+    type: String,
+    required: false,
+    description: 'Filter by application status',
+  })
   @ApiOperation({
     summary: 'View information of all students on the Accessor dashboard',
   })
@@ -65,24 +88,21 @@ export class AccessorController {
     description: 'Unauthorized',
   })
   @HttpCode(HttpStatus.OK)
-  async findAll(
-    @CurrentUserId() userId: string,
-    @Query() paginationParams: PaginationParamsDto
-  ) {
+  async findAll(@CurrentUserId() userId: string, @Query() filters: FilterDto) {
     try {
-      return await this.accessorService.getAllStudents(
-        userId,
-        paginationParams
-      );
+      return await this.accessorService.getAllStudents(userId, filters);
     } catch (error) {
-      this.logger.error(error.message);
+      this.logger.error(`Error in findAll: ${error.message}`, error.stack);
+
       if (error instanceof NotFoundException) {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
       } else if (error instanceof ConflictException) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else if (error instanceof BadRequestException) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       } else {
         throw new HttpException(
-          error.message,
+          'An unexpected error occurred while fetching students',
           HttpStatus.INTERNAL_SERVER_ERROR
         );
       }
@@ -90,7 +110,7 @@ export class AccessorController {
   }
 
   @Get('/students/:studentId')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',
@@ -131,7 +151,7 @@ export class AccessorController {
   }
 
   @Patch('approve-application/:studentId')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',
@@ -172,7 +192,7 @@ export class AccessorController {
   }
 
   @Patch('reject-application/:studentId')
-  @Roles(Role.ACCESSOR)
+  @Permissions(Permission.APPROVAL)
   @ApiBearerAuth()
   @ApiParam({
     name: 'studentId',
@@ -193,10 +213,15 @@ export class AccessorController {
   @HttpCode(HttpStatus.OK)
   async reject(
     @CurrentUserId() userId: string,
-    @Param('studentId') studentId: string
+    @Param('studentId') studentId: string,
+    @Body() rejectDto: RejectDto
   ) {
     try {
-      return await this.accessorService.rejectApplication(userId, studentId);
+      return await this.accessorService.rejectApplication(
+        userId,
+        studentId,
+        rejectDto.reason
+      );
     } catch (error) {
       this.logger.error(error.message);
       if (error instanceof NotFoundException) {

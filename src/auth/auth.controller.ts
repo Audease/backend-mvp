@@ -10,6 +10,8 @@ import {
   NotFoundException,
   ConflictException,
   UseGuards,
+  BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -34,8 +36,10 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
   ApiBearerAuth,
+  ApiBody,
 } from '@nestjs/swagger';
 import { TokenResponseDto } from './dto/token-response.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -71,6 +75,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
+  @ApiUnauthorizedResponse({ description: 'Account has expired' })
   async login(@Body() loginDto: LoginDto) {
     try {
       return await this.authService.login(loginDto);
@@ -114,6 +119,50 @@ export class AuthController {
     } catch (error) {
       this.logger.error(error.message);
       throw new NotFoundException(error.message);
+    }
+  }
+
+  // src/auth/auth.controller.ts
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password changed successfully',
+    schema: {
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Password changed successfully',
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({ description: 'Current password is incorrect' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiBody({ type: ChangePasswordDto })
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @CurrentUserId() userId: string,
+    @Body() changePasswordDto: ChangePasswordDto
+  ) {
+    try {
+      return await this.authService.changePassword(userId, changePasswordDto);
+    } catch (error) {
+      this.logger.error(`Error changing password: ${error.message}`);
+
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      } else if (error instanceof NotFoundException) {
+        throw error;
+      } else if (error instanceof BadRequestException) {
+        throw error;
+      } else {
+        throw new InternalServerErrorException(
+          'An error occurred while changing the password'
+        );
+      }
     }
   }
 

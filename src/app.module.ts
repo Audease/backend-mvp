@@ -13,13 +13,19 @@ import { RecruiterModule } from './recruiter/recruiter.module';
 import { roles } from './app.roles';
 import { AccessControlModule } from 'nest-access-control';
 import { CollegeVerificationModule } from './college-verification/college-verification.module';
-import { CreateAccountsModule } from './create-accounts/create-accounts.module';
+// import { CreateAccountsModule } from './create-accounts/create-accounts.module';
 import { FinancialAidOfficerModule } from './financial-aid-officer/financial-aid-officer.module';
 import { StudentsModule } from './students/students.module';
 import { AccessorModule } from './accessor/accessor.module';
 import { BksdModule } from './bksd/bksd.module';
 import { AdminModule } from './admin/admin.module';
 import { InductorModule } from './inductor/inductor.module';
+import { AuditorModule } from './auditor/auditor.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { FormModule } from './form/form.module';
+import { LazerModule } from './lazer/lazer.module';
+import { CertificateModule } from './certificate/certificate.module';
+import { ArchiveModule } from './archive/archive.module';
 
 @Module({
   imports: [
@@ -40,7 +46,7 @@ import { InductorModule } from './inductor/inductor.module';
     UsersModule,
     AuthModule,
     RecruiterModule,
-    CreateAccountsModule,
+    // CreateAccountsModule,
     CollegeVerificationModule,
     FinancialAidOfficerModule,
     StudentsModule,
@@ -49,6 +55,12 @@ import { InductorModule } from './inductor/inductor.module';
     AccessorModule,
     BksdModule,
     InductorModule,
+    AuditorModule,
+    DashboardModule,
+    FormModule,
+    LazerModule,
+    CertificateModule,
+    ArchiveModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: 'APP_GUARD', useClass: ThrottlerGuard }],

@@ -37,6 +37,8 @@ async function bootstrap() {
           error =>
             `${error.property} has wrong value ${error.value}, ${Object.values(error.constraints).join(', ')}`
         );
+        console.log(errorMessages);
+        console.log(errors);
         return new BadRequestException(errorMessages);
       },
     })

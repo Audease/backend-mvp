@@ -10,10 +10,12 @@ import {
 } from 'typeorm';
 import { Roles } from '../../shared/entities/role.entity';
 import { School } from '../../shared/entities/school.entity';
-import { Recruiter } from '../../recruiter/entities/recruiter.entity';
 import { Student } from '../../students/entities/student.entity';
 import { FinancialAidOfficer } from '../../financial-aid-officer/entities/financial-aid-officer.entity';
 import { Document } from '../../shared/entities/document.entity';
+import { ProspectiveStudent } from '../../recruiter/entities/prospective-student.entity';
+import { Recruiter } from '../../recruiter/entities/recruiter.entity';
+import { FormSubmission } from '../../form/entity/form-submission.entity';
 
 @Entity('users')
 export class Users {
@@ -35,14 +37,20 @@ export class Users {
   @Column('varchar', { length: 255, nullable: false })
   password: string;
 
-  @Column('boolean', { nullable: false })
+  @Column('boolean', { nullable: true, default: false })
   '2fa_required': boolean;
 
-  @Column('boolean', { nullable: false })
+  @Column('boolean', { nullable: false, default: true })
   is_active: boolean;
 
   @Column('varchar', { length: 255, nullable: false })
   phone: string;
+
+  @Column('timestamp with time zone', { nullable: true })
+  last_login_at: Date;
+
+  @OneToMany(() => FormSubmission, submission => submission.reviewer)
+  reviewedSubmissions: FormSubmission[];
 
   @ManyToOne(() => Roles, role => role.id)
   @JoinColumn({ name: 'role_id' })
@@ -55,6 +63,12 @@ export class Users {
   @OneToOne(() => Recruiter, recruiter => recruiter.user)
   recruiter: Recruiter;
 
+  @OneToMany(
+    () => ProspectiveStudent,
+    prospectiveStudent => prospectiveStudent.user
+  )
+  prospectiveStudents?: ProspectiveStudent[];
+
   @OneToOne(() => Student, student => student.user)
   student: Student;
 
@@ -66,6 +80,9 @@ export class Users {
 
   @OneToMany(() => Document, document => document.user)
   documents: Document[];
+
+  @Column('boolean', { default: false })
+  is_password_changed: boolean;
 
   @CreateDateColumn({
     nullable: false,
@@ -80,4 +97,7 @@ export class Users {
     name: 'updated_at',
   })
   updated_at: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  expiration_date: Date;
 }

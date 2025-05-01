@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   //   BadRequestException,
   ConflictException,
   //   ForbiddenException,
@@ -36,13 +37,6 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
-
     const learnerExist =
       await this.recruiterRepository.findLearner(createLearnerDto);
 
@@ -67,9 +61,7 @@ export class RecruiterService {
     const formattedDate = formatDate(createLearnerDto.date_of_birth);
 
     const learner = this.learnerRepository.create({
-      first_name: createLearnerDto.first_name,
-      last_name: createLearnerDto.last_name,
-      middle_name: createLearnerDto.middle_name,
+      name: createLearnerDto.name,
       date_of_birth: formattedDate,
       mobile_number: createLearnerDto.mobile_number,
       email: createLearnerDto.email,
@@ -80,129 +72,198 @@ export class RecruiterService {
       level: createLearnerDto.level,
       awarding: createLearnerDto.awarding,
       chosen_course: createLearnerDto.chosen_course,
-      recruiter: recruiter,
-      school: recruiter.school,
+      user: loggedInUser,
+      school: loggedInUser.school,
+      onboarding_status: 'completed',
     });
 
-    const newLearner = await this.learnerRepository.save(learner);
+    await this.learnerRepository.save(learner);
     this.logger.log('Learner created successfully');
-    return { message: 'You just created a learner', newLearner };
+    return { message: 'You just created a learner' };
   }
 
   async importLearners(userId: string, file: Express.Multer.File) {
+    if (!file) {
+      this.logger.error('No file uploaded');
+      throw new BadRequestException('No file uploaded');
+    }
+
     const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
+    const records = [];
+    // Parse the CSV file
+    try {
+      const parser = parse(file.buffer.toString(), {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+      });
+
+      for await (const record of parser) {
+        records.push(record);
+      }
+    } catch (error) {
+      this.logger.error(`Error parsing CSV: ${error.message}`);
+      throw new BadRequestException(`Error parsing CSV: ${error.message}`);
     }
 
+    if (records.length === 0) {
+      this.logger.warn('CSV file contains no valid records');
+      throw new BadRequestException('CSV file contains no valid records');
+    }
+
+    // Process and validate records
     const learners = [];
-    const parser = parse(file.buffer.toString(), {
-      columns: true,
-      skip_empty_lines: true,
-    });
+    const errors = [];
 
-    for await (const record of parser) {
-      const learnerExist = await this.recruiterRepository.findLearner(record);
-
-      if (learnerExist) {
-        this.logger.warn(
-          `Email or mobile number already exist: ${record.email}, ${record.mobile_number}`
-        );
-        continue;
-      }
-
-      const formatDate = (dateStr: string): string => {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) {
-          throw new Error(`Invalid date format: ${dateStr}`);
-        }
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
-
-      let formattedDate;
+    for (const record of records) {
       try {
-        formattedDate = formatDate(record.date_of_birth);
+        // Check required fields
+        if (!record.name || !record.email || !record.date_of_birth) {
+          errors.push(
+            `Record missing required fields: ${JSON.stringify(record)}`
+          );
+          continue;
+        }
+
+        // Check if learner already exists
+        const learnerExist = await this.recruiterRepository.findLearner({
+          email: record.email,
+          mobile_number: record.mobile_number,
+        });
+
+        if (learnerExist) {
+          errors.push(
+            `Duplicate learner found: ${record.email}, ${record.mobile_number}`
+          );
+          continue;
+        }
+
+        // Format date
+        let formattedDate;
+        try {
+          const date = new Date(record.date_of_birth);
+          if (isNaN(date.getTime())) {
+            errors.push(
+              `Invalid date format: ${record.date_of_birth} for record: ${record.email}`
+            );
+            continue;
+          }
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          formattedDate = `${year}-${month}-${day}`;
+        } catch (error) {
+          errors.push(
+            `Error formatting date for record: ${record.email} - ${error.message}`
+          );
+          continue;
+        }
+
+        // Create learner object
+        const learner = this.learnerRepository.create({
+          name: record.name,
+          date_of_birth: formattedDate,
+          mobile_number: record.mobile_number || null,
+          email: record.email,
+          NI_number: record.NI_number || null,
+          passport_number: record.passport_number || null,
+          home_address: record.home_address || null,
+          funding: record.funding || null,
+          level: record.level ? parseInt(record.level, 10) : null,
+          awarding: record.awarding || null,
+          chosen_course: record.chosen_course || null,
+          user: loggedInUser,
+          school: loggedInUser.school,
+          onboarding_status: 'completed', // Set default status
+        });
+
+        learners.push(learner);
       } catch (error) {
-        this.logger.error(`Error formatting date for record: ${record}`);
-        this.logger.error(error.message);
-        continue;
+        errors.push(
+          `Error processing record: ${JSON.stringify(record)} - ${error.message}`
+        );
       }
-
-      const learner = this.learnerRepository.create({
-        first_name: record.first_name,
-        last_name: record.last_name,
-        middle_name: record.middle_name,
-        date_of_birth: formattedDate,
-        mobile_number: record.mobile_number,
-        email: record.email,
-        NI_number: record.NI_number,
-        passport_number: record.passport_number,
-        home_address: record.home_address,
-        funding: record.funding,
-        level: record.level,
-        awarding: record.awarding,
-        chosen_course: record.chosen_course,
-        recruiter: recruiter,
-        school: recruiter.school,
-      });
-
-      learners.push(learner);
     }
 
-    const newLearners = await this.learnerRepository.save(learners);
-    this.logger.log('Learners created successfully from CSV');
-    return { message: 'You just created learners from CSV', newLearners };
-  }
-
-  async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
-    const { page, limit, search } = paginationParams;
-
-    const loggedInUser = await this.recruiterRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
-
-    const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .leftJoinAndSelect('student.recruiter', 'recruiter')
-      .where('recruiter.id = :recruiterId', {
-        recruiterId: recruiter.id,
-      });
-
-    if (search) {
-      queryBuilder.andWhere(
-        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
-        { search: `%${search}%` }
+    if (learners.length === 0) {
+      this.logger.error('No valid learners found in CSV');
+      throw new BadRequestException(
+        `No valid learners found in CSV. Errors: ${errors.join('; ')}`
       );
     }
 
-    const [results, total] = await queryBuilder
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
+    // Save learners to database
+    try {
+      const savedLearners = await this.learnerRepository.save(learners);
+      this.logger.log(`Successfully imported ${savedLearners.length} learners`);
+
+      return {
+        message: `Successfully imported ${savedLearners.length} learners`,
+        imported: savedLearners.length,
+        errors: errors.length > 0 ? errors : undefined,
+        total: records.length,
+      };
+    } catch (error) {
+      this.logger.error(`Error saving learners: ${error.message}`);
+      throw new BadRequestException(`Error saving learners: ${error.message}`);
+    }
+  }
+
+  async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
+    const { page = 1, limit = 10 } = paginationParams;
+
+    if (page < 1 || limit < 1) {
+      throw new BadRequestException('Page and limit must be positive numbers.');
+    }
+
+    const loggedInUser = await this.recruiterRepository.findUser(userId);
+    const schoolId = loggedInUser.school.id;
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const queryBuilder = this.learnerRepository
+      .createQueryBuilder('prospective_student')
+      .select([
+        'prospective_student.id',
+        'prospective_student.name',
+        'prospective_student.mobile_number',
+        'prospective_student.email',
+        'prospective_student.level',
+        'prospective_student.date_of_birth',
+        'prospective_student.home_address',
+        'prospective_student.funding',
+        'prospective_student.chosen_course',
+        'prospective_student.passport_number',
+        'prospective_student.NI_number',
+        'prospective_student.awarding',
+        'prospective_student.created_at',
+      ])
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
+      })
+      .where('prospective_student.school_id = :schoolId', { schoolId });
+
+    const [result, total] = await Promise.all([
+      queryBuilder
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany(),
+      queryBuilder.getCount(),
+    ]);
 
     return {
-      data: results || [],
+      result,
       total,
       page,
-      lastPage: Math.ceil(total / limit),
+      limit,
+      totalPages: Math.ceil(total / limit),
     };
   }
 
@@ -213,16 +274,7 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
-
-    const student = await this.recruiterRepository.findStudent(
-      studentId,
-      recruiter
-    );
+    const student = await this.recruiterRepository.findStudent(studentId);
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
@@ -241,17 +293,7 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
-
-    const student = await this.recruiterRepository.findStudent(
-      studentId,
-      recruiter
-    );
+    const student = await this.recruiterRepository.findStudent(studentId);
 
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
@@ -276,16 +318,9 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
-
     const student = await this.learnerRepository.findOneBy({
       id: studentId,
-      recruiter: { id: recruiter.id },
+      user: { id: loggedInUser.id },
     });
 
     if (!student) {
@@ -302,7 +337,14 @@ export class RecruiterService {
   }
 
   async getFilteredStudents(userId: string, filterDto: FilterStudentsDto) {
-    const { funding, chosen_course, page, limit } = filterDto;
+    const {
+      funding,
+      chosen_course,
+      page = 1,
+      limit = 10,
+      search,
+      sort = 'asc',
+    } = filterDto;
 
     const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
@@ -310,39 +352,129 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const recruiter = await this.recruiterRepository.findRecruiter(userId);
-
-    if (!recruiter) {
-      this.logger.error('Recruiter not found for the user');
-      throw new NotFoundException('Recruiter not found for the user');
-    }
-
+    // Create query builder with LEFT JOIN to student account users
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .leftJoinAndSelect('student.recruiter', 'recruiter')
-      .where('recruiter.id = :recruiterId', {
-        recruiterId: recruiter.id,
-      });
+      .createQueryBuilder('prospective_student')
+      // Join to the CREATOR user (who added the student)
+      .leftJoinAndSelect('prospective_student.user', 'creator_user')
+      // Join to the STUDENT's account (based on matching email)
+      .leftJoin(
+        'users',
+        'student_user',
+        'student_user.email = prospective_student.email AND student_user.role_id != creator_user.role_id'
+      )
+      .where('prospective_student.school = :schoolId', {
+        schoolId: loggedInUser.school.id,
+      })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
+      })
+      .select([
+        'prospective_student.id',
+        'prospective_student.name',
+        'prospective_student.email',
+        'prospective_student.date_of_birth',
+        'prospective_student.mobile_number',
+        'prospective_student.NI_number',
+        'prospective_student.passport_number',
+        'prospective_student.home_address',
+        'prospective_student.funding',
+        'prospective_student.level',
+        'prospective_student.awarding',
+        'prospective_student.chosen_course',
+        'prospective_student.created_at',
+        'prospective_student.application_mail',
+        'creator_user.id',
+        'creator_user.first_name',
+        'creator_user.last_name',
+        'student_user.username',
+        'student_user.last_login_at',
+        'student_user.id AS student_user_id',
+      ]);
 
+    // Apply filters
     if (funding) {
-      queryBuilder.andWhere('student.funding LIKE :funding', {
+      queryBuilder.andWhere('prospective_student.funding ILIKE :funding', {
         funding: `%${funding}%`,
       });
     }
 
-    if (chosen_course) {
-      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
-        chosen_course: `%${chosen_course}%`,
-      });
+    if (search) {
+      queryBuilder.andWhere(
+        '(prospective_student.name ILIKE :search OR ' +
+          'prospective_student.email ILIKE :search OR ' +
+          'prospective_student.mobile_number ILIKE :search OR ' +
+          'prospective_student.NI_number ILIKE :search OR ' +
+          'prospective_student.passport_number ILIKE :search OR ' +
+          'prospective_student.home_address ILIKE :search OR ' +
+          'prospective_student.funding ILIKE :search OR ' +
+          'CAST(prospective_student.level AS TEXT) ILIKE :search OR ' +
+          'prospective_student.awarding ILIKE :search OR ' +
+          'prospective_student.chosen_course ILIKE :search OR ' +
+          'student_user.username ILIKE :search)',
+        {
+          search: `%${search}%`,
+        }
+      );
     }
 
-    const total = await queryBuilder.getCount();
+    if (chosen_course) {
+      queryBuilder.andWhere(
+        'prospective_student.chosen_course ILIKE :chosen_course',
+        {
+          chosen_course: `%${chosen_course}%`,
+        }
+      );
+    }
 
-    const data = await queryBuilder
+    // Apply sorting
+    const sortDirection = sort.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+    queryBuilder.orderBy('prospective_student.created_at', sortDirection);
+
+    // Execute the query with pagination
+    const total = await queryBuilder.getCount();
+    const results = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
-      .getMany();
+      .getRawMany(); // Use getRawMany() to get raw results with the selected aliases
 
-    return { data, total };
+    // Transform the results to include account information
+    const transformedData = results.map(row => {
+      return {
+        id: row.prospective_student_id,
+        name: row.prospective_student_name,
+        email: row.prospective_student_email,
+        date_of_birth: row.prospective_student_date_of_birth,
+        mobile_number: row.prospective_student_mobile_number,
+        NI_number: row.prospective_student_NI_number,
+        passport_number: row.prospective_student_passport_number,
+        home_address: row.prospective_student_home_address,
+        funding: row.prospective_student_funding,
+        level: row.prospective_student_level,
+        awarding: row.prospective_student_awarding,
+        chosen_course: row.prospective_student_chosen_course,
+        created_at: row.prospective_student_created_at,
+        application_mail: row.prospective_student_application_mail,
+        created_by: {
+          id: row.creator_user_id,
+          name: `${row.creator_user_first_name} ${row.creator_user_last_name}`,
+        },
+        has_account: !!row.student_user_id,
+        user: row.student_user_id
+          ? {
+              username: row.student_user_username,
+              last_login_at: row.student_user_last_login_at,
+            }
+          : null,
+      };
+    });
+
+    return {
+      data: transformedData,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

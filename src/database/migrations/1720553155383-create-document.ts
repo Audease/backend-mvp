@@ -45,6 +45,12 @@ export class CreateDocument1720553155383 implements MigrationInterface {
             default: 'CURRENT_TIMESTAMP',
           },
           {
+            name: 'onboarding_status',
+            type: 'enum',
+            enum: ['pending', 'completed'],
+            default: "'pending'",
+          },
+          {
             name: 'userId',
             type: 'uuid',
             isNullable: false,

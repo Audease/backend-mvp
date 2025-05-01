@@ -15,7 +15,7 @@ import { Student } from '../students/entities/student.entity';
 import { MailService } from '../shared/services/mail.service';
 import { BksdRepository } from './bksd.repository';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
-import { FilterDto } from './dto/bksd-filter.dto';
+import { StudentFilterDto } from '../shared/dto/student-filter.dto';
 
 @Injectable()
 export class BksdService {
@@ -39,23 +39,17 @@ export class BksdService {
       throw new NotFoundException('User not found');
     }
 
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
-    }
-
     const learner = await this.bksdRepository.findLearner(
       applicantId,
-      accessor
+      loggedInUser
     );
     if (learner) {
       const accessorUsername = loggedInUser.username;
       const sanitizedCollegeName = accessorUsername.split('.')[1];
+      const sanitizedLearnerName = learner.name.replace(/\s+/g, '_');
       const college_id = loggedInUser.school.id;
       let generated_username =
-        `${learner.first_name}.${sanitizedCollegeName}.student`.toLowerCase();
+        `${sanitizedLearnerName}.${sanitizedCollegeName}.learner`.toLowerCase();
       const generated_password = crypto
         .randomBytes(12)
         .toString('hex')
@@ -69,7 +63,7 @@ export class BksdService {
       if (userExists) {
         const randomNumber = Math.floor(Math.random() * 1000);
         generated_username =
-          `${learner.first_name}${randomNumber}.${sanitizedCollegeName}.learner`.toLowerCase();
+          `${learner.name}${randomNumber}.${sanitizedCollegeName}.learner`.toLowerCase();
       }
 
       const emailExists = await this.userService.getUserByEmail(learner.email);
@@ -83,23 +77,25 @@ export class BksdService {
           password: await bcrypt.hashSync(generated_password, 10),
           email: learner.email,
           phone: learner.mobile_number,
-          first_name: learner.first_name,
-          last_name: learner.last_name,
+          first_name: learner.name.split(' ')[0],
+          last_name: learner.name.split(' ')[1],
           role,
         },
         college_id
       );
 
       const student = this.studentRepository.create({
-        ...learner,
         user,
+        ...learner,
         school: loggedInUser.school,
       });
+
+      console.log('student', student);
 
       await this.studentRepository.save(student);
 
       const loginUrl = `${process.env.FRONTEND_URL}`;
-      const first_name = learner.first_name;
+      const first_name = learner.name.split(' ')[0];
 
       await this.mailService.sendTemplateMail(
         {
@@ -132,13 +128,7 @@ export class BksdService {
   async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
     const { page, limit, search } = paginationParams;
 
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const accessor = await this.bksdRepository.findAccessor(userId);
+    const accessor = await this.bksdRepository.findUser(userId);
 
     if (!accessor) {
       this.logger.error('Accessor not found for the user');
@@ -146,15 +136,28 @@ export class BksdService {
     }
 
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .where('student.school = :schoolId', {
+      .createQueryBuilder('prospective_student')
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
+      })
+      .where('prospective_student.school_id = :schoolId', {
         schoolId: accessor.school.id,
       });
 
     if (search) {
       queryBuilder.andWhere(
-        'student.first_name LIKE :search OR student.last_name LIKE :search OR student.middle_name LIKE :search OR student.email LIKE :search',
-        { search: `%${search}%` }
+        '(prospective_student.name ILIKE :search OR ' +
+          'prospective_student.email ILIKE :search OR ' +
+          'prospective_student.mobile_number ILIKE :search OR ' +
+          'prospective_student.NI_number ILIKE :search OR ' +
+          'prospective_student.passport_number ILIKE :search OR ' +
+          'prospective_student.home_address ILIKE :search OR ' +
+          'prospective_student.funding ILIKE :search OR ' +
+          'prospective_student.awarding ILIKE :search OR ' +
+          'prospective_student.chosen_course ILIKE :search)',
+        {
+          search: `%${search}%`,
+        }
       );
     }
 
@@ -172,18 +175,7 @@ export class BksdService {
   }
 
   async getStudent(userId: string, studentId: string) {
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
-    }
+    const accessor = await this.bksdRepository.findUser(userId);
 
     const student = await this.bksdRepository.findLearner(studentId, accessor);
 
@@ -194,53 +186,84 @@ export class BksdService {
     return student;
   }
 
-  async getFilteredStudents(userId: string, filterDto: FilterDto) {
-    const { funding, chosen_course, application_mail, page, limit } = filterDto;
+  // Improved filter method in bksd.service.ts
+  async getFilteredStudents(userId: string, filterDto: StudentFilterDto) {
+    const {
+      funding,
+      chosen_course,
+      application_mail,
+      page = 1,
+      limit = 10,
+      search,
+    } = filterDto;
 
-    const loggedInUser = await this.bksdRepository.findUser(userId);
-    if (!loggedInUser) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    const accessor = await this.bksdRepository.findAccessor(userId);
-
-    if (!accessor) {
-      this.logger.error('Accessor not found for the user');
-      throw new NotFoundException('Accessor not found for the user');
+    const accessor = await this.userService.findOne(userId);
+    if (!accessor || !accessor.school) {
+      throw new NotFoundException('User or school not found');
     }
 
     const queryBuilder = this.learnerRepository
-      .createQueryBuilder('student')
-      .where('student.school = :schoolId', {
+      .createQueryBuilder('prospective_student')
+      .where('prospective_student.school_id = :schoolId', {
         schoolId: accessor.school.id,
-      });
+      })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
+      })
+      .leftJoinAndSelect('prospective_student.school', 'school');
 
     if (funding) {
-      queryBuilder.andWhere('student.funding LIKE :funding', {
-        funding: `%${funding}%`,
+      queryBuilder.andWhere('prospective_student.funding = :funding', {
+        funding,
       });
     }
 
     if (chosen_course) {
-      queryBuilder.andWhere('student.chosen_course LIKE :chosen_course', {
-        chosen_course: `%${chosen_course}%`,
-      });
+      queryBuilder.andWhere(
+        'prospective_student.chosen_course = :chosen_course',
+        {
+          chosen_course,
+        }
+      );
+    }
+
+    if (search) {
+      queryBuilder.andWhere(
+        '(prospective_student.name ILIKE :search OR ' +
+          'prospective_student.email ILIKE :search OR ' +
+          'prospective_student.mobile_number ILIKE :search OR ' +
+          'prospective_student.NI_number ILIKE :search OR ' +
+          'prospective_student.passport_number ILIKE :search OR ' +
+          'prospective_student.home_address ILIKE :search OR ' +
+          'prospective_student.funding ILIKE :search OR ' +
+          'prospective_student.awarding ILIKE :search OR ' +
+          'prospective_student.chosen_course ILIKE :search)',
+        {
+          search: `%${search}%`,
+        }
+      );
     }
 
     if (application_mail) {
-      queryBuilder.andWhere('student.application_mail LIKE :application_mail', {
-        application_mail: `%${application_mail}%`,
-      });
+      queryBuilder.andWhere(
+        'prospective_student.application_mail = :application_mail',
+        {
+          application_mail,
+        }
+      );
     }
 
-    const total = await queryBuilder.getCount();
-
-    const data = await queryBuilder
+    const [data, total] = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
-      .getMany();
+      .getManyAndCount();
 
-    return { data, total };
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

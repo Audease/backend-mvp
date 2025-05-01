@@ -12,10 +12,15 @@ import {
   UploadedFile,
   UseInterceptors,
   Body,
+  Delete,
+  NotFoundException,
+  BadRequestException,
+  HttpException,
 } from '@nestjs/common';
 import { Role } from '../utils/enum/role';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+// import { RolesGuard } from '../auth/role.guard';
 import { Roles } from '../shared/decorators/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -29,16 +34,25 @@ import {
   ApiOperation,
   ApiInternalServerErrorResponse,
   ApiConsumes,
+  ApiResponse,
 } from '@nestjs/swagger';
-import { PaginationDto, EmailDto, AssignRoleDto } from './dto/misc-dto';
+import { RolesGuard } from '../auth/guards/role.guard';
+import { PaginationDto, EmailDto, AssignRolesDto } from './dto/misc-dto';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { RoleDto } from './dto/create-role.dto';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { createFolder, moveLogs, editLogs } from './dto/create-folder.dto';
+import { CreateFolderDto } from './dto/create-folder.dto';
+import { CreateWorflowDto } from './dto/workflow.dto';
+import { Permissions } from '../shared/decorators/permission.decorator';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+import { Permission } from '../utils/enum/permission';
+import { CreateDocumentDto } from './dto/create-document.dto';
+import { AssignDocumentToStudentsDto } from './dto/add-student-document.dto';
+import { ArchiveRoleDto } from './dto/archive-reason.dto';
 
 @ApiTags('Admin')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Controller('admin')
 export class AdminController {
   private readonly logger = new Logger(AdminController.name);
@@ -114,77 +128,9 @@ export class AdminController {
     }
   }
 
-  @Get('/logs')
-  @Roles(Role.SCHOOL_ADMIN)
-  @ApiBearerAuth()
-  @ApiQuery({
-    name: 'page',
-    type: Number,
-    required: false,
-    description: 'Page number for pagination',
-  })
-  @ApiQuery({
-    name: 'limit',
-    type: Number,
-    required: false,
-    description: 'Number of items per page',
-  })
-  @ApiOperation({
-    summary: 'View information a log of all actions performed by the admin',
-  })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiNotFoundResponse({
-    description: 'This admin has not performed any actions yet',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.OK)
-  async getAllLogs(
-    @CurrentUserId() userId: string,
-    @Query() pagination: PaginationDto
-  ) {
-    try {
-      const { limit, page } = pagination;
-      return await this.adminService.getLogs(userId, page, limit);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  @Get('/students/:studentId')
-  @Roles(Role.SCHOOL_ADMIN)
-  @ApiBearerAuth()
-  @ApiParam({
-    name: 'studentId',
-    type: String,
-    required: true,
-    description: 'Student ID',
-  })
-  @ApiOperation({
-    summary: 'View information of a student on the recruiter dashboard',
-  })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiNotFoundResponse({ description: 'Student not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.OK)
-  async getStudent(
-    @CurrentUserId() userId: string,
-    @Param('studentId') studentId: string
-  ) {
-    try {
-      return await this.adminService.getStudentById(userId, studentId);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
   @Post('/students/:studentId/documents')
   @Roles(Role.SCHOOL_ADMIN)
+  @Permissions(Permission.LEARNER)
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -228,6 +174,25 @@ export class AdminController {
       this.logger.error(error.message, error.stack);
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  @Post('documents/assign')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Assign a document to multiple students' })
+  @ApiResponse({
+    status: 201,
+    description: 'Document successfully assigned to students',
+  })
+  @ApiResponse({ status: 404, description: 'Document or student not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async assignDocumentToStudents(
+    @Body() assignDocumentDto: AssignDocumentToStudentsDto
+  ) {
+    return this.adminService.addDocumentToStudent(
+      assignDocumentDto.documentId,
+      assignDocumentDto.studentIds
+    );
   }
 
   @Get('/profile')
@@ -296,7 +261,6 @@ export class AdminController {
   }
 
   @Get('/learners/:learnerId')
-  @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
   @ApiParam({
     name: 'learnerId',
@@ -350,25 +314,46 @@ export class AdminController {
     }
   }
 
-  @Post('/staffs/assign-role')
+  @Post('/staffs/assign-roles')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Assign a role to a staff',
+    summary: 'Assign roles to staff members',
   })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
   @ApiNotFoundResponse({ description: 'Staff not found' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
   @HttpCode(HttpStatus.OK)
-  async assignRole(
+  async assignRoles(
     @CurrentUserId() adminId: string,
-    @Body() assignRoleDto: AssignRoleDto
+    @Body() assignRolesDto: AssignRolesDto
   ) {
     try {
-      const { role, userId } = assignRoleDto;
-      return await this.adminService.assignRole(adminId, role, userId);
+      return await this.adminService.assignRoles(
+        adminId,
+        assignRolesDto.assignments
+      );
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Get('/account-setup-status')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'View account setup status',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getAccountSetupStatus(@CurrentUserId() userId: string) {
+    try {
+      return await this.adminService.getOnboardingStatus(userId);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
@@ -381,15 +366,25 @@ export class AdminController {
   @ApiOperation({
     summary: 'View all roles in the school',
   })
+  @ApiQuery({
+    name: 'sort',
+    enum: ['asc', 'desc'],
+    required: false,
+    description:
+      'Sort order by creation date (asc for oldest first, desc for newest first)',
+  })
   @ApiNotFoundResponse({ description: 'Admin not found' })
   @ApiNotFoundResponse({ description: 'Roles not found' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
   @HttpCode(HttpStatus.OK)
-  async getRoles(@CurrentUserId() userId: string) {
+  async getRoles(
+    @CurrentUserId() userId: string,
+    @Query('sort') sort: 'asc' | 'desc' = 'asc'
+  ) {
     try {
-      return await this.adminService.getRoles(userId);
+      return await this.adminService.getRoles(userId, sort);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
@@ -490,30 +485,6 @@ export class AdminController {
     }
   }
 
-  @Post('create-folder')
-  @Roles(Role.SCHOOL_ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Create a folder',
-  })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.CREATED)
-  async createFolder(
-    @CurrentUserId() userId: string,
-    @Body() folderName: createFolder
-  ) {
-    try {
-      return await this.adminService.createFolder(folderName.folder, userId);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  //  Get paginated list of folders
   @Get('folders')
   @Roles(Role.SCHOOL_ADMIN)
   @ApiBearerAuth()
@@ -530,149 +501,86 @@ export class AdminController {
     description: 'Number of items per page',
   })
   @ApiOperation({
-    summary: 'View all folders in the school',
+    summary: 'Get all folders with their subfolders and documents',
   })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiNotFoundResponse({ description: 'Folders not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
+  @ApiResponse({
+    status: 200,
+    description: 'Returns folders with pagination',
   })
-  @HttpCode(HttpStatus.OK)
-  async getFolders(
+  async getAllFolders(
     @CurrentUserId() userId: string,
     @Query() pagination: PaginationDto
   ) {
-    try {
-      const { limit, page } = pagination;
-      return await this.adminService.getFolders(userId, page, limit);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
+    const { page, limit } = pagination;
+    return await this.adminService.getAllFolders(userId, page, limit);
   }
 
-  @Get('folders/:folderId')
+  @Post('folders/:folderId/documents')
   @Roles(Role.SCHOOL_ADMIN)
-  @ApiBearerAuth()
   @ApiParam({
     name: 'folderId',
     type: String,
     required: true,
-    description: 'Folder ID',
+    description: 'ID of the folder to add document to',
   })
-  @ApiQuery({
-    name: 'page',
-    type: Number,
-    required: false,
-    description: 'Page number for pagination',
-  })
-  @ApiQuery({
-    name: 'limit',
-    type: Number,
-    required: false,
-    description: 'Number of items per page',
-  })
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'View information of a folder',
+    summary: 'Create a document in a folder using Cloudinary URL',
+    description:
+      'Save document metadata and Cloudinary URL in a specific folder',
   })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiNotFoundResponse({ description: 'Folder not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
+  @ApiResponse({
+    status: 201,
+    description: 'Document created successfully',
   })
-  @HttpCode(HttpStatus.OK)
-  async getFolder(
+  @ApiBody({ type: CreateDocumentDto })
+  async createDocument(
+    @CurrentUserId() userId: string,
+    @Param('folderId') folderId: string,
+    @Body() createDocumentDto: CreateDocumentDto
+  ) {
+    return await this.adminService.createDocument(
+      userId,
+      folderId,
+      createDocumentDto
+    );
+  }
+
+  @Post('folders')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Create a folder or subfolder',
+    description:
+      'Creates a new folder. If parentFolderId is provided, creates a subfolder.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Folder created successfully',
+  })
+  @ApiBody({ type: CreateFolderDto })
+  async createFolder(
+    @CurrentUserId() userId: string,
+    @Body() createFolderDto: CreateFolderDto
+  ) {
+    const { name, parentFolderId } = createFolderDto;
+    return await this.adminService.createFolder(name, userId, parentFolderId);
+  }
+
+  @Get('folders/:folderId')
+  @Roles(Role.SCHOOL_ADMIN)
+  async getFolderContents(
     @CurrentUserId() userId: string,
     @Param('folderId') folderId: string,
     @Query() pagination: PaginationDto
   ) {
-    try {
-      const { limit, page } = pagination;
-      return await this.adminService.getFolderLogs(
-        userId,
-        folderId,
-        page,
-        limit
-      );
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  @Post('folders/:folderId')
-  @Roles(Role.SCHOOL_ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Move logs to a folder',
-  })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiNotFoundResponse({ description: 'Folder not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.OK)
-  async moveLogs(@CurrentUserId() userId: string, @Body() moveLogs: moveLogs) {
-    try {
-      return await this.adminService.moveFolder(
-        userId,
-        moveLogs.folderId,
-        moveLogs.logs
-      );
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  @Post('duplicate/:logId')
-  @Roles(Role.SCHOOL_ADMIN)
-  @ApiBearerAuth()
-  @ApiParam({
-    name: 'logId',
-    type: String,
-    required: true,
-    description: 'Log ID',
-  })
-  @ApiOperation({
-    summary: 'Duplicate a folder',
-  })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiNotFoundResponse({ description: 'Folder not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.OK)
-  async duplicateFolder(@Param('logId') logId: string) {
-    try {
-      return await this.adminService.duplicateLog(logId);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  // Edit log
-  @Post('edit/:logId')
-  @Roles(Role.SCHOOL_ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Edit a log',
-  })
-  @ApiNotFoundResponse({ description: 'Admin not found' })
-  @ApiNotFoundResponse({ description: 'Log not found' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.OK)
-  async editLog(@Body() logs: editLogs) {
-    try {
-      const { logId, message } = logs;
-      return await this.adminService.editLog(logId, message);
-    } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
-    }
+    const { limit, page } = pagination;
+    return await this.adminService.getFolderContents(
+      userId,
+      folderId,
+      page,
+      limit
+    );
   }
 
   @Post('/documents/school')
@@ -732,8 +640,315 @@ export class AdminController {
     @Query() pagination: PaginationDto
   ) {
     try {
-      const { limit, page } = pagination;
-      return await this.adminService.getNewStaffs(userId, page, limit);
+      const { limit = 10, page = 1, search, status } = pagination;
+      return await this.adminService.getNewStaffs(
+        userId,
+        page,
+        limit,
+        search,
+        status
+      );
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Delete('/delete-folder/:folderId')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete a folder',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Folder not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiParam({
+    name: 'folderId',
+    type: String,
+    description: 'ID of the folder to be deleted',
+  })
+  @HttpCode(HttpStatus.OK)
+  async deleteFolder(
+    @CurrentUserId() userId: string,
+    @Param('folderId') folderId: string
+  ) {
+    try {
+      return await this.adminService.deleteFolder(folderId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // Write a controller to search for students in the school
+  @Get('/search-students')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: true,
+    description: 'Search query',
+  })
+  @ApiOperation({
+    summary: 'Search for students in the school',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Student not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async searchStudent(
+    @CurrentUserId() userId: string,
+    @Query('search') search: string
+  ) {
+    try {
+      return await this.adminService.searchStudent(userId, search);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Delete('/delete-document/:documentId')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete a document',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Document not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiParam({
+    name: 'documentId',
+    type: String,
+    description: 'ID of the document to be deleted',
+  })
+  @HttpCode(HttpStatus.OK)
+  async deleteDocument(
+    @CurrentUserId() userId: string,
+    @Param('documentId') documentId: string
+  ) {
+    try {
+      return await this.adminService.deleteDocument(documentId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Get('/roles/archived')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'View all archived roles in the school',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getArchivedRoles(@CurrentUserId() userId: string) {
+    try {
+      return await this.adminService.getArchivedRoles(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Post('/roles/:roleId/archive')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Archive a role',
+  })
+  @ApiParam({
+    name: 'roleId',
+    description: 'ID of the role to archive',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Role not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async archiveRole(
+    @CurrentUserId() userId: string,
+    @Param('roleId') roleId: string,
+    @Body() archiveDto: ArchiveRoleDto
+  ) {
+    try {
+      return await this.adminService.archiveRole(userId, roleId, archiveDto);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else {
+        throw new InternalServerErrorException(error.message);
+      }
+    }
+  }
+
+  @Post('/roles/:roleId/unarchive')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Unarchive a role',
+  })
+  @ApiParam({
+    name: 'roleId',
+    description: 'ID of the role to unarchive',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Role not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async unarchiveRole(
+    @CurrentUserId() userId: string,
+    @Param('roleId') roleId: string
+  ) {
+    try {
+      return await this.adminService.unarchiveRole(userId, roleId);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else {
+        throw new InternalServerErrorException(error.message);
+      }
+    }
+  }
+
+  @Post('/create-workflow')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Create a workflow in the school',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async createWorkflow(
+    @CurrentUserId() userId: string,
+    @Body() workflow: CreateWorflowDto
+  ) {
+    try {
+      return await this.adminService.createWorkflow(userId, workflow);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Get('/workflows')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'View all workflows in the school',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiNotFoundResponse({ description: 'Workflows not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getWorkflows(@CurrentUserId() userId: string) {
+    try {
+      return await this.adminService.getWorkflows(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Post('/persona-staff')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'View all persona staffs in the school',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        permission: { type: 'string' },
+        page: { type: 'number', default: 1 },
+        limit: { type: 'number', default: 10 },
+      },
+      required: ['permission'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved staff list',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Admin or staffs not found' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  @HttpCode(HttpStatus.OK)
+  async getPersonaStaffs(
+    @CurrentUserId() userId: string,
+    @Body() body: { permission: string; page?: number; limit?: number }
+  ) {
+    try {
+      const { permission, page = 1, limit = 10 } = body;
+
+      if (!permission) {
+        throw new BadRequestException('Permission is required');
+      }
+
+      return await this.adminService.getStaffsByPermission(
+        userId,
+        permission,
+        page,
+        limit
+      );
+    } catch (error) {
+      this.logger.error(`Error in getPersonaStaffs: ${error.message}`);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException('An unexpected error occurred');
+    }
+  }
+
+  @Delete('/delete/:staffId')
+  @Roles(Role.SCHOOL_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete a staff',
+  })
+  @ApiNotFoundResponse({ description: 'Admin not found' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiParam({
+    name: 'staffId',
+    type: String,
+    description: 'ID of the staff to be deleted',
+  })
+  @HttpCode(HttpStatus.OK)
+  async deleteStaff(
+    @CurrentUserId() userId: string,
+    @Param('staffId') staffId: string
+  ) {
+    try {
+      console.log(staffId);
+      return await this.adminService.deleteUser(userId, staffId);
     } catch (error) {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);

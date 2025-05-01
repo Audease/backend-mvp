@@ -18,6 +18,10 @@ import { AppLogger } from '../entities/logger.entity';
 import { Staff } from '../entities/staff.entity';
 import { Inductor } from '../../inductor/entities/inductor.entity';
 import { LogFolder } from '../entities/folder.entity';
+import { Workflow } from '../entities/workflow.entity';
+import { Form } from '../../form/entity/form.entity';
+import { FormSubmission } from '../../form/entity/form-submission.entity';
+import { Folder } from '../entities/file-folder.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -47,6 +51,10 @@ export class ApiConfigService {
         LogFolder,
         Inductor,
         Staff,
+        Workflow,
+        Form,
+        FormSubmission,
+        Folder,
       ],
       migrationsRun: true,
       username,

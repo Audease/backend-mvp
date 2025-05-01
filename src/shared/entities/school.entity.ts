@@ -14,6 +14,7 @@ import { ProspectiveStudent } from '../../recruiter/entities/prospective-student
 import { Roles } from './role.entity';
 import { Document } from './document.entity';
 import { Staff } from './staff.entity';
+import { Workflow } from './workflow.entity';
 
 @Entity('school')
 export class School {
@@ -65,6 +66,9 @@ export class School {
 
   @OneToMany(() => Roles, roles => roles.school)
   roles: Roles[];
+
+  @OneToMany(() => Workflow, workflows => workflows.school)
+  workflows: Workflow[];
 
   @OneToMany(() => Document, documents => documents.school)
   documents: Document[];
