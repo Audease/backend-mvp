@@ -346,6 +346,10 @@ export class RecruiterService {
       sort = 'asc',
     } = filterDto;
 
+    // Ensure page and limit are numbers and have default values
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+
     const loggedInUser = await this.recruiterRepository.findUser(userId);
     if (!loggedInUser) {
       this.logger.error('User not found');
@@ -437,14 +441,14 @@ export class RecruiterService {
     // Get total count before applying pagination
     const total = await countQueryBuilder.getCount();
 
-    // Execute the paginated query
-    const pagedResults = await queryBuilder
-      .skip((page - 1) * limit)
-      .take(limit)
+    // Execute the paginated query with explicit numbers
+    const results = await queryBuilder
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum)
       .getRawMany();
 
     // Transform the results to include account information
-    const transformedData = pagedResults.map(row => {
+    const transformedData = results.map(row => {
       return {
         id: row.prospective_student_id,
         name: row.prospective_student_name,
@@ -474,12 +478,14 @@ export class RecruiterService {
       };
     });
 
+    // Return with consistent pagination structure
     return {
       data: transformedData,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+      lastPage: Math.ceil(total / limitNum), // for consistency
     };
   }
 }
