@@ -93,7 +93,7 @@ export class CertificateService {
       queryBuilder.andWhere(
         'prospective_student.certificate_status ILIKE :certificate_status',
         {
-          certification_status: `%${certificate_status}%`,
+          certificate_status: `%${certificate_status}%`,
         }
       );
     }
