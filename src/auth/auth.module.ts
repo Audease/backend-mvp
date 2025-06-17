@@ -21,6 +21,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { Permissions } from '../shared/entities/permission.entity';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
+import { UsernameGeneratorService } from '../shared/services/username-generator.service';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ProspectiveStudent } from '../recruiter/entities/prospective-student.en
     JwtService,
     AuthRepository,
     JwtAuthService,
+    UsernameGeneratorService,
     MailService,
     UserService,
     RedisService,

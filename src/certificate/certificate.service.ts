@@ -42,11 +42,24 @@ export class CertificateService {
   }
 
   async getFilteredStudents(userId: string, filters: FilterDto) {
-    const { funding, chosen_course, search, certificate_status } = filters;
+    const {
+      funding,
+      chosen_course,
+      search,
+      certificate_status,
+      page = 1,
+      limit = 10,
+    } = filters;
+
     const accessor = await this.bksdRepository.findUser(userId);
+    if (!accessor) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .where('prospective_student.school = :schoolId', {
+      .where('prospective_student.school_id = :schoolId', {
         schoolId: accessor.school.id,
       })
       .andWhere('prospective_student.is_archived = :isArchived', {
@@ -56,6 +69,7 @@ export class CertificateService {
         lazer_status: 'Approved',
       });
 
+    // Apply other filters
     if (funding) {
       queryBuilder.andWhere('prospective_student.funding ILIKE :funding', {
         funding: `%${funding}%`,
@@ -93,16 +107,26 @@ export class CertificateService {
       queryBuilder.andWhere(
         'prospective_student.certificate_status ILIKE :certificate_status',
         {
-          certification_status: `%${certificate_status}%`,
+          certificate_status: `%${certificate_status}%`,
         }
       );
     }
 
-    const [results, total] = await queryBuilder.getManyAndCount();
+    // Apply pagination and get results
+    const [results, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('prospective_student.created_at', 'DESC')
+      .getManyAndCount();
 
+    // Return properly structured pagination data with consistent naming
     return {
       data: results || [],
       total,
+      page,
+      limit,
+      lastPage: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit), // Include both for compatibility
     };
   }
 

@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { DbTransactionFactory } from './services/transactions/TransactionManager';
 import { TransactionRunner } from './services/transactions/TransactionManager.service';
+import { UsernameGeneratorService } from './services/username-generator.service';
 
 @Global()
 @Module({
@@ -14,12 +15,14 @@ import { TransactionRunner } from './services/transactions/TransactionManager.se
     ConfigService,
     DbTransactionFactory,
     TransactionRunner,
+    UsernameGeneratorService,
   ],
   exports: [
     ApiConfigService,
     ConfigService,
     DbTransactionFactory,
     TransactionRunner,
+    UsernameGeneratorService,
   ],
 })
 export class SharedModule {}

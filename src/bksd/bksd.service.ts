@@ -16,6 +16,7 @@ import { MailService } from '../shared/services/mail.service';
 import { BksdRepository } from './bksd.repository';
 import { PaginationParamsDto } from '../recruiter/dto/pagination-params.dto';
 import { StudentFilterDto } from '../shared/dto/student-filter.dto';
+import { UsernameGeneratorService } from '../shared/services/username-generator.service';
 
 @Injectable()
 export class BksdService {
@@ -28,7 +29,8 @@ export class BksdService {
     private readonly userService: UserService,
 
     private readonly mailService: MailService,
-    private readonly bksdRepository: BksdRepository
+    private readonly bksdRepository: BksdRepository,
+    private readonly usernameGeneratorService: UsernameGeneratorService
   ) {}
 
   async sendLearnerMail(userId: string, applicantId: string) {
@@ -45,26 +47,35 @@ export class BksdService {
     );
     if (learner) {
       const accessorUsername = loggedInUser.username;
-      const sanitizedCollegeName = accessorUsername.split('.')[1];
-      const sanitizedLearnerName = learner.name.replace(/\s+/g, '_');
+      const collegeName =
+        this.usernameGeneratorService.extractCollegeNameFromUsername(
+          accessorUsername
+        ) || loggedInUser.school.college_name;
+      // const sanitizedCollegeName = accessorUsername.split('.')[1];
+      // const sanitizedLearnerName = learner.name.replace(/\s+/g, '_');
       const college_id = loggedInUser.school.id;
-      let generated_username =
-        `${sanitizedLearnerName}.${sanitizedCollegeName}.learner`.toLowerCase();
-      const generated_password = crypto
-        .randomBytes(12)
-        .toString('hex')
-        .slice(0, 7);
+      let generated_username = this.usernameGeneratorService.generateUsername(
+        learner.name,
+        collegeName,
+        'learner'
+      );
 
       const role = await this.userService.getRoleByName(Role.STUDENT);
 
       const userExists =
         await this.userService.getUserByUsername(generated_username);
-
       if (userExists) {
-        const randomNumber = Math.floor(Math.random() * 1000);
-        generated_username =
-          `${learner.name}${randomNumber}.${sanitizedCollegeName}.learner`.toLowerCase();
+        const randomSuffix =
+          this.usernameGeneratorService.generateRandomSuffix();
+        generated_username = this.usernameGeneratorService.generateUsername(
+          learner.name,
+          collegeName,
+          'learner',
+          randomSuffix
+        );
       }
+
+      const generated_password = crypto.randomBytes(8).toString('hex');
 
       const emailExists = await this.userService.getUserByEmail(learner.email);
       if (emailExists) {

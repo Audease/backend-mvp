@@ -21,6 +21,7 @@ import { LogFolder } from '../shared/entities/folder.entity';
 import { Staff } from '../shared/entities/staff.entity';
 import { Workflow } from '../shared/entities/workflow.entity';
 import { Folder } from '../shared/entities/file-folder.entity';
+import { UsernameGeneratorService } from '../shared/services/username-generator.service';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { Folder } from '../shared/entities/file-folder.entity';
     StorageService,
     LogService,
     MailService,
+    UsernameGeneratorService,
   ],
 })
 export class AdminModule {}
