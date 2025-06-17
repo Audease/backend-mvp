@@ -28,6 +28,8 @@ import { Document } from '../shared/entities/document.entity';
 import { Folder } from '../shared/entities/file-folder.entity';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { ArchiveRoleDto } from './dto/archive-reason.dto';
+import { UsernameGeneratorService } from '../shared/services/username-generator.service';
+import { Users } from '../users/entities/user.entity';
 
 @Injectable()
 export class AdminService {
@@ -36,6 +38,7 @@ export class AdminService {
     private readonly adminRepository: AdminRepository,
     private readonly authRepository: AuthRepository,
     private readonly storageService: StorageService,
+    private readonly usernameGeneratorService: UsernameGeneratorService,
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly dataSource: DataSource,
@@ -229,24 +232,50 @@ export class AdminService {
             continue; // Skip this assignment and proceed with others
           }
 
-          function extractCollegeName(username: string): string {
-            const parts = username.split('.');
-            if (parts.length >= 3) {
-              return parts[1];
-            }
-            return '';
-          }
+          // function extractCollegeName(username: string): string {
+          //   const parts = username.split('.');
+          //   if (parts.length >= 3) {
+          //     return parts[1];
+          //   }
+          //   return '';
+          // }
 
           let collegeName = '';
           if (staff.username) {
-            collegeName = extractCollegeName(staff.username);
+            collegeName =
+              this.usernameGeneratorService.extractCollegeNameFromUsername(
+                staff.username
+              );
           }
 
-          // If no college name was extracted from username, use the one from school
+          // If no college name was extracted, use the school name
           if (!collegeName) {
-            collegeName = staff.school.college_name
-              .replace(/[^a-zA-Z0-9]/g, '')
-              .toLowerCase();
+            collegeName = staff.school.college_name;
+          }
+
+          // Extract name from email
+          const emailName = staff.email.split('@')[0];
+
+          // Generate clean username
+          let username = this.usernameGeneratorService.generateUsername(
+            emailName,
+            collegeName,
+            data.role.role
+          );
+
+          const existingUser = await transactionalEntityManager.findOne(Users, {
+            where: { username },
+          });
+
+          if (existingUser) {
+            const randomSuffix =
+              this.usernameGeneratorService.generateRandomSuffix();
+            username = this.usernameGeneratorService.generateUsername(
+              emailName,
+              collegeName,
+              data.role.role,
+              randomSuffix
+            );
           }
 
           const generated_password = crypto
@@ -254,12 +283,12 @@ export class AdminService {
             .toString('hex')
             .slice(0, 7);
           const password = bcrypt.hashSync(generated_password, 10);
-          const email = staff.email
-            .split('@')[0]
-            .replace(/[^a-zA-Z0-9]/g, '')
-            .toLowerCase();
-          const username =
-            `${email}.${collegeName}.${data.role.role}`.toLowerCase();
+          // const email = staff.email
+          //   .split('@')[0]
+          //   .replace(/[^a-zA-Z0-9]/g, '')
+          //   .toLowerCase();
+          // const username =
+          //   `${email}.${collegeName}.${data.role.role}`.toLowerCase();
 
           // Create user with is_password_changed set to false
           await this.adminRepository.createStaff(

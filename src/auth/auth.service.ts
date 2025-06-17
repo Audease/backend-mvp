@@ -21,6 +21,7 @@ import { DbTransactionFactory } from '../shared/services/transactions/Transactio
 import { Users } from '../users/entities/user.entity';
 import { sendSlackNotification } from '../utils/helpers/slack.helpers';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UsernameGeneratorService } from '../shared/services/username-generator.service';
 
 @Injectable()
 export class AuthService {
@@ -31,6 +32,7 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly userService: UserService,
     private redisService: RedisService,
+    private readonly usernameGeneratorService: UsernameGeneratorService,
     private readonly dbTransactionFactory: DbTransactionFactory
   ) {}
 
@@ -61,10 +63,14 @@ export class AuthService {
 
       // Sanitize the username by deleting the spaces
 
-      const sanitizedUsername = username.replace(/\s+/g, '');
+      const cleanedUsername =
+        this.usernameGeneratorService.cleanAndTruncateText(
+          createSchoolDto.username,
+          50 // Max length for username
+        );
 
       const userExists =
-        await this.userService.getUserByUsername(sanitizedUsername);
+        await this.userService.getUserByUsername(cleanedUsername);
 
       if (userExists) {
         this.logger.error('Username already exists');
