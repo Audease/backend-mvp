@@ -755,7 +755,7 @@ export class RecruiterService {
     }
 
     // Apply sorting
-    const sortDirection = sort.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+    const sortDirection = sort.toUpperCase() === 'ASC' ? 'DESC' : 'ASC';
     queryBuilder.orderBy('prospective_student.created_at', sortDirection);
 
     // Create count query builder

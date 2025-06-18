@@ -91,6 +91,7 @@ export class AccessorService {
 
     const [results, total] = await queryBuilder
       .skip((page - 1) * limit)
+      .orderBy('prospective_student.created_at', 'DESC') // Add this line
       .take(limit)
       .getManyAndCount();
 
