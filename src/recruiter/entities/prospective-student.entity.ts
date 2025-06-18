@@ -21,7 +21,7 @@ export class ProspectiveStudent {
   @Column('varchar', { length: 255, nullable: false })
   name: string;
 
-  @Column('date', { nullable: false })
+  @Column('date', { nullable: true })
   date_of_birth: string;
 
   @Column('varchar', { length: 255, nullable: true })
