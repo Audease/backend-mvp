@@ -198,6 +198,67 @@ export class BksdService {
     return student;
   }
 
+  async resendLearnerCredentials(userId: string, learnerId: string) {
+    const loggedInUser = await this.bksdRepository.findUser(userId);
+    if (!loggedInUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Find the prospective student
+    const learner = await this.learnerRepository.findOne({
+      where: {
+        id: learnerId,
+        school: { id: loggedInUser.school.id },
+      },
+      relations: ['school'],
+    });
+
+    if (!learner) {
+      throw new NotFoundException('Learner not found');
+    }
+
+    // Find the existing user account by email
+    const existingUser = await this.userService.getUserByEmail(learner.email);
+    if (!existingUser) {
+      throw new NotFoundException(
+        'User account not found. Please create account first.'
+      );
+    }
+
+    // Since passwords are hashed, we need to generate a new temporary password
+    // and update the existing account
+    const newPassword = crypto.randomBytes(8).toString('hex');
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.userService.update(existingUser.id, {
+      password: hashedPassword,
+      is_password_changed: false, // Force password change on next login
+    });
+
+    // Send email with new credentials
+    const loginUrl = `${process.env.FRONTEND_URL}`;
+    const firstName = learner.name.split(' ')[0];
+
+    await this.mailService.sendTemplateMail(
+      {
+        to: learner.email,
+        subject: 'Your Updated Audease Login Details',
+      },
+      'resend-credentials', // Create new email template
+      {
+        firstName,
+        username: existingUser.username,
+        newPassword,
+        loginUrl,
+      }
+    );
+
+    return {
+      message: 'Login details resent successfully',
+      learnerId,
+    };
+  }
+
   // Improved filter method in bksd.service.ts
   async getFilteredStudents(userId: string, filterDto: StudentFilterDto) {
     const {

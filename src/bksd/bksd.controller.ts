@@ -231,4 +231,17 @@ export class BksdController {
       }
     }
   }
+
+  @Post('/resend-mail/:learnerId')
+  @Permissions(Permission.APPLICATION)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Resend existing login details to student',
+  })
+  async resendLoginDetails(
+    @CurrentUserId() userId: string,
+    @Param('learnerId') learnerId: string
+  ) {
+    return await this.bksdService.resendLearnerCredentials(userId, learnerId);
+  }
 }
