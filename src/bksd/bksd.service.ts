@@ -148,6 +148,12 @@ export class BksdService {
 
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
+      .leftJoinAndSelect('prospective_student.user', 'creator_user')
+      .leftJoin(
+        'users',
+        'student_user',
+        'student_user.email = prospective_student.email AND student_user.role_id != creator_user.role_id'
+      )
       .andWhere('prospective_student.is_archived = :isArchived', {
         isArchived: false,
       })
@@ -172,17 +178,71 @@ export class BksdService {
       );
     }
 
-    const [results, total] = await queryBuilder
+    const total = await queryBuilder.getCount();
+
+    const results = await queryBuilder
       .skip((page - 1) * limit)
+      .select([
+        'prospective_student.id',
+        'prospective_student.name',
+        'prospective_student.email',
+        'prospective_student.date_of_birth',
+        'prospective_student.mobile_number',
+        'prospective_student.NI_number',
+        'prospective_student.passport_number',
+        'prospective_student.home_address',
+        'prospective_student.funding',
+        'prospective_student.level',
+        'prospective_student.awarding',
+        'prospective_student.chosen_course',
+        'prospective_student.created_at',
+        'prospective_student.application_mail',
+        'creator_user.id',
+        'creator_user.first_name',
+        'creator_user.last_name',
+        'student_user.username',
+        'student_user.last_login_at',
+        'student_user.id',
+      ])
       .orderBy('prospective_student.created_at', 'DESC') // Add this line
-      .take(limit)
-      .getManyAndCount();
+      .offset((page - 1) * limit)
+      .limit(limit)
+      .getRawMany();
+
+    const transformedData = results.map(row => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      date_of_birth: row.date_of_birth,
+      mobile_number: row.mobile_number,
+      NI_number: row.NI_number,
+      passport_number: row.passport_number,
+      home_address: row.home_address,
+      funding: row.funding,
+      level: row.level,
+      awarding: row.awarding,
+      chosen_course: row.chosen_course,
+      created_at: row.created_at,
+      application_mail: row.application_mail,
+      created_by: {
+        id: row.user.id,
+        name: `${row.creator_user_first_name || ''} ${row.creator_user_last_name || ''}`.trim(),
+      },
+      has_account: !!row.student_user_id,
+      user: row.student_user_id
+        ? {
+            username: row.student_user_username,
+            last_login_at: row.student_user_last_login_at,
+          }
+        : null,
+    }));
 
     return {
-      data: results || [],
-      total,
-      page,
-      lastPage: Math.ceil(total / limit),
+      data: transformedData || [],
+      page: page,
+      limit: limit,
+      totalPages: Math.ceil(total / limit),
+      lastPage: Math.ceil(total / limit), // for consistency
     };
   }
 
