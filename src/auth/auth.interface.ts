@@ -4,6 +4,8 @@ import { Roles } from '../shared/entities/role.entity';
 export interface ISchoolCreate {
   message: string;
   keyId: string;
+  subdomain: string;
+  customDomain?: string;
 }
 
 export interface IVerify {
@@ -27,6 +29,10 @@ export interface SchoolSchema {
   post_code: string;
   county: string;
   status?: RegistrationStatus;
+  subdomain?: string;
+  custom_domain?: string;
+  domain_verified?: boolean;
+  domain_configured_at?: Date;
 }
 
 export interface UserSchema {
@@ -38,4 +44,19 @@ export interface UserSchema {
   password: string;
   role: Roles;
   expiration_date?: Date;
+}
+
+export interface DomainConfiguration {
+  subdomain: string;
+  customDomain: string;
+  verificationToken?: string;
+}
+
+export interface SchoolDomainResponse {
+  found: boolean;
+  schoolName?: string;
+  subdomain?: string;
+  redirectUrl?: string;
+  hasCustomDomain?: boolean;
+  message?: string;
 }

@@ -22,6 +22,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { Permissions } from '../shared/entities/permission.entity';
 import { ProspectiveStudent } from '../recruiter/entities/prospective-student.entity';
 import { UsernameGeneratorService } from '../shared/services/username-generator.service';
+import { GCPDNSService } from '../shared/services/gcp-dns.service';
 
 @Module({
   imports: [
@@ -56,6 +57,8 @@ import { UsernameGeneratorService } from '../shared/services/username-generator.
     Logger,
     Repository,
     JwtStrategy,
+    GCPDNSService, // NEW
   ],
+  exports: [AuthRepository],
 })
 export class AuthModule {}

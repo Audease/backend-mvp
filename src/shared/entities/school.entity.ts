@@ -27,6 +27,21 @@ export class School {
   @Column('integer', { nullable: false })
   no_of_employee: number;
 
+  @Column('varchar', { length: 255, nullable: true, unique: true })
+  subdomain: string; // e.g., "eden-college"
+
+  @Column('varchar', { length: 255, nullable: true })
+  custom_domain: string; // e.g., "eden-college.audease.com"
+
+  @Column('boolean', { default: false })
+  domain_verified: boolean;
+
+  @Column('timestamp', { nullable: true })
+  domain_configured_at: Date;
+
+  @Column('varchar', { length: 500, nullable: true })
+  domain_verification_token: string;
+
   @Column('varchar', { length: 255, nullable: false })
   country: string;
 
