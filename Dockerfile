@@ -1,22 +1,46 @@
-# Base image
-FROM node:20
+# Dockerfile
+FROM node:20-alpine AS builder
 
-# Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# Copy package files
 COPY package*.json ./
+COPY yarn.lock ./
 
-# Install app dependencies
-RUN yarn install
+# Install dependencies
+RUN yarn install --frozen-lockfile
 
-# Bundle app source
+# Copy source code
 COPY . .
 
-# Creates a "dist" folder with the production build
-RUN yarn run build
+# Build the application
+RUN yarn build
 
+# Production stage
+FROM node:20-alpine AS production
+
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+COPY yarn.lock ./
+
+# Install only production dependencies
+RUN yarn install --frozen-lockfile --production
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+
+# Copy any other necessary files (like .env.example, etc.)
+COPY --from=builder /app/node_modules ./node_modules
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
+USER nestjs
+
+# Expose port
 EXPOSE 8080
 
-# Start the server using the production build
-CMD [ "yarn", "start:prod" ]
+# Start the application
+CMD ["node", "dist/main.js"]
