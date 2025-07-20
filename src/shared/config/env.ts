@@ -4,7 +4,7 @@ const dbPort = isTest()
   : process.env.DATABASE_PORT;
 
 export default () => ({
-  port: parseInt(process.env.PORT, 10) || 3000,
+  port: parseInt(process.env.PORT, 10) || 8080,
   database: {
     username: isTest()
       ? process.env.DATABASE_USERNAME_TEST
