@@ -304,18 +304,21 @@ export class AdminService {
 
           const loginUrl = `${process.env.FRONTEND_URL}`;
 
-          await this.mailService.sendTemplateMail(
-            {
-              to: staff.email,
-              subject: 'Your School Has Invited you to Join Audease!',
-            },
-            'invite-staff',
-            {
-              generated_username: username,
-              generated_password,
-              loginUrl,
-            }
-          );
+         // await this.mailService.sendTemplateMail(
+           // {
+           //   to: staff.email,
+           //   subject: 'Your School Has Invited you to Join Audease!',
+         //   },
+           // 'invite-staff',
+           // {
+             // generated_username: username,
+            //  generated_password,
+           //   loginUrl,
+          //  }
+         // );
+console.log(`Generated username: ${username}`);
+          console.log(`Generated Password: ${generated_password}`);
+
 
           await transactionalEntityManager.update(Staff, staff.id, {
             status: 'assigned',
