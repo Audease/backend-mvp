@@ -15,9 +15,12 @@ export class MailService {
   private static getTemplateContent(templateName: string): string {
     try {
       const dirName = process.cwd();
+      // In production, templates will be in dist/template
       const templatePath = path.resolve(
         dirName,
-        `./src/template/${templateName}.html`
+        process.env.NODE_ENV === 'production'
+          ? `./template/${templateName}.html`
+          : `./src/template/${templateName}.html`
       );
       return fs.readFileSync(templatePath, 'utf8');
     } catch (error) {

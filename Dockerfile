@@ -27,6 +27,8 @@ WORKDIR /usr/src/app
 # Copy package files
 COPY package*.json ./
 COPY yarn.lock ./
+COPY src/template ./dist/template
+
 
 # Install only production dependencies
 RUN yarn install --frozen-lockfile --production && yarn cache clean
