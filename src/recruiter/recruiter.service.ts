@@ -592,10 +592,11 @@ export class RecruiterService {
         'prospective_student.awarding',
         'prospective_student.created_at',
       ])
+      .where('prospective_student.school_id = :schoolId', { schoolId })
       .andWhere('prospective_student.is_archived = :isArchived', {
         isArchived: false,
       })
-      .where('prospective_student.school_id = :schoolId', { schoolId });
+      .andWhere('prospective_student.user_id = :userId', { userId });
 
     const [result, total] = await Promise.all([
       queryBuilder
@@ -621,7 +622,15 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const student = await this.recruiterRepository.findStudent(studentId);
+    const student = await this.learnerRepository.findOne({
+      where: {
+        id: studentId,
+        user: { id: loggedInUser.id }, // Add this filter
+        is_archived: false,
+      },
+      relations: ['user'],
+    });
+
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
     }
@@ -640,7 +649,12 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const student = await this.recruiterRepository.findStudent(studentId);
+    const student = await this.learnerRepository.findOne({
+      where: {
+        id: studentId,
+        user: { id: loggedInUser.id }, // Add this filter
+      },
+    });
 
     if (!student) {
       throw new NotFoundException(`Learner with id: ${studentId} not found`);
@@ -665,9 +679,11 @@ export class RecruiterService {
       throw new NotFoundException('User not found');
     }
 
-    const student = await this.learnerRepository.findOneBy({
-      id: studentId,
-      user: { id: loggedInUser.id },
+    const student = await this.learnerRepository.findOne({
+      where: {
+        id: studentId,
+        user: { id: loggedInUser.id }, // Add this filter
+      },
     });
 
     if (!student) {
@@ -678,8 +694,8 @@ export class RecruiterService {
     const result = await this.learnerRepository.delete(studentId);
 
     if (result.affected === 0) {
-      this.logger.error('Site could not be deleted');
-      throw new NotFoundException('Site could not be deleted');
+      this.logger.error('Student could not be deleted');
+      throw new NotFoundException('Student could not be deleted');
     }
   }
 
@@ -717,6 +733,9 @@ export class RecruiterService {
       })
       .andWhere('prospective_student.is_archived = :isArchived', {
         isArchived: false,
+      })
+      .andWhere('prospective_student.user_id = :userId', {
+        userId: loggedInUser.id,
       });
 
     // Apply filters
@@ -766,6 +785,9 @@ export class RecruiterService {
       })
       .andWhere('prospective_student.is_archived = :isArchived', {
         isArchived: false,
+      })
+      .andWhere('prospective_student.user_id = :userId', {
+        userId: loggedInUser.id,
       });
 
     // Apply the same filters to count query
