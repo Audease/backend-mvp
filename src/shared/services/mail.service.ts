@@ -15,15 +15,33 @@ export class MailService {
   private static getTemplateContent(templateName: string): string {
     try {
       const dirName = process.cwd();
-      // In production, templates will be in dist/template
-      const templatePath = path.resolve(
-        dirName,
+      console.log('Current working directory:', dirName);
+
+      // In production, templates are in ./template/
+      // In development, templates are in ./src/template/
+      const templatePath =
         process.env.NODE_ENV === 'production'
-          ? `./template/${templateName}.html`
-          : `./src/template/${templateName}.html`
-      );
+          ? path.resolve(dirName, 'template', `${templateName}.html`)
+          : path.resolve(dirName, 'src/template', `${templateName}.html`);
+
+      console.log('Looking for template at:', templatePath);
+      console.log('Template exists:', fs.existsSync(templatePath));
+
+      if (!fs.existsSync(templatePath)) {
+        // Debug: list what's actually in the template directory
+        const templateDir = path.dirname(templatePath);
+        if (fs.existsSync(templateDir)) {
+          const files = fs.readdirSync(templateDir);
+          console.log('Files in template directory:', files);
+        } else {
+          console.log('Template directory does not exist:', templateDir);
+        }
+        throw new Error(`Template file not found: ${templatePath}`);
+      }
+
       return fs.readFileSync(templatePath, 'utf8');
     } catch (error) {
+      console.error('Template read error:', error.message);
       throw new InternalServerErrorException('Failed to read template file');
     }
   }
