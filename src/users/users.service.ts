@@ -152,6 +152,13 @@ export class UserService {
     });
   }
 
+  async getUserProfile(id: string): Promise<Users> {
+    return await this.userRepository.findOne({
+      where: { id },
+      relations: ['school', 'role'],
+    });
+  }
+
   // Get a role by the role name using a query builder
   async getRoleByName(role: Role): Promise<Roles> {
     return await this.roleRepository

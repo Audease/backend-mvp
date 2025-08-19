@@ -525,6 +525,10 @@ export class AuthService {
     };
   }
 
+  async getProfile(userId: string) {
+    return await this.userService.getUserProfile(userId);
+  }
+
   async changePassword(
     userId: string,
     data: ChangePasswordDto
