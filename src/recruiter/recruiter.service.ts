@@ -562,52 +562,147 @@ export class RecruiterService {
   }
 
   async getAllStudents(userId: string, paginationParams: PaginationParamsDto) {
-    const { page = 1, limit = 10 } = paginationParams;
+    const { page = 1, limit = 10, search } = paginationParams;
 
     if (page < 1 || limit < 1) {
       throw new BadRequestException('Page and limit must be positive numbers.');
     }
 
     const loggedInUser = await this.recruiterRepository.findUser(userId);
-    const schoolId = loggedInUser.school.id;
     if (!loggedInUser) {
       this.logger.error('User not found');
       throw new NotFoundException('User not found');
     }
 
+    const schoolId = loggedInUser.school.id;
+
+    // Main query builder with joins (similar to getFilteredStudents)
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .select([
-        'prospective_student.id',
-        'prospective_student.name',
-        'prospective_student.mobile_number',
-        'prospective_student.email',
-        'prospective_student.level',
-        'prospective_student.date_of_birth',
-        'prospective_student.home_address',
-        'prospective_student.funding',
-        'prospective_student.chosen_course',
-        'prospective_student.passport_number',
-        'prospective_student.NI_number',
-        'prospective_student.awarding',
-        'prospective_student.created_at',
-      ])
+      .leftJoinAndSelect('prospective_student.user', 'creator_user')
+      .leftJoin(
+        'users',
+        'student_user',
+        'student_user.email = prospective_student.email AND student_user.role_id != creator_user.role_id'
+      )
+      .where('prospective_student.school_id = :schoolId', { schoolId })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
+      });
+
+    // Apply search filter if provided
+    if (search) {
+      queryBuilder.andWhere(
+        '(prospective_student.name ILIKE :search OR ' +
+          'prospective_student.email ILIKE :search OR ' +
+          'prospective_student.mobile_number ILIKE :search OR ' +
+          'prospective_student.NI_number ILIKE :search OR ' +
+          'prospective_student.passport_number ILIKE :search OR ' +
+          'prospective_student.home_address ILIKE :search OR ' +
+          'prospective_student.funding ILIKE :search OR ' +
+          'CAST(prospective_student.level AS TEXT) ILIKE :search OR ' +
+          'prospective_student.awarding ILIKE :search OR ' +
+          'prospective_student.chosen_course ILIKE :search OR ' +
+          'student_user.username ILIKE :search)',
+        {
+          search: `%${search}%`,
+        }
+      );
+    }
+
+    // Count query builder
+    const countQueryBuilder = this.learnerRepository
+      .createQueryBuilder('prospective_student')
       .where('prospective_student.school_id = :schoolId', { schoolId })
       .andWhere('prospective_student.is_archived = :isArchived', {
         isArchived: false,
       })
-      .andWhere('prospective_student.user_id = :userId', { userId });
+      .andWhere('prospective_student.user_id = :userId', {
+        userId: loggedInUser.id,
+      });
 
-    const [result, total] = await Promise.all([
-      queryBuilder
-        .skip((page - 1) * limit)
-        .take(limit)
-        .getMany(),
-      queryBuilder.getCount(),
-    ]);
+    // Apply search to count query if provided
+    if (search) {
+      countQueryBuilder.andWhere(
+        '(prospective_student.name ILIKE :search OR ' +
+          'prospective_student.email ILIKE :search OR ' +
+          'prospective_student.mobile_number ILIKE :search OR ' +
+          'prospective_student.NI_number ILIKE :search OR ' +
+          'prospective_student.passport_number ILIKE :search OR ' +
+          'prospective_student.home_address ILIKE :search OR ' +
+          'prospective_student.funding ILIKE :search OR ' +
+          'CAST(prospective_student.level AS TEXT) ILIKE :search OR ' +
+          'prospective_student.awarding ILIKE :search OR ' +
+          'prospective_student.chosen_course ILIKE :search)',
+        {
+          search: `%${search}%`,
+        }
+      );
+    }
+
+    // Get total count
+    const total = await countQueryBuilder.getCount();
+
+    // Get paginated results with specific fields
+    const results = await queryBuilder
+      .select([
+        'prospective_student.id',
+        'prospective_student.name',
+        'prospective_student.email',
+        'prospective_student.date_of_birth',
+        'prospective_student.mobile_number',
+        'prospective_student.NI_number',
+        'prospective_student.passport_number',
+        'prospective_student.home_address',
+        'prospective_student.funding',
+        'prospective_student.level',
+        'prospective_student.awarding',
+        'prospective_student.chosen_course',
+        'prospective_student.created_at',
+        'prospective_student.application_mail',
+        'creator_user.id',
+        'creator_user.first_name',
+        'creator_user.last_name',
+        'student_user.username',
+        'student_user.last_login_at',
+        'student_user.id',
+      ])
+      .orderBy('prospective_student.created_at', 'DESC') // Add default ordering
+      .offset((page - 1) * limit)
+      .limit(limit)
+      .getRawMany();
+
+    // Transform the raw results to match the expected structure
+    const transformedData = results.map(row => ({
+      id: row.prospective_student_id,
+      name: row.prospective_student_name,
+      email: row.prospective_student_email,
+      date_of_birth: row.prospective_student_date_of_birth,
+      mobile_number: row.prospective_student_mobile_number,
+      NI_number: row.prospective_student_NI_number,
+      passport_number: row.prospective_student_passport_number,
+      home_address: row.prospective_student_home_address,
+      funding: row.prospective_student_funding,
+      level: row.prospective_student_level,
+      awarding: row.prospective_student_awarding,
+      chosen_course: row.prospective_student_chosen_course,
+      created_at: row.prospective_student_created_at,
+      application_mail: row.prospective_student_application_mail,
+      created_by: {
+        id: row.creator_user_id,
+        name: `${row.creator_user_first_name || ''} ${row.creator_user_last_name || ''}`.trim(),
+      },
+      has_account: !!row.student_user_id,
+      user: row.student_user_id
+        ? {
+            username: row.student_user_username,
+            last_login_at: row.student_user_last_login_at,
+          }
+        : null,
+    }));
 
     return {
-      result,
+      result: transformedData, // Keep 'result' key to maintain API consistency
       total,
       page,
       limit,
