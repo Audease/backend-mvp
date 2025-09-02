@@ -264,7 +264,7 @@ export class AccessorService {
     });
 
     // Send rejection email
-    const loginUrl = `${process.env.FRONTEND_URL}`;
+    const loginUrl = `${process.env.FRONTEND_URL}/signIn`;
     const first_name = updatedStudent.name.split(' ')[0];
 
     try {

@@ -105,7 +105,7 @@ export class BksdService {
 
       await this.studentRepository.save(student);
 
-      const loginUrl = `${process.env.FRONTEND_URL}`;
+      const loginUrl = `${process.env.FRONTEND_URL}/signIn`;
       const first_name = learner.name.split(' ')[0];
 
       await this.mailService.sendTemplateMail(
