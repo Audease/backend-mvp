@@ -373,21 +373,21 @@ export class BksdService {
           continue;
         }
 
-        // Check if user account already exists
-        const emailExists = await this.userService.getUserByEmail(
-          learner.email
-        );
-        if (emailExists) {
-          results.push({
-            learnerId,
-            status: 'failed',
-            message: 'Email already exists in the system',
-            learnerName: learner.name,
-            learnerEmail: learner.email,
-          });
-          failed++;
-          continue;
-        }
+        // // Check if user account already exists
+        // const emailExists = await this.userService.getUserByEmail(
+        //   learner.email
+        // );
+        // if (emailExists) {
+        //   results.push({
+        //     learnerId,
+        //     status: 'failed',
+        //     message: 'Email already exists in the system',
+        //     learnerName: learner.name,
+        //     learnerEmail: learner.email,
+        //   });
+        //   failed++;
+        //   continue;
+        // }
 
         // Generate username and password
         let generated_username = this.usernameGeneratorService.generateUsername(
