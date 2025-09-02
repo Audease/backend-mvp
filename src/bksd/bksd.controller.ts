@@ -11,14 +11,17 @@ import {
   Query,
   ConflictException,
   NotFoundException,
+  Body,
 } from '@nestjs/common';
 import { BksdService } from './bksd.service';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
+  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -29,6 +32,7 @@ import { PermissionGuard } from '../auth/guards/permission.guard';
 import { Permissions } from '../shared/decorators/permission.decorator';
 import { Permission } from '../utils/enum/permission';
 import { StudentFilterDto } from '../shared/dto/student-filter.dto';
+import { BatchSendMailDto } from './dto/batch-send-email.dto';
 
 @ApiTags('BKSD DASHBOARD')
 @Controller('bksd')
@@ -70,6 +74,77 @@ export class BksdController {
       } else {
         throw new HttpException(
           error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+  }
+
+  @Post('/send-mail/batch')
+  @Permissions(Permission.APPLICATION)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Send login details to multiple applicants via BKSD Dashboard',
+    description:
+      'Send login credentials to multiple learners in a single batch operation. Maximum 50 learners per batch.',
+  })
+  @ApiBody({ type: BatchSendMailDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Batch email operation completed',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Batch email operation completed' },
+        summary: {
+          type: 'object',
+          properties: {
+            totalRequested: { type: 'number', example: 5 },
+            successful: { type: 'number', example: 4 },
+            failed: { type: 'number', example: 1 },
+            skipped: { type: 'number', example: 0 },
+          },
+        },
+        results: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              learnerId: { type: 'string' },
+              status: {
+                type: 'string',
+                enum: ['success', 'failed', 'skipped'],
+              },
+              message: { type: 'string' },
+              learnerName: { type: 'string' },
+              learnerEmail: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @HttpCode(HttpStatus.OK)
+  async sendBatchLoginDetails(
+    @CurrentUserId() userId: string,
+    @Body() batchSendMailDto: BatchSendMailDto
+  ) {
+    try {
+      return await this.bksdService.sendBatchLearnerMail(
+        userId,
+        batchSendMailDto.learnerIds
+      );
+    } catch (error) {
+      this.logger.error(`Batch email error: ${error.message}`);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          'An error occurred while processing batch email operation',
           HttpStatus.INTERNAL_SERVER_ERROR
         );
       }

@@ -319,6 +319,198 @@ export class BksdService {
     };
   }
 
+  async sendBatchLearnerMail(userId: string, learnerIds: string[]) {
+    const loggedInUser = await this.bksdRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const collegeName =
+      this.usernameGeneratorService.extractCollegeNameFromUsername(
+        loggedInUser.username
+      ) || loggedInUser.school.college_name;
+
+    const college_id = loggedInUser.school.id;
+    const role = await this.userService.getRoleByName(Role.STUDENT);
+
+    const results = [];
+    let successful = 0;
+    let failed = 0;
+    let skipped = 0;
+
+    // Process each learner
+    for (const learnerId of learnerIds) {
+      try {
+        // Find the learner
+        const learner = await this.bksdRepository.findLearner(
+          learnerId,
+          loggedInUser
+        );
+
+        if (!learner) {
+          results.push({
+            learnerId,
+            status: 'failed',
+            message: 'Learner not found',
+            learnerName: null,
+            learnerEmail: null,
+          });
+          failed++;
+          continue;
+        }
+
+        // Check if email already sent
+        if (learner.application_mail === 'Sent') {
+          results.push({
+            learnerId,
+            status: 'skipped',
+            message: 'Email already sent to this learner',
+            learnerName: learner.name,
+            learnerEmail: learner.email,
+          });
+          skipped++;
+          continue;
+        }
+
+        // Check if user account already exists
+        const emailExists = await this.userService.getUserByEmail(
+          learner.email
+        );
+        if (emailExists) {
+          results.push({
+            learnerId,
+            status: 'failed',
+            message: 'Email already exists in the system',
+            learnerName: learner.name,
+            learnerEmail: learner.email,
+          });
+          failed++;
+          continue;
+        }
+
+        // Generate username and password
+        let generated_username = this.usernameGeneratorService.generateUsername(
+          learner.name,
+          collegeName,
+          'learner'
+        );
+
+        const userExists =
+          await this.userService.getUserByUsername(generated_username);
+        if (userExists) {
+          const randomSuffix =
+            this.usernameGeneratorService.generateRandomSuffix();
+          generated_username = this.usernameGeneratorService.generateUsername(
+            learner.name,
+            collegeName,
+            'learner',
+            randomSuffix
+          );
+        }
+
+        const generated_password = crypto.randomBytes(8).toString('hex');
+
+        // Create user account
+        const user = await this.userService.createUserWithCollegeId(
+          {
+            username: generated_username,
+            password: await bcrypt.hashSync(generated_password, 10),
+            email: learner.email,
+            phone: learner.mobile_number,
+            first_name: learner.name.split(' ')[0],
+            last_name: learner.name.split(' ')[1] || '',
+            role,
+          },
+          college_id
+        );
+
+        // Create student record
+        const student = this.studentRepository.create({
+          user,
+          ...learner,
+          school: loggedInUser.school,
+        });
+
+        await this.studentRepository.save(student);
+
+        // Send email
+        const loginUrl = `${process.env.FRONTEND_URL}/signIn`;
+        const first_name = learner.name.split(' ')[0];
+
+        await this.mailService.sendTemplateMail(
+          {
+            to: learner.email,
+            subject: 'Your Audease Account Has Been Created!',
+          },
+          'welcome-users',
+          {
+            first_name,
+            generated_username,
+            generated_password,
+            loginUrl,
+          }
+        );
+
+        // Update application_mail status
+        await this.learnerRepository.update(learner.id, {
+          application_mail: 'Sent',
+        });
+
+        results.push({
+          learnerId,
+          status: 'success',
+          message: 'Account created and email sent successfully',
+          learnerName: learner.name,
+          learnerEmail: learner.email,
+        });
+        successful++;
+      } catch (error) {
+        this.logger.error(
+          `Error processing learner ${learnerId}: ${error.message}`
+        );
+
+        // Try to get learner info for better error reporting
+        let learnerInfo = { name: null, email: null };
+        try {
+          const learner = await this.bksdRepository.findLearner(
+            learnerId,
+            loggedInUser
+          );
+          if (learner) {
+            learnerInfo = { name: learner.name, email: learner.email };
+          }
+        } catch (e) {
+          // Ignore errors when trying to get learner info for error reporting
+        }
+
+        results.push({
+          learnerId,
+          status: 'failed',
+          message: error.message || 'An unexpected error occurred',
+          learnerName: learnerInfo.name,
+          learnerEmail: learnerInfo.email,
+        });
+        failed++;
+      }
+    }
+
+    this.logger.log(
+      `Batch email operation completed. Total: ${learnerIds.length}, Successful: ${successful}, Failed: ${failed}, Skipped: ${skipped}`
+    );
+
+    return {
+      message: 'Batch email operation completed',
+      summary: {
+        totalRequested: learnerIds.length,
+        successful,
+        failed,
+        skipped,
+      },
+      results,
+    };
+  }
+
   // Improved filter method in bksd.service.ts
   async getFilteredStudents(userId: string, filterDto: StudentFilterDto) {
     const {
