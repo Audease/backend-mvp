@@ -296,7 +296,7 @@ export class BksdService {
     });
 
     // Send email with new credentials
-    const loginUrl = `${process.env.FRONTEND_URL}`;
+    const loginUrl = `${process.env.FRONTEND_URL}/signIn`;
     const firstName = learner.name.split(' ')[0];
 
     await this.mailService.sendTemplateMail(
