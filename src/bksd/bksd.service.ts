@@ -258,6 +258,143 @@ export class BksdService {
     return student;
   }
 
+  async resendBatchLearnerCredentials(userId: string, learnerIds: string[]) {
+    const loggedInUser = await this.bksdRepository.findUser(userId);
+    if (!loggedInUser) {
+      this.logger.error('User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    const results = [];
+    let successful = 0;
+    let failed = 0;
+    const skipped = 0;
+
+    // Process each learner
+    for (const learnerId of learnerIds) {
+      try {
+        // Find the learner
+        const learner = await this.learnerRepository.findOne({
+          where: {
+            id: learnerId,
+            school: { id: loggedInUser.school.id },
+          },
+          relations: ['school'],
+        });
+
+        if (!learner) {
+          results.push({
+            learnerId,
+            status: 'failed',
+            message: 'Learner not found',
+            learnerName: null,
+            learnerEmail: null,
+            username: null,
+          });
+          failed++;
+          continue;
+        }
+
+        // Find the existing user account by email
+        const existingUser = await this.userService.getUserByEmail(
+          learner.email
+        );
+        if (!existingUser) {
+          results.push({
+            learnerId,
+            status: 'failed',
+            message: 'User account not found. Please create account first.',
+            learnerName: learner.name,
+            learnerEmail: learner.email,
+            username: null,
+          });
+          failed++;
+          continue;
+        }
+
+        // Generate a new temporary password
+        const newPassword = crypto.randomBytes(8).toString('hex');
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update the existing account with new password
+        await this.userService.update(existingUser.id, {
+          password: hashedPassword,
+          is_password_changed: false, // Force password change on next login
+        });
+
+        // Send email with new credentials
+        const loginUrl = `${process.env.FRONTEND_URL}/signIn`;
+        const firstName = learner.name.split(' ')[0];
+
+        await this.mailService.sendTemplateMail(
+          {
+            to: learner.email,
+            subject: 'Your Updated Audease Login Details',
+          },
+          'resend-credentials',
+          {
+            firstName,
+            username: existingUser.username,
+            newPassword,
+            loginUrl,
+          }
+        );
+
+        results.push({
+          learnerId,
+          status: 'success',
+          message: 'Login details resent successfully',
+          learnerName: learner.name,
+          learnerEmail: learner.email,
+          username: existingUser.username,
+        });
+        successful++;
+      } catch (error) {
+        this.logger.error(
+          `Error processing learner ${learnerId}: ${error.message}`
+        );
+
+        // Try to get learner info for better error reporting
+        let learnerInfo = { name: null, email: null };
+        try {
+          const learner = await this.learnerRepository.findOne({
+            where: { id: learnerId },
+          });
+          if (learner) {
+            learnerInfo = { name: learner.name, email: learner.email };
+          }
+        } catch (e) {
+          // Ignore errors when trying to get learner info for error reporting
+        }
+
+        results.push({
+          learnerId,
+          status: 'failed',
+          message: error.message || 'An unexpected error occurred',
+          learnerName: learnerInfo.name,
+          learnerEmail: learnerInfo.email,
+          username: null,
+        });
+        failed++;
+      }
+    }
+
+    this.logger.log(
+      `Batch resend email operation completed. Total: ${learnerIds.length}, Successful: ${successful}, Failed: ${failed}, Skipped: ${skipped}`
+    );
+
+    return {
+      message: 'Batch resend email operation completed',
+      summary: {
+        totalRequested: learnerIds.length,
+        successful,
+        failed,
+        skipped,
+      },
+      results,
+    };
+  }
+
   async resendLearnerCredentials(userId: string, learnerId: string) {
     const loggedInUser = await this.bksdRepository.findUser(userId);
     if (!loggedInUser) {
