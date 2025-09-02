@@ -337,7 +337,7 @@ export class BksdService {
     const results = [];
     let successful = 0;
     let failed = 0;
-    let skipped = 0;
+    const skipped = 0;
 
     // Process each learner
     for (const learnerId of learnerIds) {
@@ -360,18 +360,18 @@ export class BksdService {
           continue;
         }
 
-        // Check if email already sent
-        if (learner.application_mail === 'Sent') {
-          results.push({
-            learnerId,
-            status: 'skipped',
-            message: 'Email already sent to this learner',
-            learnerName: learner.name,
-            learnerEmail: learner.email,
-          });
-          skipped++;
-          continue;
-        }
+        // // Check if email already sent
+        // if (learner.application_mail === 'Sent') {
+        //   results.push({
+        //     learnerId,
+        //     status: 'skipped',
+        //     message: 'Email already sent to this learner',
+        //     learnerName: learner.name,
+        //     learnerEmail: learner.email,
+        //   });
+        //   skipped++;
+        //   continue;
+        // }
 
         // // Check if user account already exists
         // const emailExists = await this.userService.getUserByEmail(
