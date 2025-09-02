@@ -41,45 +41,6 @@ export class BksdController {
   private readonly logger = new Logger(BksdController.name);
   constructor(private readonly bksdService: BksdService) {}
 
-  @Post('/send-mail/:learnerId')
-  @Permissions(Permission.APPLICATION)
-  @ApiBearerAuth()
-  @ApiParam({
-    name: 'learnerId',
-    type: String,
-    description: 'ID of the learner',
-  })
-  @ApiOperation({
-    summary: 'Send login details to applicant via BSKD Dashboard',
-  })
-  @ApiNotFoundResponse({ description: 'User not found' })
-  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
-  @ApiNotFoundResponse({ description: 'Learner not found for the user' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
-  })
-  @HttpCode(HttpStatus.OK)
-  async sendLoginDetails(
-    @CurrentUserId() userId: string,
-    @Param('learnerId') learnerId: string
-  ) {
-    try {
-      return await this.bksdService.sendLearnerMail(userId, learnerId);
-    } catch (error) {
-      this.logger.error(error.message);
-      if (error instanceof NotFoundException) {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      } else if (error instanceof ConflictException) {
-        throw new HttpException(error.message, HttpStatus.CONFLICT);
-      } else {
-        throw new HttpException(
-          error.message,
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
-      }
-    }
-  }
-
   @Post('/send-mail/batch')
   @Permissions(Permission.APPLICATION)
   @ApiBearerAuth()
@@ -145,6 +106,45 @@ export class BksdController {
       } else {
         throw new HttpException(
           'An error occurred while processing batch email operation',
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+  }
+
+  @Post('/send-mail/:learnerId')
+  @Permissions(Permission.APPLICATION)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'learnerId',
+    type: String,
+    description: 'ID of the learner',
+  })
+  @ApiOperation({
+    summary: 'Send login details to applicant via BSKD Dashboard',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiNotFoundResponse({ description: 'Accessor not found for the user' })
+  @ApiNotFoundResponse({ description: 'Learner not found for the user' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @HttpCode(HttpStatus.OK)
+  async sendLoginDetails(
+    @CurrentUserId() userId: string,
+    @Param('learnerId') learnerId: string
+  ) {
+    try {
+      return await this.bksdService.sendLearnerMail(userId, learnerId);
+    } catch (error) {
+      this.logger.error(error.message);
+      if (error instanceof NotFoundException) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      } else if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException(
+          error.message,
           HttpStatus.INTERNAL_SERVER_ERROR
         );
       }
