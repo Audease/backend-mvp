@@ -14,6 +14,7 @@ import { Student } from '../students/entities/student.entity';
 import { FormSubmission } from '../form/entity/form-submission.entity';
 import { SubmissionStatus } from '../utils/enum/submission-status';
 import { DataSource } from 'typeorm';
+import { FormSubmissionStatus } from '../utils/enum/form-submission-status';
 
 @Injectable()
 export class AccessorService {
@@ -46,9 +47,23 @@ export class AccessorService {
       throw new NotFoundException('User not found');
     }
 
+    // Main query with form submission status using subquery
     const queryBuilder = this.learnerRepository
       .createQueryBuilder('prospective_student')
-      .where('prospective_student.school = :schoolId', {
+      .select([
+        'prospective_student.*',
+        `CASE 
+        WHEN COUNT(fs.id) = 0 THEN '${FormSubmissionStatus.NOT_STARTED}'
+        WHEN COUNT(CASE WHEN fs.is_submitted = true THEN 1 END) > 0 THEN '${FormSubmissionStatus.SUBMITTED}'
+        ELSE '${FormSubmissionStatus.PENDING}'
+       END as form_submission_status`,
+      ])
+      .leftJoin(
+        'form_submissions',
+        'fs',
+        'fs.student_id = prospective_student.id'
+      )
+      .where('prospective_student.school_id = :schoolId', {
         schoolId: loggedInUser.school.id,
       })
       .andWhere('prospective_student.is_archived = :isArchived', {
@@ -56,11 +71,12 @@ export class AccessorService {
       })
       .andWhere('prospective_student.application_mail = :application_mail', {
         application_mail: 'Sent',
-      });
+      })
+      .groupBy('prospective_student.id');
 
     if (search) {
       queryBuilder.andWhere(
-        'prospective_student.name ILIKE :search OR prospective_student.email ILIKE :search',
+        '(prospective_student.name ILIKE :search OR prospective_student.email ILIKE :search)',
         { search: `%${search}%` }
       );
     }
@@ -89,11 +105,59 @@ export class AccessorService {
       );
     }
 
-    const [results, total] = await queryBuilder
-      .skip((page - 1) * limit)
-      .orderBy('prospective_student.created_at', 'DESC') // Add this line
-      .take(limit)
-      .getManyAndCount();
+    // Get total count
+    const totalQuery = this.learnerRepository
+      .createQueryBuilder('prospective_student')
+      .where('prospective_student.school_id = :schoolId', {
+        schoolId: loggedInUser.school.id,
+      })
+      .andWhere('prospective_student.is_archived = :isArchived', {
+        isArchived: false,
+      })
+      .andWhere('prospective_student.application_mail = :application_mail', {
+        application_mail: 'Sent',
+      });
+
+    // Apply same filters to count query
+    if (search) {
+      totalQuery.andWhere(
+        '(prospective_student.name ILIKE :search OR prospective_student.email ILIKE :search)',
+        { search: `%${search}%` }
+      );
+    }
+
+    if (funding) {
+      totalQuery.andWhere('prospective_student.funding ILIKE :funding', {
+        funding: `%${funding}%`,
+      });
+    }
+
+    if (chosen_course) {
+      totalQuery.andWhere(
+        'prospective_student.chosen_course ILIKE :chosen_course',
+        {
+          chosen_course: `%${chosen_course}%`,
+        }
+      );
+    }
+
+    if (application_status) {
+      totalQuery.andWhere(
+        'prospective_student.application_status ILIKE :application_status',
+        {
+          application_status: `%${application_status}%`,
+        }
+      );
+    }
+
+    const [results, total] = await Promise.all([
+      queryBuilder
+        .orderBy('prospective_student.created_at', 'DESC')
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .getRawMany(),
+      totalQuery.getCount(),
+    ]);
 
     return {
       data: results || [],
