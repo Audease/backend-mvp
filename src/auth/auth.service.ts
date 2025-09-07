@@ -452,7 +452,7 @@ export class AuthService {
 
     await this.redis.set(resetKey, user.id, 'EX', 86400);
 
-    const name = user.first_name;
+    // const name = user.first_name;
 
     await this.mailService.sendTemplateMail(
       {
@@ -461,7 +461,6 @@ export class AuthService {
       },
       'password-reset',
       {
-        first_name: name,
         resetUrl,
       }
     );
