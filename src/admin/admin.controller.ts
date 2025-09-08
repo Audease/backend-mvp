@@ -361,7 +361,7 @@ export class AdminController {
   }
 
   @Get('/roles')
-  @Roles(Role.SCHOOL_ADMIN)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View all roles in the school',
@@ -392,7 +392,7 @@ export class AdminController {
   }
 
   @Get('/permissions')
-  @Roles(Role.SCHOOL_ADMIN)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View all permissions in the school',
