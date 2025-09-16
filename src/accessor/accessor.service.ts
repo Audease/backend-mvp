@@ -105,6 +105,12 @@ export class AccessorService {
       );
     }
 
+    if (filters.submission_status) {
+      queryBuilder.having(`form_submission_status = :submission_status`, {
+        submission_status: filters.submission_status,
+      });
+    }
+
     // Get total count
     const totalQuery = this.learnerRepository
       .createQueryBuilder('prospective_student')
@@ -148,6 +154,12 @@ export class AccessorService {
           application_status: `%${application_status}%`,
         }
       );
+    }
+
+    if (filters.submission_status) {
+      totalQuery.having(`form_submission_status = :submission_status`, {
+        submission_status: filters.submission_status,
+      });
     }
 
     const [results, total] = await Promise.all([

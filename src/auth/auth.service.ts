@@ -528,6 +528,22 @@ export class AuthService {
     return await this.userService.getUserProfile(userId);
   }
 
+  // Edit user profile
+  async editProfile(
+    userId: string,
+    data: { first_name?: string; last_name?: string; phone?: string }
+  ) {
+    const user = await this.userService.findOne(userId);
+    if (!user) {
+      this.logger.error('Invalid user');
+      throw new NotFoundException('Invalid user');
+    }
+    await this.userService.update(user.id, data);
+    return {
+      message: 'Profile updated successfully',
+    };
+  }
+
   async changePassword(
     userId: string,
     data: ChangePasswordDto

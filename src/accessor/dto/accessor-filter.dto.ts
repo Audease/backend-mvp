@@ -43,4 +43,12 @@ export class FilterDto {
     description: 'Search query for filtering results',
   })
   search?: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description: 'Sort results by a specific field',
+    example: 'createdAt',
+  })
+  submission_status?: string;
 }
