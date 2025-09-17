@@ -17,11 +17,11 @@ import {
   BadRequestException,
   HttpException,
 } from '@nestjs/common';
-import { Role } from '../utils/enum/role';
+// import { Role } from '../utils/enum/role';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 // import { RolesGuard } from '../auth/role.guard';
-import { Roles } from '../shared/decorators/roles.decorator';
+// import { Roles } from '../shared/decorators/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
@@ -36,7 +36,7 @@ import {
   ApiConsumes,
   ApiResponse,
 } from '@nestjs/swagger';
-import { RolesGuard } from '../auth/guards/role.guard';
+// import { RolesGuard } from '../auth/guards/role.guard';
 import { PaginationDto, EmailDto, AssignRolesDto } from './dto/misc-dto';
 import { CurrentUserId } from '../shared/decorators/get-current-user-id.decorator';
 import { CreateStaffDto } from './dto/create-staff.dto';
@@ -52,9 +52,9 @@ import { AssignDocumentToStudentsDto } from './dto/add-student-document.dto';
 import { ArchiveRoleDto } from './dto/archive-reason.dto';
 
 @ApiTags('Admin')
-@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
+@UseGuards(JwtAuthGuard, PermissionGuard)
 @Permissions(Permission.ROLE_ADMIN)
-@Roles(Role.SCHOOL_ADMIN)
+// @Roles(Role.SCHOOL_ADMIN)
 @Controller('admin')
 export class AdminController {
   private readonly logger = new Logger(AdminController.name);

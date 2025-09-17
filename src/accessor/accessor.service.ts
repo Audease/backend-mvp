@@ -36,6 +36,7 @@ export class AccessorService {
       funding,
       chosen_course,
       application_status,
+      submission_status,
       page = 1,
       limit = 10,
       search,
@@ -105,10 +106,12 @@ export class AccessorService {
       );
     }
 
-    if (filters.submission_status) {
-      queryBuilder.having(`form_submission_status = :submission_status`, {
-        submission_status: filters.submission_status,
-      });
+    if (submission_status) {
+      // const subquery = this.formSubmissionRepository
+      //   .createQueryBuilder('fs')
+      //   .select('fs.student_id')
+      //   .where('fs.is_submitted = :isSubmitted', { isSubmitted: true })
+      //   .groupBy('fs.student_id');
     }
 
     // Get total count
@@ -156,9 +159,9 @@ export class AccessorService {
       );
     }
 
-    if (filters.submission_status) {
+    if (submission_status) {
       totalQuery.having(`form_submission_status = :submission_status`, {
-        submission_status: filters.submission_status,
+        submission_status: submission_status,
       });
     }
 
