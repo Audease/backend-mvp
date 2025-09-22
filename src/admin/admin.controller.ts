@@ -52,9 +52,6 @@ import { AssignDocumentToStudentsDto } from './dto/add-student-document.dto';
 import { ArchiveRoleDto } from './dto/archive-reason.dto';
 
 @ApiTags('Admin')
-@UseGuards(JwtAuthGuard, PermissionGuard)
-@Permissions(Permission.ROLE_ADMIN)
-// @Roles(Role.SCHOOL_ADMIN)
 @Controller('admin')
 export class AdminController {
   private readonly logger = new Logger(AdminController.name);
@@ -62,6 +59,8 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Get('/students/search')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'search',
@@ -91,6 +90,8 @@ export class AdminController {
   }
 
   @Get('/students')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
@@ -129,6 +130,7 @@ export class AdminController {
   }
 
   @Post('/students/:studentId/documents')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
   @Permissions(Permission.LEARNER)
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
@@ -176,6 +178,8 @@ export class AdminController {
   }
 
   @Post('documents/assign')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Assign a document to multiple students' })
   @ApiResponse({
@@ -194,6 +198,8 @@ export class AdminController {
   }
 
   @Get('/profile')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View profile of the admin',
@@ -213,6 +219,8 @@ export class AdminController {
   }
 
   @Post('/invite')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Invite a user to the platform',
@@ -232,6 +240,8 @@ export class AdminController {
   }
 
   @Get('/learners')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View all learners in the school',
@@ -285,6 +295,8 @@ export class AdminController {
   }
 
   @Get('/staffs')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View all staffs in the school',
@@ -309,6 +321,8 @@ export class AdminController {
   }
 
   @Post('/staffs/assign-roles')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Assign roles to staff members',
@@ -334,6 +348,8 @@ export class AdminController {
   }
 
   @Get('/account-setup-status')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View account setup status',
@@ -353,6 +369,7 @@ export class AdminController {
   }
 
   @Get('/roles')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
   @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
@@ -384,6 +401,7 @@ export class AdminController {
   }
 
   @Get('/permissions')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
   @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
@@ -405,6 +423,8 @@ export class AdminController {
   }
 
   @Post('/create-staff')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create staff in the school',
@@ -427,6 +447,8 @@ export class AdminController {
   }
 
   @Post('/create-role')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create a role in the school',
@@ -446,6 +468,8 @@ export class AdminController {
   }
 
   @Post('/trash/:logId')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiParam({
     name: 'logId',
@@ -475,6 +499,8 @@ export class AdminController {
   }
 
   @Get('folders')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
@@ -504,6 +530,8 @@ export class AdminController {
   }
 
   @Post('folders/:folderId/documents')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiParam({
     name: 'folderId',
     type: String,
@@ -534,6 +562,8 @@ export class AdminController {
   }
 
   @Post('folders')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create a folder or subfolder',
@@ -554,6 +584,8 @@ export class AdminController {
   }
 
   @Get('folders/:folderId')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   async getFolderContents(
     @CurrentUserId() userId: string,
     @Param('folderId') folderId: string,
@@ -569,6 +601,8 @@ export class AdminController {
   }
 
   @Post('/documents/school')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -608,6 +642,8 @@ export class AdminController {
   }
 
   @Get('/new-staff')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View all new staffs in the school',
@@ -638,6 +674,8 @@ export class AdminController {
   }
 
   @Delete('/delete-folder/:folderId')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Delete a folder',
@@ -667,6 +705,8 @@ export class AdminController {
 
   // Write a controller to search for students in the school
   @Get('/search-students')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiQuery({
     name: 'search',
@@ -696,6 +736,8 @@ export class AdminController {
   }
 
   @Delete('/delete-document/:documentId')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Delete a document',
@@ -724,6 +766,8 @@ export class AdminController {
   }
 
   @Get('/roles/archived')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View all archived roles in the school',
@@ -743,6 +787,8 @@ export class AdminController {
   }
 
   @Post('/roles/:roleId/archive')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Archive a role',
@@ -775,6 +821,8 @@ export class AdminController {
   }
 
   @Post('/roles/:roleId/unarchive')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Unarchive a role',
@@ -806,6 +854,8 @@ export class AdminController {
   }
 
   @Post('/create-workflow')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create a workflow in the school',
@@ -828,6 +878,8 @@ export class AdminController {
   }
 
   @Get('/workflows')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View all workflows in the school',
@@ -848,6 +900,8 @@ export class AdminController {
   }
 
   @Post('/persona-staff')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'View all persona staffs in the school',
@@ -902,6 +956,8 @@ export class AdminController {
   }
 
   @Delete('/delete/:staffId')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permissions(Permission.ROLE_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Delete a staff',
