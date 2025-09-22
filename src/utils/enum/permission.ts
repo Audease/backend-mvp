@@ -10,4 +10,5 @@ export enum Permission {
   TEMPORARY_ACCESS = 'Assume Any Role',
   MANAGE_PROFILE = 'Manage Personal Profile',
   LEARNER = 'Learner/Student',
+  ROLE_ADMIN = 'View all roles and permissions',
 }

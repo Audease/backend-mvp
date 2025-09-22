@@ -1,3 +1,4 @@
+// src/auth/auth.service.ts
 import { AuthRepository } from './auth.repository';
 import { JwtAuthService } from './jwt.service';
 import { RedisService } from '../shared/services/redis.service';
@@ -13,7 +14,7 @@ import {
 import { Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { CreateSchoolDto } from './dto/create-school.dto';
-import { ISchoolCreate } from './auth.interface';
+import { ISchoolCreate, SchoolDomainResponse } from './auth.interface';
 import { Role } from '../utils/enum/role';
 import { v4 as uuid } from 'uuid';
 import * as bcrypt from 'bcrypt';
@@ -22,10 +23,12 @@ import { Users } from '../users/entities/user.entity';
 import { sendSlackNotification } from '../utils/helpers/slack.helpers';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UsernameGeneratorService } from '../shared/services/username-generator.service';
+import { GCPDNSService } from '../shared/services/gcp-dns.service'; // NEW
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtAuthService,
@@ -33,7 +36,8 @@ export class AuthService {
     private readonly userService: UserService,
     private redisService: RedisService,
     private readonly usernameGeneratorService: UsernameGeneratorService,
-    private readonly dbTransactionFactory: DbTransactionFactory
+    private readonly dbTransactionFactory: DbTransactionFactory,
+    private readonly gcpDnsService: GCPDNSService // NEW
   ) {}
 
   get redis() {
@@ -50,42 +54,58 @@ export class AuthService {
 
       const transactionManager = transactionRunner.transactionManager;
       const { college_name, username, password, email } = createSchoolDto;
-      const schoolExists = await this.authRepository.findSchool(college_name);
 
+      const schoolExists = await this.authRepository.findSchool(college_name);
       if (schoolExists) {
         this.logger.error('School already exists');
         throw new ConflictException('School already exists');
       }
 
+      // NEW: Generate subdomain
+      const subdomain = this.generateSubdomain(college_name);
+
+      // NEW: Check if subdomain already exists
+      const existingSubdomain =
+        await this.authRepository.findSchoolBySubdomain(subdomain);
+      if (existingSubdomain) {
+        throw new ConflictException('School subdomain already exists');
+      }
+
+      const customDomain = `${subdomain}.${process.env.BASE_DOMAIN}`;
+
       const onboardingKey = uuid();
-
       const role = await this.userService.getRoleByName(Role.SCHOOL_ADMIN);
-
-      // Sanitize the username by deleting the spaces
 
       const cleanedUsername =
         this.usernameGeneratorService.cleanAndTruncateText(
           createSchoolDto.username,
-          50 // Max length for username
+          50
         );
 
       const userExists =
         await this.userService.getUserByUsername(cleanedUsername);
-
       if (userExists) {
         this.logger.error('Username already exists');
         throw new ConflictException('Username already exists');
       }
 
       const emailExists = await this.userService.getUserByEmail(email);
-
       if (emailExists) {
         this.logger.error('Email already exists');
         throw new ConflictException('Email already exists');
       }
 
+      // NEW: Create school with domain info
+      const schoolData = {
+        ...createSchoolDto,
+        subdomain,
+        custom_domain: customDomain,
+        domain_verified: false,
+        domain_configured_at: new Date(),
+      };
+
       const data = await this.userService.createTransaction(
-        createSchoolDto,
+        schoolData,
         transactionManager
       );
 
@@ -102,6 +122,7 @@ export class AuthService {
         data.id,
         transactionManager
       );
+
       await this.redis.hset(
         'onboarding',
         onboardingKey,
@@ -110,13 +131,31 @@ export class AuthService {
           first_name: user.first_name,
           last_name: user.last_name,
           college_id: data.id,
+          subdomain, // NEW
+          customDomain, // NEW
         })
       );
+
+      // NEW: Configure DNS record
+      try {
+        const dnsConfigured =
+          await this.gcpDnsService.createSubdomainRecord(subdomain);
+        if (dnsConfigured) {
+          // Mark domain as verified after successful DNS configuration
+          await this.authRepository.verifySchoolDomain(data.id);
+          this.logger.log(`DNS configured for ${customDomain}`);
+        }
+      } catch (dnsError) {
+        this.logger.warn(
+          `DNS configuration failed for ${customDomain}: ${dnsError.message}`
+        );
+        // Continue without failing the school creation
+      }
 
       const login_url = `${process.env.FRONTEND_URL}/signIn`;
 
       sendSlackNotification(
-        `A *school just created an account* with the following details, *School*: ${data.college_name} \n *located_at*: ${data.address_line1} \n *county*: ${data.county}, *country* : ${data.country} \n *onboardingKey*: ${onboardingKey}`
+        `A *school just created an account* with the following details, *School*: ${data.college_name} \n *located_at*: ${data.address_line1} \n *county*: ${data.county}, *country* : ${data.country} \n *subdomain*: ${subdomain} \n *customDomain*: ${customDomain} \n *onboardingKey*: ${onboardingKey}`
       );
 
       this.mailService.sendTemplateMail(
@@ -129,14 +168,18 @@ export class AuthService {
           username: user.username,
           first_name: user.first_name,
           login_url,
+          custom_domain: customDomain, // NEW
         }
       );
 
       await transactionRunner.commitTransaction();
+
       return {
         message:
           'School created successfully check your mail for further instructions',
         keyId: onboardingKey,
+        subdomain, // NEW
+        customDomain, // NEW
       };
     } catch (error) {
       this.logger.error(`Failed to create school: ${error.message}`);
@@ -147,16 +190,61 @@ export class AuthService {
     }
   }
 
-  // Improved login method in auth.service.ts
+  // NEW: Generate subdomain from college name
+  private generateSubdomain(collegeName: string): string {
+    return collegeName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .substring(0, 30);
+  }
+
+  // UPDATED: Login with subdomain support
   async login(data: {
     username: string;
     password: string;
     deviceToken?: string;
+    subdomain?: string;
+    isBaseDomain?: boolean;
   }) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { username, password, deviceToken } = data;
+    const { username, password, subdomain, isBaseDomain } = data;
 
-    const user = await this.userService.getUserByUsername(username);
+    let user: Users;
+
+    if (isBaseDomain) {
+      // Base domain login - find user and check if they should be redirected
+      user = await this.userService.getUserByUsername(username);
+
+      if (!user) {
+        throw new NotFoundException('Invalid username or password');
+      }
+
+      // Check if user's school has a verified custom domain
+      if (user.school?.subdomain && user.school?.domain_verified) {
+        return {
+          requiresRedirect: true,
+          redirectUrl: `https://${user.school.subdomain}.${process.env.BASE_DOMAIN}`,
+          message: 'Please use your school-specific domain to log in',
+          schoolName: user.school.college_name,
+          subdomain: user.school.subdomain,
+        };
+      }
+    } else if (subdomain) {
+      // Subdomain login - find user within specific school
+      const school = await this.authRepository.findSchoolBySubdomain(subdomain);
+      if (!school) {
+        throw new NotFoundException('School not found');
+      }
+
+      user = await this.userService.getUserByUsernameAndSchool(
+        username,
+        school.id
+      );
+    } else {
+      // Fallback for other domains
+      user = await this.userService.getUserByUsername(username);
+    }
 
     if (!user || !user.password || !user.id) {
       this.logger.error('Invalid username or password');
@@ -164,7 +252,6 @@ export class AuthService {
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
     if (!isPasswordValid) {
       this.logger.error('Invalid password');
       throw new NotFoundException('Invalid username or password');
@@ -215,7 +302,8 @@ export class AuthService {
         email: user.email,
         name: student?.name || `${user.first_name} ${user.last_name}`,
         requires_password_change: !user.is_password_changed,
-        last_login_at: user.last_login_at, // Include last login in response
+        last_login_at: user.last_login_at,
+        school_domain: user.school?.custom_domain, // NEW
       };
     } else {
       return {
@@ -225,11 +313,43 @@ export class AuthService {
         email: user.email,
         name: `${user.first_name} ${user.last_name}`,
         requires_password_change: !user.is_password_changed,
-        last_login_at: user.last_login_at, // Include last login in response
+        last_login_at: user.last_login_at,
+        school_domain: user.school?.custom_domain, // NEW
       };
     }
   }
 
+  // NEW: Find user's school domain
+  async findUserSchool(identifier: string): Promise<SchoolDomainResponse> {
+    // Try to find user by username or email
+    let user = await this.userService.getUserByUsername(identifier);
+    if (!user) {
+      user = await this.userService.getUserByEmail(identifier);
+    }
+
+    if (!user || !user.school) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.school.subdomain && user.school.domain_verified) {
+      return {
+        found: true,
+        schoolName: user.school.college_name,
+        subdomain: user.school.subdomain,
+        redirectUrl: `https://${user.school.subdomain}.${process.env.BASE_DOMAIN}`,
+        hasCustomDomain: true,
+      };
+    }
+
+    return {
+      found: true,
+      schoolName: user.school.college_name,
+      hasCustomDomain: false,
+      message: 'School does not have a custom domain configured',
+    };
+  }
+
+  // ... rest of existing methods (send2faEmail, verify2fa, refreshToken, etc.)
   async send2faEmail(email: string) {
     const user = await this.userService.getUserByEmail(email);
 
@@ -238,11 +358,7 @@ export class AuthService {
       throw new NotFoundException('Invalid email');
     }
 
-    // Generate a random 6 digit code
     const code = Math.floor(100000 + Math.random() * 900000);
-
-    // Store the code on redis for 5 minutes
-
     await this.redis.set(`2fa:${user.id}`, code, 'EX', 300);
 
     await this.mailService.sendTemplateMail(
@@ -262,14 +378,12 @@ export class AuthService {
     const { email, code } = data;
 
     const user = await this.userService.getUserByEmail(email);
-
     if (!user) {
       this.logger.error('Invalid email');
       throw new NotFoundException('Invalid email');
     }
 
     const storedCode = await this.redis.get(`2fa:${user.id}`);
-
     if (!storedCode) {
       this.logger.error('Invalid code');
       throw new NotFoundException('Invalid code');
@@ -290,7 +404,6 @@ export class AuthService {
       );
 
       const role = await this.userService.getUserRoleById(user.id);
-
       const token = await this.jwtService.generateAuthTokens(user.id, role.id);
 
       return {
@@ -300,7 +413,6 @@ export class AuthService {
     }
 
     const role = await this.userService.getUserRoleById(user.id);
-
     const token = await this.jwtService.generateAuthTokens(user.id, role.id);
 
     return {
@@ -312,14 +424,12 @@ export class AuthService {
     const payload = await this.jwtService.verifyRefreshToken(token);
 
     const user = await this.userService.findOne(payload.sub);
-
     if (!user) {
       this.logger.error('Invalid user');
       throw new NotFoundException('Invalid user');
     }
 
     const role = await this.userService.getUserRoleById(user.id);
-
     const newToken = await this.jwtService.generateAccessToken(
       user.id,
       role.id
@@ -332,20 +442,17 @@ export class AuthService {
 
   async initiatePasswordReset(email: string) {
     const user = await this.userService.getUserByEmail(email);
-
     if (!user) {
       this.logger.error('Invalid email');
       throw new NotFoundException('Invalid email');
     }
 
     const resetKey = crypto.randomBytes(30).toString('hex');
-
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetKey}`;
 
-    // Store the key on redis for 24 hours
     await this.redis.set(resetKey, user.id, 'EX', 86400);
 
-    const name = user.first_name;
+    // const name = user.first_name;
 
     await this.mailService.sendTemplateMail(
       {
@@ -354,7 +461,6 @@ export class AuthService {
       },
       'password-reset',
       {
-        first_name: name,
         resetUrl,
       }
     );
@@ -369,24 +475,20 @@ export class AuthService {
     const { token, password } = data;
 
     const userId = await this.redis.get(token);
-
     if (!userId) {
       this.logger.error('Invalid token');
       throw new NotFoundException('Invalid token');
     }
 
     const user = await this.userService.findOne(userId);
-
     if (!user) {
       this.logger.error('Invalid user');
       throw new NotFoundException('Invalid user');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     await this.userService.update(user.id, { password: hashedPassword });
 
-    // Remove the key from redis
     await this.redis.del(token);
 
     return {
@@ -396,7 +498,6 @@ export class AuthService {
 
   async enable2fa(userId: string) {
     const user = await this.userService.findOne(userId);
-
     if (!user) {
       this.logger.error('Invalid user');
       throw new NotFoundException('Invalid user');
@@ -411,7 +512,6 @@ export class AuthService {
 
   async disable2fa(userId: string) {
     const user = await this.userService.findOne(userId);
-
     if (!user) {
       this.logger.error('Invalid user');
       throw new NotFoundException('Invalid user');
@@ -424,19 +524,37 @@ export class AuthService {
     };
   }
 
+  async getProfile(userId: string) {
+    return await this.userService.getUserProfile(userId);
+  }
+
+  // Edit user profile
+  async editProfile(
+    userId: string,
+    data: { first_name?: string; last_name?: string; phone?: string }
+  ) {
+    const user = await this.userService.findOne(userId);
+    if (!user) {
+      this.logger.error('Invalid user');
+      throw new NotFoundException('Invalid user');
+    }
+    await this.userService.update(user.id, data);
+    return {
+      message: 'Profile updated successfully',
+    };
+  }
+
   async changePassword(
     userId: string,
     data: ChangePasswordDto
   ): Promise<{ message: string }> {
     const { currentPassword, newPassword } = data;
 
-    // Validate user exists
     const user = await this.userService.findOne(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // Verify current password
     const isPasswordValid = await bcrypt.compare(
       currentPassword,
       user.password
@@ -445,25 +563,18 @@ export class AuthService {
       throw new UnauthorizedException('Current password is incorrect');
     }
 
-    // Ensure new password is different from current
     if (currentPassword === newPassword) {
       throw new BadRequestException(
         'New password must be different from current password'
       );
     }
 
-    // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update the user record
     await this.userService.update(userId, {
       password: hashedPassword,
       is_password_changed: true,
     });
-
-    // Invalidate all existing tokens for this user to force re-login
-    // If you have a token table:
-    // await this.jwtService.invalidateAllTokens(userId);
 
     return { message: 'Password changed successfully' };
   }

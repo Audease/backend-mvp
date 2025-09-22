@@ -12,6 +12,7 @@ import {
   UseGuards,
   BadRequestException,
   InternalServerErrorException,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -40,6 +41,7 @@ import {
 } from '@nestjs/swagger';
 import { TokenResponseDto } from './dto/token-response.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { EditProfileDto } from './dto/edit-profile.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -180,6 +182,51 @@ export class AuthController {
   async enable2fa(@CurrentUserId() userId: string) {
     try {
       return await this.authService.enable2fa(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new NotFoundException(error.message);
+    }
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user profile' })
+  @ApiOkResponse({
+    description: 'User profile retrieved successfully',
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@CurrentUserId() userId: string) {
+    try {
+      return await this.authService.getProfile(userId);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new NotFoundException(error.message);
+    }
+  }
+
+  @Post('edit-profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Edit user profile' })
+  @ApiOkResponse({
+    description: 'User profile updated successfully',
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async editProfile(
+    @CurrentUserId() userId: string,
+    @Body() profileData: EditProfileDto
+  ) {
+    try {
+      return await this.authService.editProfile(userId, profileData);
     } catch (error) {
       this.logger.error(error.message);
       throw new NotFoundException(error.message);

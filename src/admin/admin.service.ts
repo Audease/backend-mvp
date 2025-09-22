@@ -302,7 +302,7 @@ export class AdminService {
             password
           );
 
-          const loginUrl = `${process.env.FRONTEND_URL}`;
+          const loginUrl = `${process.env.FRONTEND_URL}/signIn`;
 
           await this.mailService.sendTemplateMail(
             {

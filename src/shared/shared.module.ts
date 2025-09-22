@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { DbTransactionFactory } from './services/transactions/TransactionManager';
 import { TransactionRunner } from './services/transactions/TransactionManager.service';
 import { UsernameGeneratorService } from './services/username-generator.service';
+import { GCPDNSService } from './services/gcp-dns.service';
 
 @Global()
 @Module({
@@ -16,6 +17,7 @@ import { UsernameGeneratorService } from './services/username-generator.service'
     DbTransactionFactory,
     TransactionRunner,
     UsernameGeneratorService,
+    GCPDNSService, // NEW
   ],
   exports: [
     ApiConfigService,
@@ -23,6 +25,7 @@ import { UsernameGeneratorService } from './services/username-generator.service'
     DbTransactionFactory,
     TransactionRunner,
     UsernameGeneratorService,
+    GCPDNSService,
   ],
 })
 export class SharedModule {}

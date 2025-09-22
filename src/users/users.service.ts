@@ -103,6 +103,17 @@ export class UserService {
       .getOne();
   }
 
+  async getUserByUsernameAndSchool(
+    username: string,
+    schoolId: string
+  ): Promise<Users> {
+    return await this.userRepository
+      .createQueryBuilder('users')
+      .where('users.username = :username', { username })
+      .andWhere('users.schoolId = :schoolId', { schoolId })
+      .getOne();
+  }
+
   async getUserRoleById(id: string): Promise<Roles> {
     const user = await this.userRepository.findOne({
       where: { id },
@@ -138,6 +149,13 @@ export class UserService {
     return await this.roleRepository.findOne({
       where: { id },
       relations: ['rolePermission', 'rolePermission.permission'],
+    });
+  }
+
+  async getUserProfile(id: string): Promise<Users> {
+    return await this.userRepository.findOne({
+      where: { id },
+      relations: ['school', 'role'],
     });
   }
 

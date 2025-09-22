@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -28,6 +29,7 @@ import {
   ApiOperation,
   ApiParam,
   ApiQuery,
+  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -87,32 +89,118 @@ export class RecruiterController {
       }
     }
   }
+
+  // src/recruiter/recruiter.controller.ts - Update upload endpoint
+
   @Post('/upload')
   @Permissions(Permission.ADD_STUDENT)
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: 'File upload',
+    description: 'CSV file upload for bulk learner creation',
     schema: {
       type: 'object',
       properties: {
         file: {
           type: 'string',
           format: 'binary',
+          description: 'CSV file containing learner data',
+        },
+      },
+      required: ['file'],
+    },
+  })
+  @ApiOperation({
+    summary: 'Import learners from CSV file',
+    description: `
+    Import multiple learners from a CSV file. The CSV should contain learner information with flexible column headers.
+    
+    **Required Fields:**
+    - name (or variations: full_name, student_name, learner_name)
+    - email (or variations: email_address, e_mail, student_email)
+    
+    **Optional Fields:**
+    - date_of_birth (or variations: dob, birth_date, birthdate)
+    - mobile_number (or variations: phone, mobile, contact_number)
+    - NI_number (or variations: national_insurance, ni)
+    - passport_number (or variations: passport, passport_no)
+    - home_address (or variations: address, residential_address)
+    - funding (or variations: funding_type, sponsor)
+    - level (or variations: course_level, study_level)
+    - awarding (or variations: awarding_body, certification_body)
+    - chosen_course (or variations: course, course_name, program)
+    
+    The system will automatically map column headers to the appropriate fields.
+  `,
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Learners imported successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: {
+          type: 'string',
+          example: 'Successfully imported 5 learners',
+        },
+        summary: {
+          type: 'object',
+          properties: {
+            totalProcessed: { type: 'number', example: 6 },
+            imported: { type: 'number', example: 5 },
+            errors: { type: 'number', example: 1 },
+          },
+        },
+        importedLearners: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              email: { type: 'string' },
+            },
+          },
+        },
+        errorDetails: {
+          type: 'object',
+          properties: {
+            errorReport: { type: 'string' },
+            errors: { type: 'array' },
+          },
         },
       },
     },
   })
-  @ApiOperation({
-    summary: 'Create leaners by importing file on the recruiter dashboard',
-  })
-  @ApiCreatedResponse({
-    description: 'Learner created successfully',
-  })
-  @ApiNotFoundResponse({ description: 'User not found' })
-  @ApiNotFoundResponse({ description: 'Recruiter not found for the user' })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized',
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation errors or file issues',
+    schema: {
+      type: 'object',
+      properties: {
+        error: {
+          type: 'string',
+          enum: [
+            'FILE_MISSING',
+            'INVALID_FILE_TYPE',
+            'FILE_TOO_LARGE',
+            'CSV_PARSE_ERROR',
+            'EMPTY_CSV',
+            'NO_VALID_RECORDS',
+            'ALL_DUPLICATES',
+          ],
+          example: 'NO_VALID_RECORDS',
+        },
+        message: { type: 'string', example: 'No valid records found in CSV' },
+        details: {
+          type: 'string',
+          example: 'All records in the CSV file have validation errors',
+        },
+        errorReport: { type: 'string' },
+        errors: { type: 'array' },
+      },
+    },
   })
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('file'))
@@ -123,17 +211,30 @@ export class RecruiterController {
     try {
       return await this.recruiterService.importLearners(userId, file);
     } catch (error) {
-      this.logger.error(error.message);
+      this.logger.error(`File upload error: ${error.message}`, error.stack);
+
+      // Re-throw BadRequestException with structured error
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
       if (error instanceof NotFoundException) {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      } else if (error instanceof ConflictException) {
-        throw new HttpException(error.message, HttpStatus.CONFLICT);
-      } else {
-        throw new HttpException(
-          error.message,
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
       }
+
+      if (error instanceof ConflictException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      }
+
+      // Generic error for unexpected issues
+      throw new HttpException(
+        {
+          error: 'UNEXPECTED_ERROR',
+          message: 'An unexpected error occurred during file processing',
+          details: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
 

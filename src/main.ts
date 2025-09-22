@@ -47,6 +47,6 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionFilter(httpAdapterHost));
 
   setupSwagger(app);
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 }
 bootstrap();

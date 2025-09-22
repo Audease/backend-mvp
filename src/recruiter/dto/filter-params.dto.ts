@@ -36,7 +36,7 @@ export class FilterStudentsDto {
     description:
       'Sort order by creation date (asc for oldest first, desc for newest first)',
     enum: ['asc', 'desc'],
-    default: 'asc',
+    default: 'desc',
   })
-  sort?: 'asc' | 'desc' = 'asc';
+  sort?: 'asc' | 'desc' = 'desc';
 }

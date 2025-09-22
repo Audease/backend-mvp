@@ -43,6 +43,7 @@ export class InductorService {
 
     const [results, total] = await queryBuilder
       .skip((page - 1) * limit)
+      .orderBy('prospective_student.created_at', 'DESC') // Add this line
       .take(limit)
       .getManyAndCount();
 
@@ -149,6 +150,7 @@ export class InductorService {
     // Execute the query with pagination
     const [results, total] = await queryBuilder
       .skip((page - 1) * limit)
+      .orderBy('prospective_student.created_at', 'DESC') // Add this line
       .take(limit)
       .getManyAndCount();
 

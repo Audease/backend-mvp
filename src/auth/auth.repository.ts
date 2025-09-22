@@ -60,4 +60,42 @@ export class AuthRepository {
     school.status = status;
     return await this.schoolRepository.save(school);
   }
+
+  async findSchoolBySubdomain(subdomain: string): Promise<School> {
+    return await this.schoolRepository.findOne({
+      where: { subdomain },
+    });
+  }
+
+  async findSchoolByDomain(domain: string): Promise<School> {
+    return await this.schoolRepository.findOne({
+      where: { custom_domain: domain },
+    });
+  }
+
+  async updateSchoolDomain(
+    schoolId: string,
+    subdomain: string,
+    customDomain: string
+  ): Promise<School> {
+    await this.schoolRepository.update(schoolId, {
+      subdomain,
+      custom_domain: customDomain,
+      domain_configured_at: new Date(),
+    });
+
+    return await this.schoolRepository.findOne({
+      where: { id: schoolId },
+    });
+  }
+
+  async verifySchoolDomain(schoolId: string): Promise<School> {
+    await this.schoolRepository.update(schoolId, {
+      domain_verified: true,
+    });
+
+    return await this.schoolRepository.findOne({
+      where: { id: schoolId },
+    });
+  }
 }
